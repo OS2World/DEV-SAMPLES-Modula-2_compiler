@@ -1,0 +1,6 @@
+LIBRARY PMWP
+EXPORTS
+  WPObjectClassData         @0x17
+  WPObjectNewClass          @0x18
+  M_WPObjectClassData       @0x43
+  M_WPObjectNewClass        @0x44

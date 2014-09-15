@@ -1,0 +1,290 @@
+DEFINITION MODULE DOSPROCESS;
+
+(*************************************************************************
+  OS/2 2.0 interface for process and thread support.
+
+  (c) 1992 by Juergen Neuhoff
+**************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF IMPORT TYPEPREFIX, APIRET, HMODULE, LHANDLE, TID, PID;
+
+
+TYPE (* Thread Information Block (TIB) *)
+  TIB2                = RECORD       (* system specifiy TIB *)
+    CASE                : TYPEPREFIX OF
+    | TRUE              :
+      tib2_ultid        : LONGCARD;  (* Thread I.D. *)
+      tib2_ulpri        : LONGCARD;  (* Thread priority *)
+      tib2_version      : LONGCARD;  (* Version number for this structure *)
+      tib2_usMCCount    : CARDINAL;  (* Must Complete count *)
+      tib2_fMCForceFlag : CARDINAL;  (* Must Complete force flag *)
+    | FALSE             :
+      Tid               : LONGCARD;  (* Thread I.D. *)
+      Pri               : LONGCARD;  (* Thread priority *)
+      Version           : LONGCARD;  (* Version number for this structure *)
+      MCCount           : CARDINAL;  (* Must Complete count *)
+      MCForceFlag       : CARDINAL;  (* Must Complete force flag *)
+    END;                END;
+  PTIB2               = POINTER TO TIB2;
+  TIB                 = RECORD      (* TIB Thread Information Block *)
+    CASE                : TYPEPREFIX OF
+    | TRUE              :
+      tib_pexchain      : SYSTEM.LONGWORD; (* Head of exception handler chain *)
+      tib_pstack        : SYSTEM.ADDRESS;  (* Pointer to base of stack *)
+      tib_pstacklimit   : SYSTEM.ADDRESS;  (* Pointer to end of stack *)
+      tib_ptib2         : PTIB2;           (* Pointer to system specific TIB *)
+      tib_version       : LONGCARD;        (* Version number for this TIB structure *)
+      tib_ordinal       : LONGCARD;        (* Thread ordinal number *)
+    | FALSE             :
+      ExChain           : SYSTEM.LONGWORD; (* Head of exception handler chain *)
+      Stack             : SYSTEM.ADDRESS;  (* Pointer to base of stack *)
+      StackLimit        : SYSTEM.ADDRESS;  (* Pointer to end of stack *)
+      Tib2              : PTIB2;           (* Pointer to system specific TIB *)
+      Version           : LONGCARD;        (* Version number for this TIB structure *)
+      Ordinal           : LONGCARD;        (* Thread ordinal number *)
+    END;                END;
+  tib_t               = TIB;
+  tib_s               = TIB;
+  PTIB                = POINTER TO TIB;
+
+
+TYPE (* Process Information Block (PIB) *)
+  PIB                 = RECORD
+    CASE                : TYPEPREFIX OF
+    | TRUE              :
+      pib_ulpid         : LONGCARD;        (* Process I.D. *)
+      pib_ulppid        : LONGCARD;        (* Parent process I.D. *)
+      pib_hmte          : LONGCARD;        (* Program (.EXE) module handle *)
+      pib_pchcmd        : POINTER TO CHAR; (* Command line pointer *)
+      pib_pchenv        : POINTER TO CHAR; (* Environment pointer *)
+      pib_flstatus      : LONGCARD;        (* Process' status bits *)
+      pib_ultype        : LONGCARD;        (* Process' type code *)
+    | FALSE             :
+      ProcessId         : LONGCARD;        (* Process I.D. *)
+      ParentProcessId   : LONGCARD;        (* Parent process I.D. *)
+      ProgramModule     : LONGCARD;        (* Program (.EXE) module handle *)
+      Cmd               : POINTER TO CHAR; (* Command line pointer *)
+      Env               : POINTER TO CHAR; (* Environment pointer *)
+      Status            : LONGCARD;        (* Process' status bits *)
+      Type              : LONGCARD;        (* Process' type code *)
+    END;                END;
+  pib_s               = PIB;
+  pib_t               = PIB;
+  PPIB                = POINTER TO PIB;
+
+
+PROCEDURE DosBeep
+( Frequency         : LONGCARD;
+  Duration          : LONGCARD
+)                   : APIRET;
+
+CONST (* for DosExit ActionCode *)
+  EXIT_THREAD  = 0;
+  EXIT_PROCESS = 1;
+
+PROCEDURE DosExit
+( ActionCode        : LONGCARD;
+  ResultCode        : LONGCARD
+);
+
+TYPE
+  PFNTHREAD = PROCEDURE( SYSTEM.LONGWORD );
+
+PROCEDURE DosCreateThread
+( VAR ThreadId      : TID;
+  ThreadAddr        : PFNTHREAD;
+  ThreadArg         : SYSTEM.LONGWORD;
+  ThreadFlags       : LONGCARD;
+  StackSize         : LONGCARD
+)                   : APIRET;
+
+PROCEDURE DosResumeThread
+( ThreadId          : TID
+)                   : APIRET;
+
+PROCEDURE DosSuspendThread
+( ThreadId          : TID
+)                   : APIRET;
+
+PROCEDURE DosGetInfoBlocks
+( VAR TIBAddr       : PTIB;
+  VAR PIBAddr       : PPIB
+)                   : APIRET;
+
+PROCEDURE DosKillThread
+( ThreadId          : TID
+)                   : APIRET;
+
+CONST (* ActionCode values *)
+   DCWA_PROCESS     = 0;
+   DCWA_PROCESSTREE = 1;
+
+CONST (* WaitOption values *)
+   DCWW_WAIT        = 0;
+   DCWW_NOWAIT      = 1;
+
+TYPE (* ReturnCodes for DosWaitChild, DosExecPgm *)
+  RESULTCODES = RECORD
+    codeTerminate   : LONGCARD;
+    codeResult      : LONGCARD;
+  END;
+  PRESULTCODES      = POINTER TO RESULTCODES;
+
+CONST (* codeTerminate values (also passed to ExitList routines) *)
+  TC_EXIT           = 0;
+  TC_HARDERROR      = 1;
+  TC_TRAP           = 2;
+  TC_KILLPROCESS    = 3;
+  TC_EXCEPTION      = 4;
+
+PROCEDURE DosWaitChild
+( ActionCode        : LONGCARD;
+  WaitOption        : LONGCARD;
+  VAR ReturnCodes   : RESULTCODES;
+  VAR RetProcessId  : PID;
+  ProcessId         : PID
+)                   : APIRET;
+
+PROCEDURE DosWaitThread
+( VAR ThreadId      : TID;
+  WaitOption        : LONGCARD
+)                   : APIRET;
+
+PROCEDURE DosSleep
+( TimeInterval      : LONGCARD   (* in milliseconds *)
+)                   : APIRET;
+
+TYPE (* DbgBuf structure *)
+  DebugT = RECORD
+    Pid      : PID;              (* Debuggee Process ID *)
+    Tid      : TID;              (* Debuggee Thread ID *)
+    Cmd      : LONGINT;          (* Command or Notification *)
+    Value    : LONGINT;          (* Generic Data Value *)
+    Addr     : SYSTEM.ADDRESS;   (* Debuggee Address *)
+    Buffer   : SYSTEM.ADDRESS;   (* Debugger Buffer Address *)
+    Len      : LONGCARD;         (* Length of Range *)
+    Index    : LONGCARD;         (* Generic Identifier Index *)
+    MTE      : HMODULE;          (* Module Handle *)
+    EAX      : LONGCARD;         (* Register Set *)
+    ECX      : LONGCARD;
+    EDX      : LONGCARD;
+    EBX      : LONGCARD;
+    ESP      : LONGCARD;
+    EBP      : LONGCARD;
+    ESI      : LONGCARD;
+    EDI      : LONGCARD;
+    EFlags   : LONGCARD;
+    EIP      : LONGCARD;
+    CSLim    : LONGCARD;         (* Byte Granular Limits *)
+    CSBase   : LONGCARD;         (* Byte Granular Base *)
+    CSAcc    : SHORTCARD;        (* AccessBytes *)
+    CSAtr    : SHORTCARD;        (* Attribute Bytes *)
+    CS       : CARDINAL;
+    DSLim    : LONGCARD;
+    DSBase   : LONGCARD;
+    DSAcc    : SHORTCARD;
+    DSAtr    : SHORTCARD;
+    DS       : CARDINAL;
+    ESLim    : LONGCARD;
+    ESBase   : LONGCARD;
+    ESAcc    : SHORTCARD;
+    ESAtr    : SHORTCARD;
+    ES       : CARDINAL;
+    FSLim    : LONGCARD;
+    FSBase   : LONGCARD;
+    FSAcc    : SHORTCARD;
+    FSAtr    : SHORTCARD;
+    FS       : CARDINAL;
+    GSLim    : LONGCARD;
+    GSBase   : LONGCARD;
+    GSAcc    : SHORTCARD;
+    GSAtr    : SHORTCARD;
+    GS       : CARDINAL;
+    SSLim    : LONGCARD;
+    SSBase   : LONGCARD;
+    SSAcc    : SHORTCARD;
+    SSAtr    : SHORTCARD;
+    SS       : CARDINAL;
+  END;
+
+PROCEDURE DosDebug
+( VAR DbgBuf        : DebugT
+)                   : APIRET;
+
+PROCEDURE DosEnterCritSec
+( )                 : APIRET;
+
+PROCEDURE DosExitCritSec
+( )                 : APIRET;
+
+CONST (* DosExitList FuncionOrder *)
+  EXLST_ADD         = 1;
+  EXLST_REMOVE      = 2;
+  EXLST_EXIT        = 3;
+
+TYPE
+  PFNEXITLIST       = PROC;
+
+PROCEDURE DosExitList
+( FunctionOrder     : LONGCARD;
+  RtnAddress        : PFNEXITLIST
+)                   : APIRET;
+
+CONST (* DosExecPgm ExecFlags *)
+  EXEC_SYNC          = 0;
+  EXEC_ASYNC         = 1;
+  EXEC_ASYNCRESULT   = 2;
+  EXEC_TRACE         = 3;
+  EXEC_BACKGROUND    = 4;
+  EXEC_LOAD          = 5;
+  EXEC_ASYNCRESULTDB = 6;
+
+PROCEDURE DosExecPgm
+( VAR ObjNameBuf    : ARRAY OF CHAR;
+  ObjNameBufL       : LONGCARD;
+  ExecFlags         : LONGCARD;
+  ArgPointer        : SYSTEM.ADDRESS;
+  EnvPointer        : SYSTEM.ADDRESS;
+  VAR ReturnCodes   : RESULTCODES;   (* see DosWaitChild *)
+  PgmPointer        : ARRAY OF CHAR
+)                   : APIRET;
+
+CONST (* Priority scopes *)
+  PRTYS_PROCESS          = 0;
+  PRTYS_PROCESSTREE      = 1;
+  PRTYS_THREAD           = 2;
+
+CONST (* Priority classes *)
+  PRTYC_NOCHANGE         = 0;
+  PRTYC_IDLETIME         = 1;
+  PRTYC_REGULAR          = 2;
+  PRTYC_TIMECRITICAL     = 3;
+  PRTYC_FOREGROUNDSERVER = 4;
+
+CONST (* Priority deltas *)
+  PRTYD_MINIMUM          = -31;
+  PRTYD_MAXIMUM          =  31;
+
+PROCEDURE DosSetPriority
+( Scope             : LONGCARD;
+  PriorityClass     : LONGCARD;
+  PriorityDelta     : LONGINT;
+  Id                : LHANDLE
+)                   : APIRET;
+
+CONST (* DosKillProcess ActionCode values *)
+  DKP_PROCESSTREE   = 0;
+  DKP_PROCESS       = 1;
+
+PROCEDURE DosKillProcess
+( ActionCode        : LONGCARD;
+  ProcessId         : PID
+)                   : APIRET;
+
+
+END DOSPROCESS.

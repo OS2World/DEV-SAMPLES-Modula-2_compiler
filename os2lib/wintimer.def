@@ -1,0 +1,6 @@
+LIBRARY PMWIN
+EXPORTS
+  WinStartTimer      @884
+  WinStopTimer       @885
+  WinGetCurrentTime  @750
+

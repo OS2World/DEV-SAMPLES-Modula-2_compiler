@@ -1,0 +1,103 @@
+DEFINITION MODULE WPCLASS;
+
+(************************************************************************
+  OS/2 2.x/3.0 interface for Workplace object class API's
+
+  Copyright (c) 1995 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+IMPORT OS2DEF;
+IMPORT WINPOINTERS;
+
+
+TYPE (* Common types *)
+  HOBJECT                = OS2DEF.LHANDLE;
+  HPOINTER               = WINPOINTERS.HPOINTER;
+  PSZ                    = OS2DEF.PSZ;
+
+CONST (* Standard object classes *)
+  CCHMAXCLASS            = 3;     (* Length of a classname     *)
+  QC_First               = 0;     (* Codes for OA_QueryContent *)
+  QC_Next                = 1;
+  QC_Last                = 2;
+
+TYPE (* An object's appearance (icon or bitmap or outline) *)
+  OBJECTIMAGE            = RECORD   (* oimg *)
+    CASE                   : OS2DEF.TYPEPREFIX OF
+    | TRUE                 :
+      hptrObject           : HPOINTER;
+    | FALSE                :
+      ObjectPointerHandle  : HPOINTER;
+    END;                   END;
+  POBJECTIMAGE           = POINTER TO OBJECTIMAGE;
+
+TYPE (* Class info structure returned by WinEnumObjectClasses *)
+  POBJCLASS              = POINTER TO OBJCLASS;
+  OBJCLASS               = RECORD       (* ocls *)
+    CASE                   : OS2DEF.TYPEPREFIX OF
+    | TRUE                 :
+      pNext                : POBJCLASS; (* Null for the last structure.. *)
+      pszClassName         : PSZ;       (* Class name *)
+      pszModName           : PSZ;       (* Module name *)
+    | FALSE                :
+      Next                 : POBJCLASS; (* Null for the last structure.. *)
+      ClassName            : PSZ;       (* Class name *)
+      ModName              : PSZ;       (* Module name *)
+    END;                   END;
+
+
+(*** Workplace object management functions *)
+
+PROCEDURE WinRegisterObjectClass
+( ClassName              : ARRAY OF CHAR;
+  ModName                : ARRAY OF CHAR
+)                        : BOOLEAN;
+
+PROCEDURE WinDeregisterObjectClass
+( ClassName              : ARRAY OF CHAR
+)                        : BOOLEAN;
+
+PROCEDURE WinReplaceObjectClass
+( OldClassName           : ARRAY OF CHAR;
+  NewClassName           : ARRAY OF CHAR;
+  Replace                : BOOLEAN
+)                        : BOOLEAN;
+
+PROCEDURE WinEnumObjectClasses
+( ObjClass               : POBJCLASS;
+  VAR Size               : LONGCARD
+)                        : BOOLEAN;
+
+PROCEDURE WinCreateObject
+( ClassName              : ARRAY OF CHAR;
+  Title                  : ARRAY OF CHAR;
+  SetupString            : ARRAY OF CHAR;
+  Location               : ARRAY OF CHAR;
+  Flags                  : LONGCARD
+)                        : HOBJECT;
+
+CONST (* for WinCreateObject() Flags *)
+  CO_FAILIFEXISTS        = 0;
+  CO_REPLACEIFEXISTS     = 1;
+  CO_UPDATEIFEXISTS      = 2;
+
+PROCEDURE WinSetObjectData
+( ObjectHandle           : HOBJECT;
+  SetupString            : ARRAY OF CHAR
+)                        : BOOLEAN;
+
+PROCEDURE WinDestroyObject
+( ObjectHandle           : HOBJECT
+)                        : BOOLEAN;
+
+PROCEDURE WinQueryObject
+( ObjectId               : ARRAY OF CHAR
+)                        : HOBJECT;
+
+
+END WPCLASS.

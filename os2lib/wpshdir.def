@@ -1,0 +1,6 @@
+LIBRARY PMWP
+EXPORTS
+  WPSharedDirClassData         @0x019D
+  WPSharedDirNewClass          @0x019E
+  M_WPSharedDirClassData       @0x018E
+  M_WPSharedDirNewClass        @0x018F

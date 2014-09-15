@@ -1,0 +1,4 @@
+LIBRARY DOSCALLS
+EXPORTS
+  DosCreatePipe    @239
+

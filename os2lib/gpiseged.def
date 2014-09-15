@@ -1,0 +1,18 @@
+LIBRARY PMGPI
+EXPORTS
+  GpiBeginElement                     @353
+  GpiEndElement                       @386
+  GpiLabel                            @397
+  GpiElement                          @384
+  GpiQueryElement                     @449
+  GpiDeleteElement                    @372
+  GpiDeleteElementRange               @373
+  GpiDeleteElementsBetweenLabels      @374
+  GpiQueryEditMode                    @448
+  GpiSetEditMode                      @523
+  GpiQueryElementPointer              @450
+  GpiSetElementPointer                @524
+  GpiOffsetElementPointer             @406
+  GpiQueryElementType                 @451
+  GpiSetElementPointerAtLabel         @525
+

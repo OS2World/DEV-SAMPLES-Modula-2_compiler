@@ -1,0 +1,154 @@
+DEFINITION MODULE GPILOGCOLORTABLE;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager
+           GPI Logical Color Tables.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM   OS2DEF  IMPORT HPS, HAB, HPAL;
+
+CONST (* options for GpiCreateLogColorTable and others *)
+  LCOL_RESET                   = 0001H;
+  LCOL_REALIZABLE              = 0002H;
+  LCOL_PURECOLOR               = 0004H;
+  LCOL_OVERRIDE_DEFAULT_COLORS = 0008H;
+  LCOL_REALIZED                = 0010H;
+
+CONST (* format of logical lColor table for GpiCreateLogColorTable and others *)
+  LCOLF_DEFAULT                = 0;
+  LCOLF_INDRGB                 = 1;
+  LCOLF_CONSECRGB              = 2;
+  LCOLF_RGB                    = 3;
+  LCOLF_PALETTE                = 4;
+
+CONST (* options for GpiQueryRealColors and others *)
+  LCOLOPT_REALIZED             = 0001H;
+  LCOLOPT_INDEX                = 0002H;
+
+CONST (* return codes from GpiQueryLogColorTable to indicate it is in RGB mode *)
+  QLCT_ERROR                   = -1;
+  QLCT_RGB                     = -2;
+
+CONST (* GpiQueryLogColorTable index returned for colors not explicitly loaded *)
+  QLCT_NOTLOADED               = -1;
+
+CONST (* return codes for GpiQueryColorData *)
+  QCD_LCT_FORMAT               = 0;
+  QCD_LCT_LOINDEX              = 1;
+  QCD_LCT_HIINDEX              = 2;
+  QCD_LCT_OPTIONS              = 3;
+
+CONST (* Palette manager return values *)
+  PAL_ERROR                    = -1;
+
+CONST (* color flags for GpiCreatePalette and others *)
+  PC_RESERVED                  = 01H;
+  PC_EXPLICIT                  = 02H;
+  PC_NOCOLLAPSE                = 04H;
+
+(*** logical lColor table functions *)
+
+PROCEDURE GpiCreateLogColorTable
+( PresSpaceHandle              : HPS;
+  Options                      : LONGCARD;
+  Format                       : LONGINT;
+  Start                        : LONGINT;
+  Count                        : LONGINT;
+  VAR Colors                   : ARRAY OF LONGINT
+)                              : BOOLEAN;
+
+PROCEDURE GpiQueryColorData
+( PresSpaceHandle              : HPS;
+  Count                        : LONGINT;
+  VAR Colors                   : ARRAY OF LONGINT
+)                              : BOOLEAN;
+
+PROCEDURE GpiQueryLogColorTable
+( PresSpaceHandle              : HPS;
+  Options                      : LONGCARD;
+  Start                        : LONGINT;
+  Count                        : LONGINT;
+  VAR Colors                   : ARRAY OF LONGINT
+)                              : LONGINT;
+
+PROCEDURE GpiQueryRealColors
+( PresSpaceHandle              : HPS;
+  Options                      : LONGCARD;
+  Start                        : LONGINT;
+  Count                        : LONGINT;
+  VAR Colors                   : ARRAY OF LONGINT
+)                              : LONGINT;
+
+PROCEDURE GpiQueryNearestColor
+( PresSpaceHandle              : HPS;
+  Options                      : LONGCARD;
+  RgbIn                        : LONGINT
+)                              : LONGINT;
+
+PROCEDURE GpiQueryColorIndex
+( PresSpaceHandle              : HPS;
+  Options                      : LONGCARD;
+  RgbColor                     : LONGINT
+)                              : LONGINT;
+
+PROCEDURE GpiQueryRGBColor
+( PresSpaceHandle              : HPS;
+  Options                      : LONGCARD;
+  ColorIndex                   : LONGINT
+)                              : LONGINT;
+
+(*** Palette manager functions *)
+
+PROCEDURE GpiCreatePalette
+( AnchorBlockHandle            : HAB;
+  Options                      : LONGCARD;
+  Format                       : LONGCARD;
+  Count                        : LONGCARD;
+  VAR Palette                  : ARRAY OF LONGCARD
+)                              : HPAL;
+
+PROCEDURE GpiDeletePalette
+( PaletteHandle                : HPAL
+)                              : BOOLEAN;
+
+PROCEDURE GpiSelectPalette
+( PresSpaceHandle              : HPS;
+  PaletteHandle                : HPAL
+)                              : HPAL;
+
+PROCEDURE GpiAnimatePalette
+( PaletteHandle                : HPAL;
+  Format                       : LONGCARD;
+  Start                        : LONGCARD;
+  Count                        : LONGCARD;
+  VAR Palette                  : ARRAY OF LONGCARD
+)                              : LONGINT;
+
+PROCEDURE GpiSetPaletteEntries
+( PaletteHandle                : HPAL;
+  Format                       : LONGCARD;
+  Start                        : LONGCARD;
+  Count                        : LONGCARD;
+  VAR Palette                  : ARRAY OF LONGCARD
+)                              : BOOLEAN;
+
+PROCEDURE GpiQueryPalette
+( PresSpaceHandle              : HPS
+)                              : HPAL;
+
+PROCEDURE GpiQueryPaletteInfo
+( PaletteHandle                : HPAL;
+  PresSpaceHandle              : HPS;
+  Options                      : LONGCARD;
+  Start                        : LONGCARD;
+  Count                        : LONGCARD;
+  VAR Palette                  : ARRAY OF LONGCARD
+)                              : LONGINT;
+
+END GPILOGCOLORTABLE.

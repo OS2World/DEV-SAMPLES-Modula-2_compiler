@@ -1,0 +1,697 @@
+DEFINITION MODULE WINSTDCNR;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager
+           CUA container control class.
+           19.02.95 16.36 Bugs fixed : CDATE CTIME
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM OS2DEF        IMPORT TYPEPREFIX, HBITMAP, POINTL, PSZ, HWND, RECTL, HPS;
+FROM WINDEF        IMPORT PVOID;
+FROM GPIDEF        IMPORT SIZEL;
+FROM WINPOINTERS   IMPORT HPOINTER;
+FROM WINSTDDRAG    IMPORT PDRAGINFO;
+
+(*************************************************************************)
+(*    Error constants                                                    *)
+(*************************************************************************)
+CONST
+  PMERR_NOFILTERED_ITEMS            = 1F02H;
+  PMERR_COMPARISON_FAILED           = 1F03H;
+  PMERR_RECORD_CURRENTLY_INSERTED   = 1F04H;
+  PMERR_FI_CURRENTLY_INSERTED       = 1F05H;
+
+(*************************************************************************)
+(*    Container control styles.                                          *)
+(*************************************************************************)
+CONST
+  CCS_EXTENDSEL                     = 00000001H;
+  CCS_MULTIPLESEL                   = 00000002H;
+  CCS_SINGLESEL                     = 00000004H;
+  CCS_AUTOPOSITION                  = 00000008H;
+  CCS_VERIFYPOINTERS                = 00000010H;
+  CCS_READONLY                      = 00000020H;
+  CCS_MINIRECORDCORE                = 00000040H;
+
+(*************************************************************************)
+(*    view identifiers           (flWindowAttr)                          *)
+(*************************************************************************)
+CONST
+  CV_TEXT                           = 00000001H; (* text view            *)
+  CV_NAME                           = 00000002H; (* name view            *)
+  CV_ICON                           = 00000004H; (* icon view            *)
+  CV_DETAIL                         = 00000008H; (* detail view          *)
+  CV_FLOW                           = 00000010H; (* flow items           *)
+  CV_MINI                           = 00000020H; (* use mini icon        *)
+  CV_TREE                           = 00000040H; (* tree view            *)
+
+(*************************************************************************)
+(*    Container Attributes        (flWindowAttr)                         *)
+(*************************************************************************)
+CONST
+  CA_CONTAINERTITLE                 = 00000200H;
+  CA_TITLESEPARATOR                 = 00000400H;
+  CA_TITLELEFT                      = 00000800H;
+  CA_TITLERIGHT                     = 00001000H;
+  CA_TITLECENTER                    = 00002000H;
+  CA_OWNERDRAW                      = 00004000H;
+  CA_DETAILSVIEWTITLES              = 00008000H;
+  CA_ORDEREDTARGETEMPH              = 00010000H;
+  CA_DRAWBITMAP                     = 00020000H;
+  CA_DRAWICON                       = 00040000H;
+  CA_TITLEREADONLY                  = 00080000H;
+  CA_OWNERPAINTBACKGROUND           = 00100000H;
+  CA_MIXEDTARGETEMPH                = 00200000H;
+  CA_TREELINE                       = 00400000H;
+
+(*************************************************************************)
+(*    child window IDs                                                   *)
+(*************************************************************************)
+CONST
+  CID_LEFTCOLTITLEWND               = 7FF0H; (* column title (left)       *)
+  CID_RIGHTCOLTITLEWND              = 7FF1H; (* right column title        *)
+  CID_BLANKBOX                      = 7FF2H; (* blank box at bottom right *)
+  CID_HSCROLL                       = 7FF3H; (* horizontal scroll bar     *)
+  CID_RIGHTHSCROLL                  = 7FF4H; (* right horz scroll bar     *)
+  CID_CNRTITLEWND                   = 7FF5H; (* Container title window    *)
+  CID_LEFTDVWND                     = 7FF7H; (* Left Details View window  *)
+  CID_RIGHTDVWND                    = 7FF8H; (* Right Details View window *)
+  CID_VSCROLL                       = 7FF9H; (* vertical scroll bar       *)
+  CID_MLE                           = 7FFAH; (* MLE window for direct edit*)
+
+(*************************************************************************)
+(*    Bitmap descriptor array element.                                   *)
+(*************************************************************************)
+TYPE
+  TREEITEMDESC                      = RECORD  (* treend *)
+    CASE                              : TYPEPREFIX OF
+    | TRUE                            :
+      hbmExpanded                     : HBITMAP;
+      hbmCollapsed                    : HBITMAP;
+      hptrExpanded                    : HPOINTER;
+      hptrCollapsed                   : HPOINTER;
+    | FALSE                           :
+      ExpandedBitMapHandle            : HBITMAP;
+      CollapsedBitMapHandle           : HBITMAP;
+      ExpandedPointerHandle           : HPOINTER;
+      CollapsedPointerHandle          : HPOINTER;
+    END;                              END;
+  PTREEITEMDESC                     = POINTER TO TREEITEMDESC;
+
+(*************************************************************************)
+(*    Field Info data structure, attribute and data types, CV_DETAIL     *)
+(*************************************************************************)
+TYPE
+  PFIELDINFO            = POINTER TO FIELDINFO;
+  FIELDINFO             = RECORD       (* fldinfo *)
+    CASE                  : TYPEPREFIX OF
+    | TRUE                :
+      cb                  : LONGCARD;  (* size of FIELDINFO struct       *)
+      flData              : LONGCARD;  (* attributes of field's data     *)
+      flTitle             : LONGCARD;  (* attributes of field's title    *)
+      pTitleData          : PVOID;     (* title data (default is string) *)
+                                       (* If CFT_BITMAP, must be HBITMAP *)
+      offStruct           : LONGCARD;  (* offset from RECORDCORE to data *)
+      pUserData           : PVOID;     (* pointer to user data           *)
+      pNextFieldInfo      : PFIELDINFO;(* pointer to next linked  *)
+                                       (*          FIELDINFO structure   *)
+      cxWidth             : LONGCARD;  (* width of field in pels         *)
+    | FALSE               :
+      Size                : LONGCARD;  (* size of FIELDINFO struct       *)
+      DataFlags           : LONGCARD;  (* attributes of field's data     *)
+      TitleFlags          : LONGCARD;  (* attributes of field's title    *)
+      TitleData           : PVOID;     (* title data (default is string) *)
+                                       (* If CFT_BITMAP, must be HBITMAP *)
+      StructOffset        : LONGCARD;  (* offset from RECORDCORE to data *)
+      UserData            : PVOID;     (* pointer to user data           *)
+      NextFieldInfo       : PFIELDINFO;(* pointer to next linked  *)
+                                       (*          FIELDINFO structure   *)
+      Width               : LONGCARD;  (* width of field in pels         *)
+    END;                  END;
+
+(*************************************************************************)
+(*    RECORDCORE data structure , attribute values                       *)
+(*************************************************************************)
+TYPE
+  PRECORDCORE           = POINTER TO RECORDCORE;
+  RECORDCORE            = RECORD          (* recc *)
+    CASE                  : TYPEPREFIX OF
+    | TRUE                :
+      cb                  : LONGCARD;
+      flRecordAttr        : LONGCARD;     (* record attributes             *)
+      ptlIcon             : POINTL;       (* Position of CV_ICON item      *)
+      preccNextRecord     : PRECORDCORE;  (* ptr to next record            *)
+      pszIcon             : PSZ;          (* Text for CV_ICON view         *)
+      hptrIcon            : HPOINTER;     (* Icon to display for ~CV_MINI  *)
+      hptrMiniIcon        : HPOINTER;     (* Icon to display for CV_MINI   *)
+      hbmBitmap           : HBITMAP;      (* Bitmap to display for ~CV_MINI*)
+      hbmMiniBitmap       : HBITMAP;      (* Bitmap to display for CV_MINI *)
+      pTreeItemDesc       : PTREEITEMDESC;(* Icons for the tree view       *)
+      pszText             : PSZ;          (* Text for CV_TEXT view         *)
+      pszName             : PSZ;          (* Text for CV_NAME view         *)
+      pszTree             : PSZ;          (* Text for CV_TREE view         *)
+    | FALSE               :
+      Size                : LONGCARD;
+      RecordAttr          : LONGCARD;     (* record attributes             *)
+      IconPos             : POINTL;       (* Position of CV_ICON item      *)
+      NextRecord          : PRECORDCORE;  (* ptr to next record            *)
+      IconText            : PSZ;          (* Text for CV_ICON view         *)
+      IconPointerHandle   : HPOINTER;     (* Icon to display for ~CV_MINI  *)
+      MiniIconPointerHandle : HPOINTER;   (* Icon to display for CV_MINI   *)
+      BitMapHandle        : HBITMAP;      (* Bitmap to display for ~CV_MINI*)
+      MiniBitmapHandle    : HBITMAP;      (* Bitmap to display for CV_MINI *)
+      TreeItemDesc        : PTREEITEMDESC;(* Icons for the tree view       *)
+      Text                : PSZ;          (* Text for CV_TEXT view         *)
+      Name                : PSZ;          (* Text for CV_NAME view         *)
+      Tree                : PSZ;          (* Text for CV_TREE view         *)
+    END;                  END;
+
+(*************************************************************************)
+(*    MINIRECORDCORE data structure, attribute values                    *)
+(*************************************************************************)
+TYPE
+  PMINIRECORDCORE       = POINTER TO MINIRECORDCORE;
+  MINIRECORDCORE        = RECORD          (* minirec *)
+    CASE                  : TYPEPREFIX OF
+    | TRUE                :
+      cb                  : LONGCARD;
+      flRecordAttr        : LONGCARD;     (* record attributes           *)
+      ptlIcon             : POINTL;       (* Position of CV_ICON item    *)
+      preccNextRecord     : PMINIRECORDCORE; (*ptr to next record        *)
+      pszIcon             : PSZ;          (* Text for CV_ICON view       *)
+      hptrIcon            : HPOINTER;     (* Icon to display for ~CV_MINI*)
+    | FALSE               :
+      Size                : LONGCARD;
+      RecordAttr          : LONGCARD;     (* record attributes           *)
+      IconPos             : POINTL;       (* Position of CV_ICON item    *)
+      NextRecord          : PMINIRECORDCORE; (*ptr to next record        *)
+      IconText            : PSZ;          (* Text for CV_ICON view       *)
+      IconPointerHandle   : HPOINTER;     (* Icon to display for ~CV_MINI*)
+    END;                  END;
+
+(*************************************************************************)
+(*    CNRINFO data structure, describes the container control.           *)
+(*************************************************************************)
+TYPE
+  PCNRINFO                 = POINTER TO CNRINFO;
+  CNRINFO                  = RECORD       (* ccinfo *)
+    CASE                     : TYPEPREFIX OF
+    | TRUE                   :
+      cb                     : LONGCARD;  (* size of CNRINFO struct        *)
+      pSortRecord            : PVOID;     (* ptr to sort function,         *)
+                                          (*   RECORDCORE                  *)
+      pFieldInfoLast         : PFIELDINFO;(* pointer to last column in     *)
+                                          (*   left pane of a split window.*)
+      pFieldInfoObject       : PFIELDINFO;(* Pointer to a column to        *)
+                                          (* represent an object.  This is *)
+                                          (* the column which will receive *)
+                                          (* IN-USE emphasis.              *)
+      pszCnrTitle            : PSZ;       (* text for container title. One *)
+                                          (*   string separated by line    *)
+                                          (*   separators for multi-lines  *)
+      flWindowAttr           : LONGCARD;  (* container attrs - CV_*, CA_*  *)
+      ptlOrigin              : POINTL;    (* lower-left origin in virtual  *)
+                                          (*   coordinates. CV_ICON view   *)
+      cDelta                 : LONGCARD;  (* Application defined threshold *)
+                                          (*   or number of records from   *)
+                                          (*   either end of the list.     *)
+      cRecords               : LONGCARD;  (* number of records in container*)
+      slBitmapOrIcon         : SIZEL;     (* size of bitmap in pels        *)
+      slTreeBitmapOrIcon     : SIZEL;     (* size of tree bitmaps in pels  *)
+      hbmExpanded            : HBITMAP;   (* bitmap  for tree node         *)
+      hbmCollapsed           : HBITMAP;   (* bitmap  for tree node         *)
+      hptrExpanded           : HPOINTER;  (* icon    for tree node         *)
+      hptrCollapsed          : HPOINTER;  (* icon    for tree node         *)
+      cyLineSpacing          : LONGINT;   (* space between two rows        *)
+      cxTreeIndent           : LONGINT;   (* indent for children           *)
+      cxTreeLine             : LONGINT;   (* thickness of the Tree Line    *)
+      cFields                : LONGCARD;  (* number of fields  in container*)
+    END;
+    xVertSplitbar            : LONGINT;   (* position relative to the      *)
+                                          (*   container (CV_DETAIL); if   *)
+                                          (*   0xFFFF then unsplit         *)
+                             END;
+
+TYPE
+  CDATE                    = RECORD        (* cdate *)
+    CASE                     : TYPEPREFIX OF
+    | TRUE                   :
+      day                    : SHORTCARD;  (* current day               *)
+      month                  : SHORTCARD;  (* current month             *)
+      year                   : CARDINAL;   (* current year              *)
+    | FALSE                  :
+      Day                    : SHORTCARD;  (* current day               *)
+      Month                  : SHORTCARD;  (* current month             *)
+      Year                   : CARDINAL;   (* current year              *)
+    END;                     END;
+  PCDATE                   = POINTER TO CDATE;
+
+TYPE
+  CTIME                    = RECORD        (* ctime *)
+    CASE                     : TYPEPREFIX OF
+    | TRUE                   :
+      hours                  : SHORTCARD;  (* current hour              *)
+      minutes                : SHORTCARD;  (* current minute            *)
+      seconds                : SHORTCARD;  (* current second            *)
+      ucReserved             : SHORTCARD;  (* reserved                  *)
+    | FALSE                  :
+      Hours                  : SHORTCARD;  (* current hour              *)
+      Minutes                : SHORTCARD;  (* current minute            *)
+      Seconds                : SHORTCARD;  (* current second            *)
+      Reserved               : SHORTCARD;  (* reserved                  *)
+    END;                     END;
+  PCTIME                   = POINTER TO CTIME;
+
+(*************************************************************************)
+(*    attribute and type values for flData and flTitle members of        *)
+(*    FIELDINFO, CFA_ (attributes), CFT_ (types)                         *)
+(*************************************************************************)
+CONST
+  CFA_LEFT                 = 00000001H; (* left align text            *)
+  CFA_RIGHT                = 00000002H; (* right align text           *)
+  CFA_CENTER               = 00000004H; (* center text                *)
+  CFA_TOP                  = 00000008H; (* top-align text             *)
+  CFA_VCENTER              = 00000010H; (* vertically center text     *)
+  CFA_BOTTOM               = 00000020H; (* bottom-align text          *)
+  CFA_INVISIBLE            = 00000040H; (* Specify invisible column.  *)
+  CFA_BITMAPORICON         = 00000100H; (* field title is bitmap      *)
+  CFA_SEPARATOR            = 00000200H; (* vert sep, right of fld     *)
+  CFA_HORZSEPARATOR        = 00000400H; (* horz sep, bottom of fld    *)
+  CFA_STRING               = 00000800H; (* string of characters       *)
+  CFA_OWNER                = 00001000H; (* ownerdraw field            *)
+  CFA_DATE                 = 00002000H; (* date structure             *)
+  CFA_TIME                 = 00004000H; (* time structure             *)
+  CFA_FIREADONLY           = 00008000H; (* Column is read-only.       *)
+  CFA_FITITLEREADONLY      = 00010000H; (* Column Title is read-only  *)
+  CFA_ULONG                = 00020000H; (* Column is number format    *)
+
+(*************************************************************************)
+(*    attribute values for flRecordAttr member of RECORDCORE             *)
+(*************************************************************************)
+CONST
+  CRA_SELECTED             = 00000001H; (* record is selected         *)
+  CRA_TARGET               = 00000002H; (* record has target emphasis *)
+  CRA_CURSORED             = 00000004H; (* cursor is on the record    *)
+  CRA_INUSE                = 00000008H; (* record has in-use emphasis *)
+  CRA_FILTERED             = 00000010H; (* record has been filtered   *)
+  CRA_DROPONABLE           = 00000020H; (* record can be dropped on   *)
+  CRA_RECORDREADONLY       = 00000040H; (* record is read-only        *)
+  CRA_EXPANDED             = 00000080H; (* record is expanded         *)
+  CRA_COLLAPSED            = 00000100H; (* record is collapsed        *)
+
+(*************************************************************************)
+(*    Container messages                                                 *)
+(*************************************************************************)
+CONST
+  CM_ALLOCDETAILFIELDINFO        = 0330H;
+  CM_ALLOCRECORD                 = 0331H;
+  CM_ARRANGE                     = 0332H;
+  CM_ERASERECORD                 = 0333H;
+  CM_FILTER                      = 0334H;
+  CM_FREEDETAILFIELDINFO         = 0335H;
+  CM_FREERECORD                  = 0336H;
+  CM_HORZSCROLLSPLITWINDOW       = 0337H;
+  CM_INSERTDETAILFIELDINFO       = 0338H;
+  CM_INSERTRECORD                = 0339H;
+  CM_INVALIDATEDETAILFIELDINFO   = 033AH;
+  CM_INVALIDATERECORD            = 033BH;
+  CM_PAINTBACKGROUND             = 033CH;
+  CM_QUERYCNRINFO                = 033DH;
+  CM_QUERYDETAILFIELDINFO        = 033EH;
+  CM_QUERYDRAGIMAGE              = 033FH;
+  CM_QUERYRECORD                 = 0340H;
+  CM_QUERYRECORDEMPHASIS         = 0341H;
+  CM_QUERYRECORDFROMRECT         = 0342H;
+  CM_QUERYRECORDRECT             = 0343H;
+  CM_QUERYVIEWPORTRECT           = 0344H;
+  CM_REMOVEDETAILFIELDINFO       = 0345H;
+  CM_REMOVERECORD                = 0346H;
+  CM_SCROLLWINDOW                = 0347H;
+  CM_SEARCHSTRING                = 0348H;
+  CM_SETCNRINFO                  = 0349H;
+  CM_SETRECORDEMPHASIS           = 034AH;
+  CM_SORTRECORD                  = 034BH;
+  CM_OPENEDIT                    = 034CH;
+  CM_CLOSEEDIT                   = 034DH;
+  CM_COLLAPSETREE                = 034EH;
+  CM_EXPANDTREE                  = 034FH;
+  CM_QUERYRECORDINFO             = 0350H;
+
+(*************************************************************************)
+(*    Container notifications                                            *)
+(*************************************************************************)
+CONST
+  CN_DRAGAFTER                = 101;
+  CN_DRAGLEAVE                = 102;
+  CN_DRAGOVER                 = 103;
+  CN_DROP                     = 104;
+  CN_DROPHELP                 = 105;
+  CN_ENTER                    = 106;
+  CN_INITDRAG                 = 107;
+  CN_EMPHASIS                 = 108;
+  CN_KILLFOCUS                = 109;
+  CN_SCROLL                   = 110;
+  CN_QUERYDELTA               = 111;
+  CN_SETFOCUS                 = 112;
+  CN_REALLOCPSZ               = 113;
+  CN_BEGINEDIT                = 114;
+  CN_ENDEDIT                  = 115;
+  CN_COLLAPSETREE             = 116;
+  CN_EXPANDTREE               = 117;
+  CN_HELP                     = 118;
+  CN_CONTEXTMENU              = 119;
+
+(*************************************************************************)
+(*      Data Structures for Message Parameters                           *)
+(*************************************************************************)
+
+(*************************************************************************)
+(*    Container Direct Manipulation structures                           *)
+(*************************************************************************)
+TYPE
+  CNRDRAGINIT              = RECORD  (* cdrginit *)
+    CASE                     : TYPEPREFIX OF
+    | TRUE                   :
+      hwndCnr                : HWND;       (* Container window handle   *)
+      pRecord                : PRECORDCORE;(* record under mouse ptr    *)
+    | FALSE                  :
+      CnrWinHandle           : HWND;       (* Container window handle   *)
+      Record                 : PRECORDCORE;(* record under mouse ptr    *)
+    END;
+    x                        : LONGINT;    (* x coordinate of mouse ptr *)
+    y                        : LONGINT;    (* y coordinate of mouse ptr *)
+    CASE                     : TYPEPREFIX OF
+    | TRUE                   :
+      cx                     : LONGINT;    (* x offset from record      *)
+      cy                     : LONGINT;    (* y offset from record      *)
+    | FALSE                  :
+      xSize                  : LONGINT;    (* x offset from record      *)
+      ySize                  : LONGINT;    (* y offset from record      *)
+    END;                     END;
+  PCNRDRAGINIT             = POINTER TO CNRDRAGINIT;
+
+(*************************************************************************)
+(*    Data structure for CM_INSERTDETAILFIELDINFO                        *)
+(*    This structure is used by the application to specify the position  *)
+(*    of the FieldInfo structures they are inserting.                    *)
+(*************************************************************************)
+TYPE
+  FIELDINFOINSERT        = RECORD        (* fiins *)
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      cb                   : LONGCARD;   (* Size of structure.             *)
+      pFieldInfoOrder      : PFIELDINFO; (* Specifies the order of the     *)
+                                         (* FieldInfo structures.          *)
+      fInvalidateFieldInf  : LONGCARD;   (* Invalidate on Insert.          *)
+      cFieldInfoInsert     : LONGCARD;   (* The number of FieldInfo        *)
+                                         (* structures to insert.          *)
+    | FALSE                :
+      Size                 : LONGCARD;   (* Size of structure.             *)
+      FieldInfoOrder       : PFIELDINFO; (* Specifies the order of the     *)
+                                         (* FieldInfo structures.          *)
+      InvalidateFieldInf   : LONGCARD;   (* Invalidate on Insert.          *)
+      FieldInfoInsertCount : LONGCARD;   (* The number of FieldInfo        *)
+                                         (* structures to insert.          *)
+    END;                   END;
+  PFIELDINFOINSERT       = POINTER TO FIELDINFOINSERT;
+
+(*************************************************************************)
+(*    Data structure for CM_INSERTRECORD                                 *)
+(*************************************************************************)
+TYPE
+  RECORDINSERT           = RECORD   (* recins *)
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      cb                   : LONGCARD;
+      pRecordOrder         : PRECORDCORE;
+      pRecordParent        : PRECORDCORE;
+      fInvalidateRecord    : LONGCARD;
+      zOrder               : LONGCARD;
+      cRecordsInsert       : LONGCARD;
+    | FALSE                :
+      Size                 : LONGCARD;
+      RecordOrder          : PRECORDCORE;
+      RecordParent         : PRECORDCORE;
+      InvalidateRecordFlag : LONGCARD;
+      Order                : LONGCARD;
+      RecordsInsertCount   : LONGCARD;
+    END;                   END;
+  PRECORDINSERT          = POINTER TO RECORDINSERT;
+
+(*************************************************************************)
+(*    Data structure for CM_QUERYRECORDFROMRECT                          *)
+(*************************************************************************)
+TYPE
+  QUERYRECFROMRECT       = RECORD  (* qrecfrct *)
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      cb                   : LONGCARD;
+      rect                 : RECTL;
+      fsSearch             : LONGCARD;
+    | FALSE                :
+      Size                 : LONGCARD;
+      Rect                 : RECTL;
+      SearchFlags          : LONGCARD;
+    END;                   END;
+  PQUERYRECFROMRECT      = POINTER TO QUERYRECFROMRECT;
+
+(*************************************************************************)
+(*    Data structure for CM_QUERYRECORDRECT                              *)
+(*************************************************************************)
+TYPE
+  QUERYRECORDRECT         = RECORD   (* qrecrct *)
+    CASE                    : TYPEPREFIX OF
+    | TRUE                  :
+      cb                    : LONGCARD;
+      pRecord               : PRECORDCORE;
+      fRightSplitWindow     : LONGCARD;
+      fsExtent              : LONGCARD;
+    | FALSE                 :
+      Size                  : LONGCARD;
+      Record                : PRECORDCORE;
+      RightSplitWindowFlags : LONGCARD;
+      ExtentFlags           : LONGCARD;
+    END;                    END;
+  PQUERYRECORDRECT        = POINTER TO QUERYRECORDRECT;
+
+(*************************************************************************)
+(*    Data structure for CM_SEARCHSTRING                                 *)
+(*************************************************************************)
+TYPE
+  SEARCHSTRING            = RECORD   (* srchstr *)
+    CASE                    : TYPEPREFIX OF
+    | TRUE                  :
+      cb                    : LONGCARD;
+      pszSearch             : PSZ;
+      fsPrefix              : LONGCARD;
+      fsCaseSensitive       : LONGCARD;
+      usView                : LONGCARD;
+    | FALSE                 :
+      Size                  : LONGCARD;
+      Search                : PSZ;
+      PrefixFlags           : LONGCARD;
+      CaseSensitiveFlags    : LONGCARD;
+      View                  : LONGCARD;
+    END;                    END;
+  PSEARCHSTRING           = POINTER TO SEARCHSTRING;
+
+(*************************************************************************)
+(*   Data Structure for CN_DRAGLEAVE,CN_DRAGOVER,CN_DROP,CN_DROPHELP     *)
+(*************************************************************************)
+TYPE
+  CNRDRAGINFO             = RECORD  (* cdrginfo *)
+    CASE                    : TYPEPREFIX OF
+    | TRUE                  :
+      pDragInfo             : PDRAGINFO;
+      pRecord               : PRECORDCORE;
+    | FALSE                 :
+      DragInfo              : PDRAGINFO;
+      Record                : PRECORDCORE;
+    END;                    END;
+  PCNRDRAGINFO            = POINTER TO CNRDRAGINFO;
+
+(*************************************************************************)
+(*    Data structure for CN_EMPHASIS                                     *)
+(*************************************************************************)
+TYPE
+  NOTIFYRECORDEMPHASIS    = RECORD  (* nrecemph *)
+    CASE                    : TYPEPREFIX OF
+    | TRUE                  :
+      hwndCnr               : HWND;
+      pRecord               : PRECORDCORE;
+      fEmphasisMask         : LONGCARD;
+    | FALSE                 :
+      CnrWinHandle          : HWND;
+      Record                : PRECORDCORE;
+      EmphasisMaskFlags     : LONGCARD;
+    END;                    END;
+  PNOTIFYRECORDEMPHASIS   = POINTER TO NOTIFYRECORDEMPHASIS;
+
+(*************************************************************************)
+(*    Data structure for CN_ENTER                                        *)
+(*************************************************************************)
+TYPE
+  NOTIFYRECORDENTER       = RECORD  (* notrecen *)
+    CASE                    : TYPEPREFIX OF
+    | TRUE                  :
+      hwndCnr               : HWND;
+      fKey                  : LONGCARD;
+      pRecord               : PRECORDCORE;
+    | FALSE                 :
+      CnrWinHandle          : HWND;
+      KeyFlags              : LONGCARD;
+      Record                : PRECORDCORE;
+    END;                    END;
+  PNOTIFYRECORDENTER      = POINTER TO NOTIFYRECORDENTER;
+
+(*************************************************************************)
+(*    Data structure for CN_QUERYDELTA                                   *)
+(*************************************************************************)
+TYPE
+  NOTIFYDELTA             = RECORD   (* notdlt *)
+    CASE                    : TYPEPREFIX OF
+    | TRUE                  :
+      hwndCnr               : HWND;
+      fDelta                : LONGCARD;
+    | FALSE                 :
+      CnrWinHandle          : HWND;
+      DeltaFlags            : LONGCARD;
+    END;                    END;
+  PNOTIFYDELTA            = POINTER TO NOTIFYDELTA;
+
+(*************************************************************************)
+(*    Data structure for CN_SCROLL                                       *)
+(*************************************************************************)
+TYPE
+  NOTIFYSCROLL            = RECORD  (* notscr *)
+    CASE                    : TYPEPREFIX OF
+    | TRUE                  :
+      hwndCnr               : HWND;
+      lScrollInc            : LONGINT;
+      fScroll               : LONGCARD;
+    | FALSE                 :
+      CurWinHandle          : HWND;
+      ScrollInc             : LONGINT;
+      ScrollFlags           : LONGCARD;
+    END;                    END;
+  PNOTIFYSCROLL           = POINTER TO NOTIFYSCROLL;
+
+(*************************************************************************)
+(*    Data structure for CN_REALLOCPSZ                                   *)
+(*************************************************************************)
+TYPE
+  CNREDITDATA             = RECORD              (* cnredat *)
+    CASE                    : TYPEPREFIX OF
+    | TRUE                  :
+      cb                    : LONGCARD;
+      hwndCnr               : HWND;
+      pRecord               : PRECORDCORE;
+      pFieldInfo            : PFIELDINFO;
+      ppszText              : POINTER TO PSZ;   (* address of PSZ        *)
+      cbText                : LONGCARD;         (* size of the new text  *)
+      id                    : LONGCARD;
+    | FALSE                 :
+      Size                  : LONGCARD;
+      CnrWinHandle          : HWND;
+      Record                : PRECORDCORE;
+      FieldInfo             : PFIELDINFO;
+      Text                  : POINTER TO PSZ;   (* address of PSZ        *)
+      TextSize              : LONGCARD;         (* size of the new text  *)
+      Id                    : LONGCARD;
+    END;                    END;
+  PCNREDITDATA            = POINTER TO CNREDITDATA;
+
+(*************************************************************************)
+(*    Data structure for CM_PAINTBACKGROUND                              *)
+(*************************************************************************)
+TYPE
+  OWNERBACKGROUND         = RECORD     (* ownbckg *)
+    CASE                    : TYPEPREFIX OF
+    | TRUE                  :
+      hwnd                  : HWND;
+      hps                   : HPS;
+      rclBackground         : RECTL;
+      idWindow              : LONGINT;
+    | FALSE                 :
+      WinHandle             : HWND;
+      PresSpaceHandle       : HPS;
+      BackgroundRect        : RECTL;
+      WindowId              : LONGINT;
+    END;                    END;
+  POWNERBACKGROUND        = POINTER TO OWNERBACKGROUND;
+
+(*************************************************************************)
+(*    Data structure used as part of WM_DRAWITEM                         *)
+(*************************************************************************)
+TYPE
+  CNRDRAWITEMINFO         = RECORD  (* cnrdrwii *)
+    CASE                    : TYPEPREFIX OF
+    | TRUE                  :
+      pRecord               : PRECORDCORE;
+      pFieldInfo            : PFIELDINFO;
+    | FALSE                 :
+      Record                : PRECORDCORE;
+      FieldInfo             : PFIELDINFO;
+    END;                    END;
+  PCNRDRAWITEMINFO        = POINTER TO CNRDRAWITEMINFO;
+
+(*************************************************************************)
+(*    Message parameter flags                                            *)
+(*************************************************************************)
+CONST
+  CMA_TOP                 = 0001H;     (* Place at top of zorder   *)
+  CMA_BOTTOM              = 0002H;     (* Place at bottom of zorder*)
+  CMA_LEFT                = 0004H;
+  CMA_RIGHT               = 0008H;
+  CMA_FIRST               = 0010H;     (* Add record as first      *)
+  CMA_LAST                = 0020H;
+  CMA_END                 = 0040H;     (* Add record to end of list*)
+  CMA_PREV                = 0080H;
+  CMA_NEXT                = 0100H;
+  CMA_HORIZONTAL          = 0200H;
+  CMA_VERTICAL            = 0400H;
+  CMA_ICON                = 0800H;
+  CMA_TEXT                = 1000H;
+  CMA_PARTIAL             = 2000H;
+  CMA_COMPLETE            = 4000H;
+  CMA_PARENT              = 0001H;
+  CMA_FIRSTCHILD          = 0002H;
+  CMA_LASTCHILD           = 0004H;
+  CMA_CNRTITLE            = 0001H;   (* Container title          *)
+  CMA_DELTA               = 0002H;   (* Application defined      *)
+  CMA_FLWINDOWATTR        = 0004H;   (* Container attributes     *)
+  CMA_LINESPACING         = 0008H;
+  CMA_PFIELDINFOLAST      = 0010H;   (* Ptr to last column in    *)
+  CMA_PSORTRECORD         = 0020H;   (* Pointer to sort function *)
+  CMA_PTLORIGIN           = 0040H;   (* Lower left origin        *)
+  CMA_SLBITMAPORICON      = 0080H;   (* Size  of bitmap          *)
+  CMA_XVERTSPLITBAR       = 0100H;   (* Splitbar position        *)
+  CMA_PFIELDINFOOBJECT    = 0200H;   (* Pointer to IN-USE        *)
+                                     (*   emphasis column.       *)
+  CMA_TREEICON            = 0400H;   (* Icon for tree node       *)
+  CMA_TREEBITMAP          = 0800H;   (* bitmap for tree node     *)
+  CMA_CXTREEINDENT        = 1000H;   (* indent for children      *)
+  CMA_CXTREELINE          = 2000H;   (* thickness of tree line   *)
+  CMA_SLTREEBITMAPORICON  = 4000H;   (* size of icon of tree node *)
+  CMA_ITEMORDER           = 0001H;   (* QueryRecord search flags *)
+  CMA_WINDOW              = 0002H;
+  CMA_WORKSPACE           = 0004H;
+  CMA_ZORDER              = 0008H;
+  CMA_DELTATOP            = 0001H;   (* Industrial - top delta   *)
+  CMA_DELTABOT            = 0002H;   (* Industrial - bottom delta*)
+  CMA_DELTAHOME           = 0004H;   (* Industrial - top of list *)
+  CMA_DELTAEND            = 0008H;   (* Industrial - end of list *)
+  CMA_NOREPOSITION        = 0001H;   (* InvalidateRecord flags   *)
+  CMA_REPOSITION          = 0002H;
+  CMA_TEXTCHANGED         = 0004H;
+  CMA_ERASE               = 0008H;
+  CMA_FREE                = 0001H;
+  CMA_INVALIDATE          = 0002H;
+
+END WINSTDCNR.

@@ -1,0 +1,159 @@
+DEFINITION MODULE DOSSESMGR;
+
+(************************************************************************
+  OS/2 2.1 interface for session manager support.
+
+  Copyright (c) 1992, 1994 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF     IMPORT APIRET, PSZ, PID;
+
+TYPE
+  STARTDATA       = RECORD
+    Length          : CARDINAL;
+    Related         : CARDINAL;
+    FgBg            : CARDINAL;
+    TraceOpt        : CARDINAL;
+    PgmTitle        : PSZ;
+    PgmName         : PSZ;
+    PgmInputs       : PSZ;
+    TermQ           : PSZ;
+    Environment     : PSZ;
+    InheritOpt      : CARDINAL;
+    SessionType     : CARDINAL;
+    IconFile        : PSZ;
+    PgmHandle       : LONGCARD;
+    PgmControl      : CARDINAL;
+    InitXPos        : CARDINAL;
+    InitYPos        : CARDINAL;
+    InitXSize       : CARDINAL;
+    InitYSize       : CARDINAL;
+    Reserved        : CARDINAL;
+    ObjectBuffer    : PSZ;
+    ObjectBuffLen   : LONGCARD;
+  END;
+  PSTARTDATA      = POINTER TO STARTDATA;
+
+
+CONST
+  SSF_RELATED_INDEPENDENT = 0;
+  SSF_RELATED_CHILD       = 1;
+
+  SSF_FGBG_FORE           = 0;
+  SSF_FGBG_BACK           = 1;
+
+  SSF_TRACEOPT_NONE       = 0;
+  SSF_TRACEOPT_TRACE      = 1;
+  SSF_TRACEOPT_TRACEALL   = 2;
+
+  SSF_INHERTOPT_SHELL     = 0;
+  SSF_INHERTOPT_PARENT    = 1;
+
+  (* note that these types are identical to those in WINPROGRAMLIST for PROG_* *)
+  SSF_TYPE_DEFAULT        = 0;
+  SSF_TYPE_FULLSCREEN     = 1;
+  SSF_TYPE_WINDOWABLEVIO  = 2;
+  SSF_TYPE_PM             = 3;
+  SSF_TYPE_VDM            = 4;
+  SSF_TYPE_GROUP          = 5;
+  SSF_TYPE_DLL            = 6;
+  SSF_TYPE_WINDOWEDVDM    = 7;
+  SSF_TYPE_PDD            = 8;
+  SSF_TYPE_VDD            = 9;
+
+  (* note that these flags are identical to those in WINPROGRAMLIST for SHE_* *)
+  SSF_CONTROL_VISIBLE     = 0000H;
+  SSF_CONTROL_INVISIBLE   = 0001H;
+  SSF_CONTROL_MAXIMIZE    = 0002H;
+  SSF_CONTROL_MINIMIZE    = 0004H;
+  SSF_CONTROL_NOAUTOCLOSE = 0008H;
+  SSF_CONTROL_SETPOS      = 8000H;
+
+TYPE
+  STATUSDATA = RECORD
+    Length     : CARDINAL;
+    SelectInd  : CARDINAL;
+    BondInd    : CARDINAL;
+  END;
+  PSTATUSDATA = POINTER TO STATUSDATA;
+
+CONST (* SelectInd and BondInd paramater values for DosSetSession() *)
+  SET_SESSION_UNCHANGED      = 0;
+  SET_SESSION_SELECTABLE     = 1;
+  SET_SESSION_NON_SELECTABLE = 2;
+  SET_SESSION_BOND           = 1;
+  SET_SESSION_NO_BOND        = 2;
+
+CONST (* TargetOption (scope) parameter values for DosStopSession() *)
+  STOP_SESSION_SPECIFIED     = 0;
+  STOP_SESSION_ALL           = 1;
+
+
+
+PROCEDURE DosStartSession
+( VAR StartData              : STARTDATA;
+  VAR SessId                 : LONGCARD;
+  VAR ProcessId              : PID
+)                            : APIRET;
+
+PROCEDURE DosSetSession
+( SessId                     : LONGCARD;
+  VAR StatusData             : STATUSDATA
+)                            : APIRET;
+
+PROCEDURE DosSelectSession
+( SessId                     : LONGCARD
+)                            : APIRET;
+
+PROCEDURE DosStopSession
+( TargetOption               : LONGCARD;
+  SessId                     : LONGCARD
+)                            : APIRET;
+
+
+PROCEDURE DosQueryAppType
+( ExeFileName                : ARRAY OF CHAR;
+  VAR AppType                : LONGCARD
+)                            : APIRET;
+
+
+CONST (* AppType returned in by DosQueryAppType() in pFlags as follows *)
+  FAPPTYP_NOTSPEC         = 0000H;
+  FAPPTYP_NOTWINDOWCOMPAT = 0001H;
+  FAPPTYP_WINDOWCOMPAT    = 0002H;
+  FAPPTYP_WINDOWAPI       = 0003H;
+  FAPPTYP_BOUND           = 0008H;
+  FAPPTYP_DLL             = 0010H;
+  FAPPTYP_DOS             = 0020H;
+  FAPPTYP_PHYSDRV         = 0040H;  (* physical device driver       *)
+  FAPPTYP_VIRTDRV         = 0080H;  (* virtual device driver        *)
+  FAPPTYP_PROTDLL         = 0100H;  (* 'protected memory' dll       *)
+  FAPPTYP_WINDOWSREAL     = 0200H;  (* Windows real mode app        *)
+  FAPPTYP_WINDOWSPROT     = 0400H;  (* Windows protect mode app     *)
+  FAPPTYP_32BIT           = 4000H;
+  FAPPTYP_EXETYPE         = FAPPTYP_WINDOWAPI;
+
+  FAPPTYP_RESERVED        = NOT
+                            ( FAPPTYP_WINDOWAPI OR
+                              FAPPTYP_BOUND     OR
+                              FAPPTYP_DLL       OR
+                              FAPPTYP_DOS       OR
+                              FAPPTYP_PHYSDRV   OR
+                              FAPPTYP_VIRTDRV   OR
+                              FAPPTYP_PROTDLL   OR
+                              FAPPTYP_32BIT
+                            );
+
+   EAT_APPTYP_PMAPI       = 00H;  (* Uses PM API *)
+   EAT_APPTYP_DOS         = 01H;  (* DOS APP *)
+   EAT_APPTYP_PMW         = 02H;  (* Window compatible *)
+   EAT_APPTYP_NOPMW       = 03H;  (* Not Window compatible *)
+   EAT_APPTYP_EXETYPE     = 03H;  (* EXE type mask *)
+   EAT_APPTYP_RESERVED    = NOT EAT_APPTYP_EXETYPE;
+
+END DOSSESMGR.

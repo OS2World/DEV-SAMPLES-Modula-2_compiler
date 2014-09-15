@@ -1,0 +1,287 @@
+DEFINITION MODULE KBD;
+
+(*************************************************************************
+  OS/2 2.x or 3.0  Keyboard Kernel API.
+
+  (c) 1995 by Juergen Neuhoff
+**************************************************************************)
+
+(*$XL+    Modula-2 language extensions: '_' allowed for symbol names     *)
+(*$A2     word alignment for record fields >= 2 bytes                    *)
+(*$API16+ 32 to 16 bit thunking for API functions                        *)
+
+TYPE
+  HKBD                 = CARDINAL;
+  PHKBD                = POINTER TO HKBD;
+  APIRET16             = CARDINAL;
+  TYPEPREFIX           = BOOLEAN;
+
+PROCEDURE KbdRegister
+(
+  ModName      : ARRAY OF CHAR;
+  EntryPt      : ARRAY OF CHAR;
+  FunMask      : LONGCARD
+)              : APIRET16;
+
+CONST
+  KR_KBDCHARIN               = 00000001H;
+  KR_KBDPEEK                 = 00000002H;
+  KR_KBDFLUSHBUFFER          = 00000004H;
+  KR_KBDGETSTATUS            = 00000008H;
+  KR_KBDSETSTATUS            = 00000010H;
+  KR_KBDSTRINGIN             = 00000020H;
+  KR_KBDOPEN                 = 00000040H;
+  KR_KBDCLOSE                = 00000080H;
+  KR_KBDGETFOCUS             = 00000100H;
+  KR_KBDFREEFOCUS            = 00000200H;
+  KR_KBDGETCP                = 00000400H;
+  KR_KBDSETCP                = 00000800H;
+  KR_KBDXLATE                = 00001000H;
+  KR_KBDSETCUSTXT            = 00002000H;
+
+CONST
+  IO_WAIT                    = 0;
+  IO_NOWAIT                  = 1;
+
+PROCEDURE KbdDeRegister( ) : APIRET16;
+
+
+TYPE (* KBDKEYINFO structure, for KbdCharIn and KbdPeek *)
+  KBDKEYINFO      = RECORD  (* kbci *)
+    CASE            : TYPEPREFIX OF
+    | FALSE         :
+      CharCode      : CHAR;
+      ScanCode      : SHORTCARD;
+      Status        : SHORTCARD;
+      NlsShift      : SHORTCARD;
+      State         : CARDINAL;
+      Time          : LONGCARD;
+    | TRUE          :
+      chChar        : CHAR;
+      chScan        : SHORTCARD;
+      fbStatus      : SHORTCARD;
+      bNlsShift     : SHORTCARD;
+      fsState       : CARDINAL;
+      time          : LONGCARD;
+    END;            END;
+  PKBDKEYINFO     = POINTER TO KBDKEYINFO;
+
+
+PROCEDURE KbdCharIn
+(
+  VAR KeyInfo      : KBDKEYINFO;
+  IOWait           : CARDINAL;
+  Handle           : HKBD
+)                  : APIRET16;
+
+PROCEDURE KbdPeek
+(
+  VAR KeyInfo      : KBDKEYINFO;
+  Handle           : HKBD
+)                  : APIRET16;
+
+TYPE (* structure for KbdStringIn() *)
+  STRINGINBUF     = RECORD (* kbsi *)
+    CASE            : TYPEPREFIX OF
+    | FALSE         :
+      BufferSize    : CARDINAL;
+      EditSize      : CARDINAL;
+    | TRUE          :
+      cb            : CARDINAL;
+      cchIn         : CARDINAL;
+    END;            END;
+  PSTRINGINBUF    = POINTER TO STRINGINBUF;
+
+PROCEDURE KbdStringIn
+(
+  VAR Buffer     : ARRAY OF CHAR;
+  VAR Info       : STRINGINBUF;
+  Wait           : CARDINAL;
+  Handle         : HKBD
+)                : APIRET16;
+
+PROCEDURE KbdFlushBuffer
+(
+  Handle       : HKBD
+)              : APIRET16;
+
+
+CONST (* KBDINFO.fsMask *)
+  KEYBOARD_ECHO_ON                = 0001H;
+  KEYBOARD_ECHO_OFF               = 0002H;
+  KEYBOARD_BINARY_MODE            = 0004H;
+  KEYBOARD_ASCII_MODE             = 0008H;
+  KEYBOARD_MODIFY_STATE           = 0010H;
+  KEYBOARD_MODIFY_INTERIM         = 0020H;
+  KEYBOARD_MODIFY_TURNAROUND      = 0040H;
+  KEYBOARD_2B_TURNAROUND          = 0080H;
+  KEYBOARD_SHIFT_REPORT           = 0100H;
+
+CONST (* KBDINFO.fsState/KBDKEYINFO.fsState/KBDTRANS.fsState *)
+  KBDSTF_RIGHTSHIFT               = 0001H;
+  KBDSTF_LEFTSHIFT                = 0002H;
+  KBDSTF_CONTROL                  = 0004H;
+  KBDSTF_ALT                      = 0008H;
+  KBDSTF_SCROLLLOCK_ON            = 0010H;
+  KBDSTF_NUMLOCK_ON               = 0020H;
+  KBDSTF_CAPSLOCK_ON              = 0040H;
+  KBDSTF_INSERT_ON                = 0080H;
+  KBDSTF_LEFTCONTROL              = 0100H;
+  KBDSTF_LEFTALT                  = 0200H;
+  KBDSTF_RIGHTCONTROL             = 0400H;
+  KBDSTF_RIGHTALT                 = 0800H;
+  KBDSTF_SCROLLLOCK               = 1000H;
+  KBDSTF_NUMLOCK                  = 2000H;
+  KBDSTF_CAPSLOCK                 = 4000H;
+  KBDSTF_SYSREQ                   = 8000H;
+
+TYPE (* KBDINFO structure, for KbdSet/GetStatus *)
+  KBDINFO         = RECORD (* kbst *)
+    CASE            : TYPEPREFIX OF
+    | FALSE         :
+      Size          : CARDINAL;
+      Mask          : CARDINAL;
+      TurnAround    : CARDINAL;
+      Interim       : CARDINAL;
+      State         : CARDINAL;
+    | TRUE          :
+      cb            : CARDINAL;
+      fsMask        : CARDINAL;
+      chTurnAround  : CARDINAL;
+      fsInterim     : CARDINAL;
+      fsState       : CARDINAL;
+    END;            END;
+  PKBDINFO        = POINTER TO KBDINFO;
+
+PROCEDURE KbdSetStatus
+(
+  VAR KbdInfo : KBDINFO;
+  Handle      : HKBD
+)             : APIRET16;
+
+PROCEDURE KbdGetStatus
+(
+  VAR KbdInfo : KBDINFO;
+  Handle      : HKBD
+)             : APIRET16;
+
+PROCEDURE KbdSetCp
+(
+  Reserved        : CARDINAL;
+  CodePage        : CARDINAL;
+  Handle          : HKBD
+)                 : APIRET16;
+
+PROCEDURE KbdGetCp
+(
+  Reserved        : CARDINAL;
+  VAR CodePage    : CARDINAL;
+  Handle          : HKBD
+)                 : APIRET16;
+
+PROCEDURE KbdOpen
+(
+  VAR Handle      : HKBD
+)                 : APIRET16;
+
+PROCEDURE KbdClose
+(
+  Handle          : HKBD
+)                 : APIRET16;
+
+PROCEDURE KbdGetFocus
+(
+  Wait            : CARDINAL;
+  Handle          : HKBD
+)                 : APIRET16;
+
+PROCEDURE KbdFreeFocus
+(
+  Handle          : HKBD
+)                 : APIRET16;
+
+PROCEDURE KbdSynch
+(
+  Wait            : CARDINAL
+)                 : APIRET16;
+
+PROCEDURE KbdSetFgnd
+( )               : APIRET16;
+
+
+TYPE (* structure for KbdGetHWID() *)
+  KBDHWID         = RECORD (* kbhw *)
+    CASE            : TYPEPREFIX OF
+    | FALSE         :
+      Size          : CARDINAL;
+      KbdId         : CARDINAL;
+      Reserved1     : CARDINAL;
+      Reserved2     : CARDINAL;
+    | TRUE          :
+      cb            : CARDINAL;
+      idKbd         : CARDINAL;
+      usReserved1   : CARDINAL;
+      usReserved2   : CARDINAL;
+    END;            END;
+  PKBDHWID        = POINTER TO KBDHWID;
+
+PROCEDURE KbdGetHWID
+(
+  VAR KeyboardId    : KBDHWID;
+  Handle            : HKBD
+)                   : APIRET16;
+
+PROCEDURE KbdSetHWID
+(
+  VAR KeyboardId    : KBDHWID;
+  Handle            : HKBD
+)                   : APIRET16;
+
+CONST (* KBDTRANS.fbStatus *)
+  KBDTRF_SHIFT_KEY_IN             = 01H;
+  KBDTRF_CONVERSION_REQUEST       = 20H;
+  KBDTRF_FINAL_CHAR_IN            = 40H;
+  KBDTRF_INTERIM_CHAR_IN          = 80H;
+
+TYPE (* structure for KbdXlate() *)
+  KBDTRANS        = RECORD (* kbxl *)
+    CASE            : TYPEPREFIX OF
+    | FALSE         :
+      Char          : CHAR;
+      Scan          : SHORTCARD;
+      Status        : SHORTCARD;
+      NlsShift      : SHORTCARD;
+      State         : CARDINAL;
+      Time          : LONGCARD;
+      DD            : CARDINAL;
+      Xlate         : CARDINAL;
+      Shift         : CARDINAL;
+      Zero          : CARDINAL;
+    | TRUE          :
+      chChar        : CHAR;
+      chScan        : SHORTCARD;
+      fbStatus      : SHORTCARD;
+      bNlsShift     : SHORTCARD;
+      fsState       : CARDINAL;
+      time          : LONGCARD;
+      fsDD          : CARDINAL;
+      fsXlate       : CARDINAL;
+      fsShift       : CARDINAL;
+      sZero         : CARDINAL;
+    END;            END;
+  PKBDTRANS       = POINTER TO KBDTRANS;
+
+PROCEDURE KbdXlate
+(
+  VAR Translation : KBDTRANS;
+  Handle          : HKBD
+)                 : APIRET16;
+
+PROCEDURE KbdSetCustXt
+(
+  VAR CodePage    : CARDINAL;
+  Handle          : HKBD
+)                 : APIRET16;
+
+
+END KBD.

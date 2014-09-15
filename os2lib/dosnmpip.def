@@ -1,0 +1,17 @@
+LIBRARY DOSCALLS
+EXPORTS
+  DosCallNPipe           @240
+  DosConnectNPipe        @241
+  DosDisConnectNPipe     @242
+  DosCreateNPipe         @243
+  DosPeekNPipe           @244
+  DosQueryNPHState       @245
+  DosQueryNPipeInfo      @248
+  DosQueryNPipeSemState  @249
+  DosRawReadNPipe        @246
+  DosRawWriteNPipe       @247
+  DosSetNPHState         @250
+  DosSetNPipeSem         @251
+  DosTransactNPipe       @252
+  DosWaitNPipe           @253
+

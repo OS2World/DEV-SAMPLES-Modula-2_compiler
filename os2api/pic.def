@@ -1,0 +1,38 @@
+DEFINITION MODULE PIC;
+
+(************************************************************************
+  OS/2 2.x interface for Presentation Manager Picture functions
+
+
+  Copyright (c) 1992, 1994 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM   OS2DEF  IMPORT HAB;
+
+CONST (* type of picture to print *)
+  PIP_MF                  = 1;
+  PIP_PIF                 = 2;
+
+CONST (* type of conversion required *)
+  PIC_PIFTOMET            = 0;
+  PIC_SSTOFONT            = 2;
+
+PROCEDURE PicPrint
+( AnchorBlockHandle       : HAB;
+  FileName                : ARRAY OF CHAR;
+  Type                    : LONGINT;
+  VAR Params              : ARRAY OF CHAR
+)                         : BOOLEAN;
+
+PROCEDURE PicIchg
+( AnchorBlockHandle       : HAB;
+  FileName1               : ARRAY OF CHAR;
+  FileName2               : ARRAY OF CHAR;
+  Type                    : LONGINT
+)                         : BOOLEAN;
+
+END PIC.

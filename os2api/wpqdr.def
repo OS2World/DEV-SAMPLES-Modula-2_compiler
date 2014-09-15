@@ -1,0 +1,91 @@
+DEFINITION MODULE WPQDR;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPQdr
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPTRANS;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPQdr                 = POINTER TO WPQdr;
+TYPE PM_WPQdr               = POINTER TO M_WPQdr;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPQdr
+*************************************************************************)
+
+(*************************************************************************
+  SOM class API for WPQdr, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPQdr_MajorVersion     = 1;
+  WPQdr_MinorVersion     = 1;
+
+TYPE
+  WPQdrClassDataStructure     = RECORD
+    classObject                 : PSOMClass;
+    prtGetQDriverInfo           : somMToken;
+    prtSetQDriverInfo           : somMToken;
+    prtSetQdrIcon               : somMToken;
+    prtSetQDriverDiscardhwndDlg : somMToken;
+    prtSetQDriverInstallhwndDlg : somMToken;
+                                END;
+
+VAR
+  WPQdrClassData : WPQdrClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPQdr = RECORD( WPTRANS.WPTransient ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPQdrNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+
+(*************************************************************************
+  SOM class API for M_WPQdr, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPQdr_MajorVersion   = 1;
+  M_WPQdr_MinorVersion   = 1;
+
+TYPE
+  M_WPQdrClassDataStructure   = RECORD
+    classObject                 : PSOMClass;
+                                END;
+
+VAR
+  M_WPQdrClassData : M_WPQdrClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPQdr = RECORD( WPTRANS.M_WPTransient ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPQdrNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+
+END WPQDR.

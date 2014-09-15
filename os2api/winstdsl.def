@@ -1,0 +1,112 @@
+DEFINITION MODULE WINSTDSLIDER;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager
+           CUA slider control class.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM OS2DEF        IMPORT TYPEPREFIX;
+
+(*************************************************************************)
+(*    Define messages for the slider control                             *)
+(*************************************************************************)
+CONST
+  SLM_ADDDETENT        = 0369H;    (* Add detent niche          *)
+  SLM_QUERYDETENTPOS   = 036AH;    (* Query position of detent  *)
+  SLM_QUERYSCALETEXT   = 036BH;    (* Query text at tick number *)
+  SLM_QUERYSLIDERINFO  = 036CH;    (* Query slider information  *)
+  SLM_QUERYTICKPOS     = 036DH;    (* Query position of tick    *)
+  SLM_QUERYTICKSIZE    = 036EH;    (* Query size of tick        *)
+  SLM_REMOVEDETENT     = 036FH;    (* Remove detent niche       *)
+  SLM_SETSCALETEXT     = 0370H;    (* Set text above tick       *)
+  SLM_SETSLIDERINFO    = 0371H;    (* Set slider parameters     *)
+  SLM_SETTICKSIZE      = 0372H;    (* Set size of tick          *)
+  SLN_CHANGE           = 1;        (* Slider position changed   *)
+  SLN_SLIDERTRACK      = 2;        (* Slider dragged by user    *)
+  SLN_SETFOCUS         = 3;        (* Slider gaining focus      *)
+  SLN_KILLFOCUS        = 4;        (* Slider losing focus       *)
+
+(*************************************************************************)
+(*    Slider control data structure                                      *)
+(*************************************************************************)
+TYPE
+  SLDCDATA             = RECORD      (* sldcd *)
+    CASE                 : TYPEPREFIX OF
+    | TRUE               :
+      cbSize             : LONGCARD; (* Size of control block             *)
+      usScale1Increments : CARDINAL; (* # of divisions on scale           *)
+      usScale1Spacing    : CARDINAL; (* Space in pels between increments  *)
+      usScale2Increments : CARDINAL; (* # of divisions on scale           *)
+      usScale2Spacing    : CARDINAL; (* Space in pels between increments  *)
+    | FALSE              :
+      Size               : LONGCARD; (* Size of control block             *)
+      Scale1Increments   : CARDINAL; (* # of divisions on scale           *)
+      Scale1Spacing      : CARDINAL; (* Space in pels between increments  *)
+      Scale2Increments   : CARDINAL; (* # of divisions on scale           *)
+      Scale2Spacing      : CARDINAL; (* Space in pels between increments  *)
+    END;                 END;
+  PSLDCDATA            = POINTER TO SLDCDATA;
+
+(*************************************************************************)
+(*    Slider control style flag definition                               *)
+(*************************************************************************)
+CONST
+  SLS_HORIZONTAL       = 00000000H; (* Orient slider horizontally*)
+  SLS_VERTICAL         = 00000001H; (* Orient slider vertically  *)
+  SLS_CENTER           = 00000000H; (* Center shaft in window    *)
+  SLS_BOTTOM           = 00000002H; (* Offset shaft to bottom (H)*)
+  SLS_TOP              = 00000004H; (* Offset shaft to top (H)   *)
+  SLS_LEFT             = 00000002H; (* Offset shaft to left (V)  *)
+  SLS_RIGHT            = 00000004H; (* Offset shaft to right (V) *)
+  SLS_SNAPTOINCREMENT  = 00000008H; (* Snap to nearest increment *)
+  SLS_BUTTONSBOTTOM    = 00000010H; (* Add buttons at shaft bot. *)
+  SLS_BUTTONSTOP       = 00000020H; (* Add buttons at shaft top  *)
+  SLS_BUTTONSLEFT      = 00000010H; (* Add buttons left of shaft *)
+  SLS_BUTTONSRIGHT     = 00000020H; (* Add buttons right of shaft*)
+  SLS_OWNERDRAW        = 00000040H; (* Owner draw some fields    *)
+  SLS_READONLY         = 00000080H; (* Provide a read only slider*)
+  SLS_RIBBONSTRIP      = 00000100H; (* Provide a ribbon strip    *)
+  SLS_HOMEBOTTOM       = 00000000H; (* Set home position at bot. *)
+  SLS_HOMETOP          = 00000200H; (* Set home position at top  *)
+  SLS_HOMELEFT         = 00000000H; (* Set home position at left *)
+  SLS_HOMERIGHT        = 00000200H; (* Set home position at right*)
+  SLS_PRIMARYSCALE1    = 00000000H; (* Scale 1 is primary scale  *)
+  SLS_PRIMARYSCALE2    = 00000400H; (* Scale 2 is primary scale  *)
+
+(*************************************************************************)
+(*    Message attributes for setting and querying slider components      *)
+(*************************************************************************)
+CONST
+  SMA_SCALE1                = 00001H;
+  SMA_SCALE2                = 00002H;
+  SMA_SHAFTDIMENSIONS       = 00000H;
+  SMA_SHAFTPOSITION         = 00001H;
+  SMA_SLIDERARMDIMENSIONS   = 00002H;
+  SMA_SLIDERARMPOSITION     = 00003H;
+  SMA_RANGEVALUE            = 00000H;
+  SMA_INCREMENTVALUE        = 00001H;
+  SMA_SETALLTICKS           = 0FFFFH;
+
+(*************************************************************************)
+(*    Ownerdraw flag definitions                                         *)
+(*************************************************************************)
+CONST
+  SDA_RIBBONSTRIP           = 0001H;
+  SDA_SLIDERSHAFT           = 0002H;
+  SDA_BACKGROUND            = 0003H;
+  SDA_SLIDERARM             = 0004H;
+
+(*************************************************************************)
+(*    Error return codes                                                 *)
+(*************************************************************************)
+CONST
+  PMERR_UPDATE_IN_PROGRESS  = 1F06H;
+  SLDERR_INVALID_PARAMETERS = -1;
+
+END WINSTDSLIDER.

@@ -1,0 +1,508 @@
+DEFINITION MODULE OS2DEF;
+
+(***************************************************************************
+  OS/2 2.1/3.0 Common Definitions file
+
+  Copyright (c) 1992-1995 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+
+TYPE
+  PVOID        = SYSTEM.ADDRESS;
+  PPVOID       = POINTER TO PVOID;
+
+TYPE
+  TYPEPREFIX   = BOOLEAN;
+  APIRET       = LONGCARD;
+  APIRET16     = CARDINAL;
+  APIRET32     = LONGCARD;
+  SHANDLE      = CARDINAL;
+  LHANDLE      = LONGCARD;
+  USHORT       = CARDINAL;        (* us  *)
+  ULONG        = LONGCARD;        (* ul  *)
+
+
+CONST
+  NULLHANDLE   = LHANDLE(0);
+  NULLSHANDLE  = SHANDLE(0);
+
+TYPE
+  BOOL16       = CARDINAL;
+  BOOL32       = LONGCARD;
+  QWORDType    = RECORD
+    Lo           : LONGCARD;
+    Hi           : LONGCARD;
+                 END;
+  PQWORD       = POINTER TO QWORDType;
+  SEL          = CARDINAL;
+  PSEL         = POINTER TO SEL;
+  ERRORID      = LONGCARD;              (* error ID *)
+  PERRORID     = POINTER TO LONGCARD;
+  PSZ          = POINTER TO ARRAY [0..MAX(LONGCARD)-1] OF CHAR;
+  PCHAR        = POINTER TO CHAR;
+  PBYTE        = POINTER TO SYSTEM.BYTE;
+  PFN          = SYSTEM.LONGWORD;       (* pointer to any procedure *)
+  PCH          = PCHAR;
+
+CONST (* Severity codes *)
+  SEVERITY_NOERROR        = 0000H;
+  SEVERITY_WARNING        = 0004H;
+  SEVERITY_ERROR          = 0008H;
+  SEVERITY_SEVERE         = 000CH;
+  SEVERITY_UNRECOVERABLE  = 0010H;
+
+CONST (* Base component error values *)
+  WINERR_BASE     = 1000H; (* Window Manager                  *)
+  GPIERR_BASE     = 2000H; (* Graphics Presentation Interface *)
+  DEVERR_BASE     = 3000H; (* Device Manager                  *)
+  SPLERR_BASE     = 4000H; (* Spooler                         *)
+
+
+(*** Common types used across components *)
+
+TYPE (*** Common DOS types *)
+  HMODULE  = LHANDLE;              (* module handle *)
+  PID      = LHANDLE;              (* process ID *)
+  TID      = LHANDLE;              (* thread ID *)
+  SGID     = CARDINAL;             (* sg ID *)
+  PHMODULE = POINTER TO HMODULE;
+  PPID     = POINTER TO PID;
+  PTID     = POINTER TO TID;
+
+
+(*** SAA types *)
+
+TYPE
+  HSEM     = SYSTEM.ADDRESS;       (* semaphor handle *)
+  PHSEM    = POINTER TO HSEM;
+
+
+(*** Common SUP types *)
+
+TYPE
+  HAB      = LHANDLE;              (* anchor block handle *)
+  PHAB     = POINTER TO HAB;
+
+
+(*** Common GPI/DEV types *)
+
+TYPE
+  HPS      = LHANDLE;              (* presentation space handle *)
+  PHPS     = POINTER TO HPS;
+  HDC      = LHANDLE;              (* device context handle *)
+  PHDC     = POINTER TO HDC;
+  HRGN     = LHANDLE;              (* update region handle *)
+  PHRGN    = POINTER TO HRGN;
+  HBITMAP  = LHANDLE;              (* bit-map handle *)
+  PHBITMAP = POINTER TO HBITMAP;
+  HMF      = LHANDLE;              (* Meta file handle *)
+  PHMF     = POINTER TO HMF;
+  HPAL     = LHANDLE;
+  PHPAL    = POINTER TO HPAL;
+  COLOR    = LONGINT;
+  PCOLOR   = POINTER TO COLOR;
+
+  POINTL   = RECORD
+    x        : LONGINT;
+    y        : LONGINT;
+             END;
+  PPOINTL  = POINTER TO POINTL;
+  NPPOINTL = POINTER TO POINTL;
+
+  POINTS   = RECORD
+    x        : INTEGER;
+    y        : INTEGER;
+             END;
+  PPOINTS  = POINTER TO POINTS;
+
+  RECTL    = RECORD
+    xLeft    : LONGINT;
+    yBottom  : LONGINT;
+    xRight   : LONGINT;
+    yTop     : LONGINT;
+             END;
+  PRECTL   = POINTER TO RECTL;
+  NPRECTL  = POINTER TO RECTL;
+
+  STR8     = ARRAY [0..7] OF CHAR;
+  PSTR8    = POINTER TO STR8;
+
+
+(*** common DEV/SPL types *)
+
+TYPE (* structure for Device Driver data *)
+  DRIVDATA        = RECORD
+    CASE            : TYPEPREFIX OF
+    | FALSE         :
+      Count         : LONGINT;
+      Version       : LONGINT;
+      DeviceName    : ARRAY [0..31] OF CHAR;
+      GeneralData   : ARRAY [0..0]  OF CHAR;
+      Filler        : ARRAY [0..2] OF SYSTEM.BYTE;
+    | TRUE          :
+      cb            : LONGINT;
+      lVersion      : LONGINT;
+      szDeviceName  : ARRAY [0..31] OF CHAR;
+      abGeneralData : ARRAY [0..0]  OF CHAR;
+      filler        : ARRAY [0..2] OF SYSTEM.BYTE;
+    END;            END;
+  PDRIVDATA       = POINTER TO DRIVDATA;
+
+
+CONST (* array parameter array indices for DevOpenDC, SplQmOpen, SplQpOpen *)
+  DRIVER_NAME    = 1;
+  DRIVER_DATA    = 2;
+  DATA_TYPE      = 3;
+  COMMENT        = 4;
+  PROC_NAME      = 5;
+  PROC_PARAMS    = 6;
+  SPL_PARAMS     = 7;
+  NETWORK_PARAMS = 8;
+
+TYPE (* structure definition as an alternative of the array parameter *)
+  DEVOPENSTRUC        = RECORD
+    CASE                : TYPEPREFIX OF
+    | FALSE             :
+      LogAddress        : PSZ;
+      DriverName        : PSZ;
+      Driv              : PDRIVDATA;
+      DataType          : PSZ;
+      Comment           : PSZ;
+      QueueProcName     : PSZ;
+      QueueProcParams   : PSZ;
+      SpoolerParams     : PSZ;
+      NetworkParams     : PSZ;
+    | TRUE              :
+      pszLogAddress     : PSZ;
+      pszDriverName     : PSZ;
+      pdriv             : PDRIVDATA;
+      pszDataType       : PSZ;
+      pszComment        : PSZ;
+      pszQueueProcName  : PSZ;
+      pszQueueProcParams: PSZ;
+      pszSpoolerParams  : PSZ;
+      pszNetworkParams  : PSZ;
+    END;                END;
+  PDEVOPENSTRUC       = POINTER TO DEVOPENSTRUC;
+
+
+TYPE (* common WINWORKPLACE object and PMSTDDLG drag data *)
+  PDEVOPENDATA  = PSZ;
+  PRINTDEST     = RECORD
+    CASE          : TYPEPREFIX OF
+    | FALSE       :
+      Size        : LONGCARD;
+      Type        : LONGINT;
+      Token       : PSZ;
+      Count       : LONGINT;
+      Data        : PDEVOPENDATA;
+      Flags       : LONGCARD;
+      Printer     : PSZ;
+    | TRUE        :
+      cb          : LONGCARD;
+      lType       : LONGINT;
+      pszToken    : PSZ;
+      lCount      : LONGINT;
+      pdopData    : PDEVOPENDATA;
+      fl          : LONGCARD;
+      pszPrinter  : PSZ;
+    END;          END;
+  PPRINTDEST    = POINTER TO PRINTDEST;
+
+CONST
+  PD_JOB_PROPERTY = 0001H;    (* Flags for .fl field           *)
+
+
+(*** common AVIO/GPI types *)
+
+CONST (* values of fsSelection field of FATTRS structure *)
+  FATTR_SEL_ITALIC     =  0001H;
+  FATTR_SEL_UNDERSCORE =  0002H;
+  FATTR_SEL_OUTLINE    =  0008H;
+  FATTR_SEL_STRIKEOUT  =  0010H;
+  FATTR_SEL_BOLD       =  0020H;
+
+CONST (* values of fsType field of FATTRS structure *)
+  FATTR_TYPE_KERNING     = 0004H;
+  FATTR_TYPE_MBCS        = 0008H;
+  FATTR_TYPE_DBCS        = 0010H;
+  FATTR_TYPE_ANTIALIASED = 0020H;
+
+CONST (* values of fsFontUse field of FATTRS structure *)
+  FATTR_FONTUSE_NOMIX         = 0002H;
+  FATTR_FONTUSE_OUTLINE       = 0004H;
+  FATTR_FONTUSE_TRANSFORMABLE = 0008H;
+
+CONST (* size for fields in the font structures *)
+  FACESIZE = 32;
+
+TYPE (* font struct for Vio/GpiCreateLogFont *)
+  FATTRS            = RECORD
+    CASE              : TYPEPREFIX OF
+    | FALSE           :
+      RecordLength    : CARDINAL;
+      Selection       : CARDINAL;
+      Match           : LONGINT;
+      Facename        : ARRAY [0..FACESIZE-1] OF CHAR;
+      Registry        : CARDINAL;
+      CodePage        : CARDINAL;
+      MaxBaselineExt  : LONGINT;
+      AveCharWidth    : LONGINT;
+      Type            : CARDINAL;
+      FontUse         : CARDINAL;
+    | TRUE            :
+      usRecordLength  : CARDINAL;
+      fsSelection     : CARDINAL;
+      lMatch          : LONGINT;
+      szFacename      : ARRAY [0..FACESIZE-1] OF CHAR;
+      idRegistry      : CARDINAL;
+      usCodePage      : CARDINAL;
+      lMaxBaselineExt : LONGINT;
+      lAveCharWidth   : LONGINT;
+      fsType          : CARDINAL;
+      fsFontUse       : CARDINAL;
+    END;              END;
+  PFATTRS           = POINTER TO FATTRS;
+
+CONST (* values of Type field of FONTMETRICS structure *)
+  FM_TYPE_FIXED      = 0001H;
+  FM_TYPE_LICENSED   = 0002H;
+  FM_TYPE_KERNING    = 0004H;
+  FM_TYPE_DBCS       = 0010H;
+  FM_TYPE_MBCS       = 0018H;
+  FM_TYPE_64K        = 8000H;
+  FM_TYPE_ATOMS      = 4000H;
+  FM_TYPE_FAMTRUNC   = 2000H;
+  FM_TYPE_FACETRUNC  = 1000H;
+
+CONST (* values of Defn field of FONTMETRICS structure *)
+  FM_DEFN_OUTLINE    = 0001H;
+  FM_DEFN_IFI        = 0002H;
+  FM_DEFN_WIN        = 0004H;
+  FM_DEFN_GENERIC    = 8000H;
+
+CONST (* values of Selection field of FONTMETRICS structure *)
+  FM_SEL_ITALIC      = 0001H;
+  FM_SEL_UNDERSCORE  = 0002H;
+  FM_SEL_NEGATIVE    = 0004H;
+  FM_SEL_OUTLINE     = 0008H;        (* Hollow Outline Font *)
+  FM_SEL_STRIKEOUT   = 0010H;
+  FM_SEL_BOLD        = 0020H;
+
+CONST (* values of Capabilities field of FONTMETRICS structure *)
+  FM_CAP_NOMIX       = 0001H;
+
+TYPE (* font metrics returned by GpiQueryFonts and others *)
+  PANOSE                 = RECORD
+    CASE                   : TYPEPREFIX OF
+    | FALSE                :
+      FamilyType           : SHORTCARD;
+      SerifStyle           : SHORTCARD;
+      Weight               : SHORTCARD;
+      Proportion           : SHORTCARD;
+      Contrast             : SHORTCARD;
+      StrokeVariation      : SHORTCARD;
+      ArmStyle             : SHORTCARD;
+      Letterform           : SHORTCARD;
+      Midline              : SHORTCARD;
+      XHeight              : SHORTCARD;
+      Reserved             : ARRAY [0..1] OF SHORTCARD;
+    | TRUE                 :
+      bFamilyType          : SHORTCARD;
+      bSerifStyle          : SHORTCARD;
+      bWeight              : SHORTCARD;
+      bProportion          : SHORTCARD;
+      bContrast            : SHORTCARD;
+      bStrokeVariation     : SHORTCARD;
+      bArmStyle            : SHORTCARD;
+      bLetterform          : SHORTCARD;
+      bMidline             : SHORTCARD;
+      bXHeight             : SHORTCARD;
+      abReserved           : ARRAY [0..1] OF SHORTCARD;
+    END;                   END;
+  FONTMETRICS            = RECORD
+    CASE                   : TYPEPREFIX OF
+    | FALSE                :
+      Familyname           : ARRAY [0..FACESIZE-1] OF CHAR;
+      Facename             : ARRAY [0..FACESIZE-1] OF CHAR;
+      Registry             : CARDINAL;
+      CodePage             : CARDINAL;
+      EmHeight             : LONGINT;
+      XHeight              : LONGINT;
+      MaxAscender          : LONGINT;
+      MaxDescender         : LONGINT;
+      LowerCaseAscent      : LONGINT;
+      LowerCaseDescent     : LONGINT;
+      InternalLeading      : LONGINT;
+      ExternalLeading      : LONGINT;
+      AveCharWidth         : LONGINT;
+      MaxCharInc           : LONGINT;
+      EmInc                : LONGINT;
+      MaxBaselineExt       : LONGINT;
+      CharSlope            : INTEGER;
+      InlineDir            : INTEGER;
+      CharRot              : INTEGER;
+      WeightClass          : CARDINAL;
+      WidthClass           : CARDINAL;
+      XDeviceRes           : INTEGER;
+      YDeviceRes           : INTEGER;
+      FirstChar            : INTEGER;
+      LastChar             : INTEGER;
+      DefaultChar          : INTEGER;
+      BreakChar            : INTEGER;
+      NominalPointSize     : INTEGER;
+      MinimumPointSize     : INTEGER;
+      MaximumPointSize     : INTEGER;
+      Type                 : CARDINAL;
+      Defn                 : CARDINAL;
+      Selection            : CARDINAL;
+      Capabilities         : CARDINAL;
+      SubscriptXSize       : LONGINT;
+      SubscriptYSize       : LONGINT;
+      SubscriptXOffset     : LONGINT;
+      SubscriptYOffset     : LONGINT;
+      SuperscriptXSize     : LONGINT;
+      SuperscriptYSize     : LONGINT;
+      SuperscriptXOffset   : LONGINT;
+      SuperscriptYOffset   : LONGINT;
+      UnderscoreSize       : LONGINT;
+      UnderscorePosition   : LONGINT;
+      StrikeoutSize        : LONGINT;
+      StrikeoutPosition    : LONGINT;
+      KerningPairs         : INTEGER;
+      FamilyClass          : INTEGER;
+      Match                : LONGINT;
+    | TRUE                 :
+      szFamilyname         : ARRAY [0..FACESIZE-1] OF CHAR;
+      szFacename           : ARRAY [0..FACESIZE-1] OF CHAR;
+      idRegistry           : CARDINAL;
+      usCodePage           : CARDINAL;
+      lEmHeight            : LONGINT;
+      lXHeight             : LONGINT;
+      lMaxAscender         : LONGINT;
+      lMaxDescender        : LONGINT;
+      lLowerCaseAscent     : LONGINT;
+      lLowerCaseDescent    : LONGINT;
+      lInternalLeading     : LONGINT;
+      lExternalLeading     : LONGINT;
+      lAveCharWidth        : LONGINT;
+      lMaxCharInc          : LONGINT;
+      lEmInc               : LONGINT;
+      lMaxBaselineExt      : LONGINT;
+      sCharSlope           : INTEGER;
+      sInlineDir           : INTEGER;
+      sCharRot             : INTEGER;
+      usWeightClass        : CARDINAL;
+      usWidthClass         : CARDINAL;
+      sXDeviceRes          : INTEGER;
+      sYDeviceRes          : INTEGER;
+      sFirstChar           : INTEGER;
+      sLastChar            : INTEGER;
+      sDefaultChar         : INTEGER;
+      sBreakChar           : INTEGER;
+      sNominalPointSize    : INTEGER;
+      sMinimumPointSize    : INTEGER;
+      sMaximumPointSize    : INTEGER;
+      fsType               : CARDINAL;
+      fsDefn               : CARDINAL;
+      fsSelection          : CARDINAL;
+      fsCapabilities       : CARDINAL;
+      lSubscriptXSize      : LONGINT;
+      lSubscriptYSize      : LONGINT;
+      lSubscriptXOffset    : LONGINT;
+      lSubscriptYOffset    : LONGINT;
+      lSuperscriptXSize    : LONGINT;
+      lSuperscriptYSize    : LONGINT;
+      lSuperscriptXOffset  : LONGINT;
+      lSuperscriptYOffset  : LONGINT;
+      lUnderscoreSize      : LONGINT;
+      lUnderscorePosition  : LONGINT;
+      lStrikeoutSize       : LONGINT;
+      lStrikeoutPosition   : LONGINT;
+      sKerningPairs        : INTEGER;
+      sFamilyClass         : INTEGER;
+      lMatch               : LONGINT;
+    END;
+    FamilyNameAtom         : LONGINT;
+    FaceNameAtom           : LONGINT;
+    panose                 : PANOSE;
+                           END;
+  PFONTMETRICS          = POINTER TO FONTMETRICS;
+
+
+
+(*** Common WIN types *)
+
+TYPE
+  HWND     = LHANDLE;                (* window handle *)
+  PHWND    = POINTER TO HWND;
+  HMQ      = LHANDLE;                (* message queue handle *)
+  PHMQ     = POINTER TO LHANDLE;
+  WRECT    = RECTL;
+  PWRECT   = PRECTL;
+  NPWRECT  = NPRECTL;
+  WPOINT   = POINTL;
+  PWPOINT  = PPOINTL;
+  NPWPOINT = NPPOINTL;
+
+TYPE
+  ICONINFO               = RECORD      (* icinf *)
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      cb                   : LONGCARD; (* size of ICONINFO structure       *)
+      fFormat              : LONGCARD;
+      pszFileName          : PSZ;      (* use when fFormat = ICON_FILE     *)
+      hmod                 : HMODULE;  (* use when fFormat = ICON_RESOURCE *)
+      resid                : LONGCARD; (* use when fFormat = ICON_RESOURCE *)
+      cbIconData           : LONGCARD; (* use when fFormat = ICON_DATA     *)
+      pIconData            : SYSTEM.ADDRESS; (* when fFormat = ICON_DATA   *)
+    | FALSE                :
+      Count                : LONGCARD; (* size of ICONINFO structure       *)
+      Format               : LONGCARD;
+      FileName             : PSZ;      (* use when fFormat = ICON_FILE     *)
+      Modhandle            : HMODULE;  (* use when fFormat = ICON_RESOURCE *)
+      ResourceId           : LONGCARD; (* use when fFormat = ICON_RESOURCE *)
+      IconDataSize         : LONGCARD; (* use when fFormat = ICON_DATA     *)
+      IconData             : SYSTEM.ADDRESS; (* when fFormat = ICON_DATA   *)
+    END;                   END;
+  PICONINFO              = POINTER TO ICONINFO;
+
+CONST
+  ICON_FILE              = 1;          (* flags for fFormat *)
+  ICON_RESOURCE          = 2;
+  ICON_DATA              = 3;
+  ICON_CLEAR             = 4;
+
+
+(*** Path name string delimiters ***)
+
+CONST
+
+  (*************************************************************************
+   * CCHMAXPATH is the maximum fully qualified path name length including  *
+   * the drive letter, colon, backslashes and terminating NULL.            *
+   *************************************************************************)
+   CCHMAXPATH       = 260;
+
+  (*************************************************************************
+   * CCHMAXPATHCOMP is the maximum individual path component name length   *
+   * including a terminating NULL.                                         *
+   *************************************************************************)
+  CCHMAXPATHCOMP    = 256;
+
+
+TYPE (* common types for file system *)
+  HFILE    = LHANDLE;                 (* File handle *)
+  PHFILE   = POINTER TO HFILE;
+  HEV      = LONGCARD;                (* Event handle *)
+  PHEV     = POINTER TO HEV;
+  FHLOCK   = LONGCARD;
+  PFHLOCK  = POINTER TO FHLOCK;
+
+
+END OS2DEF.

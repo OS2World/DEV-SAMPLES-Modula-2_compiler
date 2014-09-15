@@ -1,0 +1,320 @@
+DEFINITION MODULE WPFSYS;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPFileSystem
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPOBJECT;
+IMPORT OS2DEF;
+IMPORT WINSTDCNR;
+IMPORT DOSFILEMGR;
+IMPORT SYSTEM;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPFileSystem          = POINTER TO WPFileSystem;
+TYPE PM_WPFileSystem        = POINTER TO M_WPFileSystem;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPFileSystem
+*************************************************************************)
+
+TYPE PSZ                    = OS2DEF.PSZ;
+TYPE POBJDATA               = WPOBJECT.POBJDATA;
+TYPE CDATE                  = WINSTDCNR.CDATE;
+TYPE CTIME                  = WINSTDCNR.CTIME;
+TYPE FEA2LIST               = DOSFILEMGR.FEA2LIST;
+TYPE HWND                   = OS2DEF.HWND;
+TYPE ADDRESS                = SYSTEM.ADDRESS;
+TYPE PRINTDEST              = OS2DEF.PRINTDEST;
+TYPE PWPObject              = WPOBJECT.PWPObject;
+TYPE FDATE                  = DOSFILEMGR.FDATE;
+TYPE FTIME                  = DOSFILEMGR.FTIME;
+TYPE FILEFINDBUF4           = DOSFILEMGR.FILEFINDBUF4;
+
+TYPE (* Structure used to read + write the .CLASSINFO ea *)
+  INFOCLASS               = RECORD
+    flags                   : LONGCARD;
+    pszClass                : PSZ;
+    cbObjData               : LONGCARD;
+    pObjData                : POBJDATA;
+                            END;
+  PINFOCLASS              = POINTER TO INFOCLASS;
+
+TYPE (* FILEDETAILS structure used for details view *)
+  FILEDETAILS             = RECORD
+    pszRealName             : PSZ;      (* Real name *)
+    ulSize                  : LONGCARD; (* Size of the file *)
+    cdateLastMod            : CDATE;    (* Last modification date *)
+    ctimeLastMod            : CTIME;    (* Last modification time *)
+    cdateLastAccess         : CDATE;    (* Last access date *)
+    ctimeLastAccess         : CTIME;    (* Last access time *)
+    cdateCreation           : CDATE;    (* Date of creation *)
+    ctimeCreation           : CTIME;    (* Time of creation *)
+    ulFlags                 : LONGCARD; (* File flags *)
+                            END;
+  PFILEDETAILS            = POINTER TO FILEDETAILS;
+
+CONST
+  NUM_FILEDETAILS_FIELDS  = 9;    (* Count of fields in FILEDETAILS *)
+
+TYPE (* format of the extended search criteria for this class *)
+  FILESYS_SEARCH_INFO     = RECORD
+    Exclude                 : CARDINAL;
+    MustHave                : CARDINAL;
+    fIncludeLMD             : BOOLEAN;
+    LMDyear                 : CARDINAL;
+    LMDmonth                : CARDINAL;
+    LMDday                  : CARDINAL;
+    LMDcriteria             : INTEGER;
+    fIncludeLMT             : BOOLEAN;
+    LMThours                : CARDINAL;
+    LMTminutes              : CARDINAL;
+    LMTseconds              : CARDINAL;
+    LMTcriteria             : INTEGER;
+    fIncludeFDS             : BOOLEAN;
+    FDSsize                 : LONGCARD;
+    FDScriteria             : INTEGER;
+    fIncludeFEAS            : BOOLEAN;
+    FEASsize                : LONGCARD;
+    FEAScriteria            : INTEGER;
+    fMustHaveNeedEA         : BOOLEAN;
+    fMustNotHaveNeedEA      : BOOLEAN;
+                            END;
+  PFILESYS_SEARCH_INFO    = POINTER TO FILESYS_SEARCH_INFO;
+
+CONST (* return values for wpConfirmRenameFileWithExt *)
+  KEEP_RENAMEFILESWITHEXT     = 1;
+  DISCARD_RENAMEFILESWITHEXT  = 2;
+  CANCEL_RENAMEFILESWITHEXT   = 3;
+
+
+(*************************************************************************
+  SOM class API for WPFileSystem, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPFileSystem_MajorVersion     = 1;
+  WPFileSystem_MinorVersion     = 2;
+
+TYPE
+  WPFileSystemClassDataStructure     = RECORD
+    classObject                        : PSOMClass;
+    wpSetRealName                      : somMToken;
+    withdrawn_wpQueryRealName          : somMToken;
+    wpSetType                          : somMToken;
+    wpQueryType                        : somMToken;
+    wpSetAttr                          : somMToken;
+    wpQueryAttr                        : somMToken;
+    wpQueryFilename                    : somMToken;
+    wpAddFile1Page                     : somMToken;
+    wpAddFile2Page                     : somMToken;
+    wpAddFile3Page                     : somMToken;
+    wpAddFileMenuPage                  : somMToken;
+    wpQueryCreation                    : somMToken;
+    wpQueryLastAccess                  : somMToken;
+    wpQueryLastWrite                   : somMToken;
+    wpQueryFileSize                    : somMToken;
+    wpQueryEASize                      : somMToken;
+    wpSetDateInfo                      : somMToken;
+    wpSetFileSizeInfo                  : somMToken;
+    wpRefresh                          : somMToken;
+    wpPrintPlainTextFile               : somMToken;
+    wpSetRefreshFlags                  : somMToken;
+    wpQueryRefreshFlags                : somMToken;
+    wpQueryDriveData                   : somMToken;
+    wpSetTitleAndRenameFile            : somMToken;
+    wpConfirmRenameFileWithExt         : somMToken;
+    wpConfirmKeepAssoc                 : somMToken;
+    wpAddUserMenuItem                  : somMToken;
+    wpQueryDisk                        : somMToken;
+    wpQueryDateInfo                    : somMToken;
+    wpSetNewRealName                   : somMToken;
+    wpAdoptNewRealName                 : somMToken;
+    wpQueryRealName                    : somMToken;
+    wpVerifyUpdateAccess               : somMToken;
+    wpAddUserItemsToPopupMenu          : somMToken;
+                                       END;
+
+VAR
+  WPFileSystemClassData : WPFileSystemClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPFileSystem = RECORD( WPOBJECT.WPObject ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPFileSystemNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+PROCEDURE( Self : PWPFileSystem ) wpSetRealName
+(
+  szName        : ARRAY OF CHAR
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPFileSystem ) wpSetType
+(
+  szTypes       : ARRAY OF CHAR;
+  VAR feal      : FEA2LIST
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPFileSystem ) wpQueryType( ) : PSZ;
+
+PROCEDURE( Self : PWPFileSystem ) wpSetAttr
+(
+  attrFile      : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPFileSystem ) wpQueryAttr( ) : LONGCARD;
+
+PROCEDURE( Self : PWPFileSystem ) wpAddFile1Page
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPFileSystem ) wpAddFile2Page
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPFileSystem ) wpAddFile3Page
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPFileSystem ) wpAddFileMenuPage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPFileSystem ) wpQueryCreation
+(
+  VAR fdate     : FDATE;
+  VAR ftime     : FTIME
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPFileSystem ) wpQueryLastAccess
+(
+  VAR fdate     : FDATE;
+  VAR ftime     : FTIME
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPFileSystem ) wpQueryLastWrite
+(
+  VAR fdate     : FDATE;
+  VAR ftime     : FTIME
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPFileSystem ) wpQueryFileSize( ) : LONGCARD;
+
+PROCEDURE( Self : PWPFileSystem ) wpQueryEASize( ) : LONGCARD;
+
+PROCEDURE( Self : PWPFileSystem ) wpSetDateInfo
+(
+  VAR FileFindBuf : FILEFINDBUF4
+)                 : LONGCARD;
+
+PROCEDURE( Self : PWPFileSystem ) wpSetFileSizeInfo
+(
+  cbFileSize    : LONGCARD;
+  cbEASize      : LONGCARD
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPFileSystem ) wpRefresh
+(
+  ulView        : LONGCARD;
+  pReserved     : ADDRESS
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPFileSystem ) wpQueryRefreshFlags( ) : LONGCARD;
+
+PROCEDURE( Self : PWPFileSystem ) wpSetRefreshFlags
+(
+  ulRefreshFlags : LONGCARD
+)                : BOOLEAN;
+
+PROCEDURE( Self : PWPFileSystem ) wpPrintPlainTextFile
+(
+  VAR PrintDest : PRINTDEST
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPFileSystem ) wpSetTitleAndRenameFile
+(
+  szNewTitle     : ARRAY OF CHAR;
+  fConfirmations : LONGCARD
+)                : BOOLEAN;
+
+PROCEDURE( Self : PWPFileSystem ) wpConfirmRenameFileWithExt( ) : LONGCARD;
+
+PROCEDURE( Self : PWPFileSystem ) wpVerifyUpdateAccess( ) : LONGCARD;
+
+PROCEDURE( Self : PWPFileSystem ) wpAddUserItemsToPopupMenu
+(
+  hwndMenu      : HWND;
+  hwndCnr       : HWND;
+  iPosition     : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPFileSystem ) wpQueryRealName
+(
+  VAR szFilename : ARRAY OF CHAR;
+  VAR cb         : LONGCARD;
+  fQualified     : BOOLEAN
+)                : BOOLEAN;
+
+
+(*************************************************************************
+  SOM class API for M_WPFileSystem, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPFileSystem_MajorVersion   = 1;
+  M_WPFileSystem_MinorVersion   = 2;
+
+TYPE
+  M_WPFileSystemClassDataStructure   = RECORD
+    classObject                        : PSOMClass;
+    wpclsQueryInstanceType             : somMToken;
+    wpclsQueryInstanceFilter           : somMToken;
+    wpclsQueryObjectFromPath           : somMToken;
+                                       END;
+
+VAR
+  M_WPFileSystemClassData : M_WPFileSystemClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPFileSystem = RECORD( WPOBJECT.M_WPObject ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPFileSystemNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+PROCEDURE( Self : PM_WPFileSystem ) wpclsQueryObjectFromPath
+(
+  szFQPath      : ARRAY OF CHAR
+)               : PWPObject;
+
+PROCEDURE( Self : PM_WPFileSystem ) wpclsQueryInstanceType( ) : PSZ;
+
+PROCEDURE( Self : PM_WPFileSystem ) wpclsQueryInstanceFilter( ) : PSZ;
+
+END WPFSYS.

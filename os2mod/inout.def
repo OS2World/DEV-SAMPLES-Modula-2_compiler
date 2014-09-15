@@ -1,0 +1,262 @@
+DEFINITION MODULE InOut;
+
+(**************************************************************************
+   OS/2 2.x  Modula-2 standard utility for stream input/output.
+
+   Copyright (c) 1993 by Juergen Neuhoff
+**************************************************************************)
+
+IMPORT SYSTEM;
+IMPORT FileSystem;
+
+CONST
+  EOL     = 13;                (* Carriage Return = End-of-Line in OS/2 *)
+
+VAR
+  Done    : BOOLEAN;
+  termCH  : CHAR;              (* terminating character from Read... *)
+  in      : FileSystem.File;   (* input file, default is keyboard *)
+  out     : FileSystem.File;   (* output file, default is screen *)
+
+PROCEDURE RedirectInput( from : ARRAY OF CHAR );
+(*
+    redirects the input from file from.
+*)
+
+PROCEDURE RedirectOutput( to : ARRAY OF CHAR );
+(*
+    redirects the output to file to.
+*)
+
+PROCEDURE OpenInput( defext : ARRAY OF CHAR );
+(*
+   Accept a file name from the terminal and open it for input.
+   If successful, subsequent input is taken from the file instead of
+   terminal until 'CloseInput' is called.
+
+   'defext' is the default file extension appended to file name
+   if file name ends with '.'.
+
+   Returns Done = TRUE, if successful;
+*)
+
+PROCEDURE OpenOutput( defext : ARRAY OF CHAR );
+(*
+   Accept a file name from the terminal and open it for output.
+   If successful, subsequent output is written to the file instead of
+   terminal until 'CloseOutput' is called. If the file already exists,
+   it will be overwritten.
+
+   'defext' is the default file extension appended to file name
+   if file name ends with '.'.
+
+   Returns Done = TRUE, if successful;
+*)
+
+PROCEDURE CloseInput();
+(*
+   Close input file and revert to terminal keyboard for input
+*)
+
+PROCEDURE CloseOutput();
+(*
+   Close output file and revert to terminal screen for output
+*)
+
+PROCEDURE Read( VAR ch : CHAR );
+(*
+   Read next character from current input. If reading from the terminal,
+   the character is not echoed on the screen.
+
+   Returns Done = TRUE, if successful;  Done = FALSE, if end of file.
+*)
+
+PROCEDURE ScanCode():SHORTCARD;
+(*
+   If input is from terminal keyboard (not redirected), then
+   return the scan code for last key hit. If the last key stroke
+   returned the character value 0H or 0E0H, then the scan code
+   determines what kind of function key it was.
+
+   If input is redirected, scan code has no meaning,
+   and a zero value is returned.
+*)
+
+PROCEDURE ReadString( VAR s : ARRAY OF CHAR );
+(*
+   Read string from current input. Leading spaces are ignored. Input is
+   terminated by first character <= ' ' (space). The terminating character
+   is assigned to 'termCH'. If reading from the terminal then characters are
+   echoed on the screen, backspacing is allowed, and Ctrl-C cancels program.
+*)
+
+PROCEDURE ReadInt( VAR x : INTEGER );
+(*
+   Read string from current input and convert it to an integer.
+   Leading plus or minus sign is optionally accepted. If reading
+   from the terminal, characters are echoed on the screen and
+   backspacing is allowed for editing.
+
+   Returns Done = TRUE, if integer was read.
+*)
+
+PROCEDURE ReadShortInt( VAR x : SHORTINT );
+(*
+   Same as ReadInt, for short integer.
+*)
+
+PROCEDURE ReadLongInt( VAR x : LONGINT );
+(*
+   Same as ReadLongInt, for long integer.
+*)
+
+PROCEDURE ReadCard( VAR x : CARDINAL );
+(*
+   Read string from current input and convert it cardinal.
+   If reading from the terminal, characters are echoed on the screen
+   and backspacing is allowed for editing.
+
+   Returns Done = TRUE, if cardinal was read.
+*)
+
+
+PROCEDURE ReadShortCard( VAR x : SHORTCARD );
+(*
+   Same as ReadCard, for short cardinal.
+*)
+
+PROCEDURE ReadLongCard( VAR x : LONGCARD );
+(*
+   Same as ReadCard, for long cardinal.
+*)
+
+PROCEDURE ReadWrd( VAR w : SYSTEM.WORD );
+(*
+   Same as ReadWord.
+*)
+
+PROCEDURE ReadByte( VAR b : SYSTEM.BYTE );
+(*
+   Read any byte from input.
+*)
+
+PROCEDURE ReadWord( VAR w : SYSTEM.WORD );
+(*
+   Read any word (2 bytes) from input.
+*)
+
+PROCEDURE ReadLongWord( VAR lw : SYSTEM.LONGWORD );
+(*
+   Read any double word (4 bytes) from input.
+*)
+
+PROCEDURE Write( ch : CHAR );
+(*
+   Write a character to current output.
+*)
+
+PROCEDURE WriteLn();
+(*
+   Write a carriage return and line feed to the current output.
+*)
+
+PROCEDURE WriteString( s : ARRAY OF CHAR );
+(*
+   Write a zero terminated character string to output.
+*)
+
+PROCEDURE WriteInt( x : INTEGER; n : CARDINAL );
+(*
+   Convert 'x' to decimal string and write it to current output
+   in field size of at least 'n' characters. If 'x' is negative,
+   a leading minus sign is included and the minus sign counts as
+   a significant digit. If 'n' is greater than the number of
+   significant digits, leading spaces are added. If 'n' is zero,
+   only the significant digits are written.
+*)
+
+PROCEDURE WriteShortInt( x : SHORTINT; n : CARDINAL );
+(*
+   Same as WriteInt, for short integer.
+*)
+
+PROCEDURE WriteLongInt( x : LONGINT; n : CARDINAL );
+(*
+   Same as WriteInt, for long integer.
+*)
+
+PROCEDURE WriteCard( x : CARDINAL; n : CARDINAL );
+(*
+   Convert 'x' to a decimal string and write it to current output
+   in field size of at least 'n' characters. If 'n' is greater than
+   the number of significant digits, leading spaces are added.
+   If 'n' is zero, only the significant digits are written.
+*)
+
+PROCEDURE WriteShortCard( x : SHORTCARD; n : CARDINAL );
+(*
+   Same as WriteCard, for short cardinal.
+*)
+
+PROCEDURE WriteLongCard( x : LONGCARD; n : CARDINAL );
+(*
+   Same as WriteCard, for long cardinal.
+*)
+
+PROCEDURE WriteOct( x : CARDINAL; n : CARDINAL );
+(*
+   Convert 'x' to octal string and write it to current output
+   in field size of at least 'n' characters. If 'n' is greater
+   than the number of significant digits, leading spaces are added.
+   If 'n' is zero, only the significant digits are written.
+*)
+
+PROCEDURE WriteShortOct( x : SHORTCARD; n : CARDINAL );
+(*
+   Same as WriteOct, for short octal value.
+*)
+
+PROCEDURE WriteLongOct( x : LONGCARD; n : CARDINAL );
+(*
+   Same as WriteOct, for long octal value.
+*)
+
+PROCEDURE WriteHex( x : CARDINAL; n : CARDINAL );
+(*
+   Convert 'x' to hexadecimal string and write it to current output
+   in field size of at least 'n' characters. If 'n' ios greater than
+   the number of significant digits, leading spaces are added.
+   If 'n' is zero, only the significant digits are written.
+*)
+
+PROCEDURE WriteShortHex( x : SHORTCARD; n : CARDINAL );
+(*
+   Same as WriteHex, for short hexadecimal value.
+*)
+
+PROCEDURE WriteLongHex( x : LONGCARD; n : CARDINAL );
+(*
+   Same as WriteHex, for long hexadecimal value.
+*)
+
+PROCEDURE WriteWrd( w : SYSTEM.WORD );
+(*
+   Write a machine word (2 bytes) to output.
+*)
+
+PROCEDURE WriteWord( w : SYSTEM.WORD );
+(*
+   Same as WriteWrd.
+*)
+
+PROCEDURE WriteByte( b : SYSTEM.BYTE );
+(*
+   Write any byte to output.
+*)
+
+PROCEDURE WriteLongWord( lw : SYSTEM.LONGWORD );
+(*
+   Write a double word (4 bytes) to output.
+*)
+
+END InOut.

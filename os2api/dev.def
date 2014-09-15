@@ -1,0 +1,331 @@
+DEFINITION MODULE DEV;
+
+(************************************************************************
+  OS/2 2.1 interface for Presentation Manager Device Context support.
+
+  Copyright (c) 1992, 1994 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF IMPORT TYPEPREFIX, HAB, HDC, HMF, PDEVOPENDATA, PDRIVDATA;
+
+CONST (* General DEV return values *)
+  DEV_ERROR                     = 0;
+  DEV_OK                        = 1;
+
+CONST (* DC type for DevOpenDC *)
+  OD_QUEUED                     = 2;
+  OD_DIRECT                     = 5;
+  OD_INFO                       = 6;
+  OD_METAFILE                   = 7;
+  OD_MEMORY                     = 8;
+  OD_METAFILE_NOQUERY           = 9;
+
+CONST (* codes for DevQueryCaps *)
+  CAPS_FAMILY                   = 0;
+  CAPS_IO_CAPS                  = 1;
+  CAPS_TECHNOLOGY               = 2;
+  CAPS_DRIVER_VERSION           = 3;
+  CAPS_WIDTH                    = 4;      (* pels            *)
+  CAPS_HEIGHT                   = 5;      (* pels            *)
+  CAPS_WIDTH_IN_CHARS           = 6;
+  CAPS_HEIGHT_IN_CHARS          = 7;
+  CAPS_HORIZONTAL_RESOLUTION    = 8;      (* pels per meter  *)
+  CAPS_VERTICAL_RESOLUTION      = 9;      (* pels per meter  *)
+  CAPS_CHAR_WIDTH              = 10;      (* pels            *)
+  CAPS_CHAR_HEIGHT             = 11;      (* pels            *)
+  CAPS_SMALL_CHAR_WIDTH        = 12;      (* pels            *)
+  CAPS_SMALL_CHAR_HEIGHT       = 13;      (* pels            *)
+  CAPS_COLORS                  = 14;
+  CAPS_COLOR_PLANES            = 15;
+  CAPS_COLOR_BITCOUNT          = 16;
+  CAPS_COLOR_TABLE_SUPPORT     = 17;
+  CAPS_MOUSE_BUTTONS           = 18;
+  CAPS_FOREGROUND_MIX_SUPPORT  = 19;
+  CAPS_BACKGROUND_MIX_SUPPORT  = 20;
+  CAPS_DEVICE_WINDOWING        = 31;
+  CAPS_ADDITIONAL_GRAPHICS     = 32;
+  CAPS_VIO_LOADABLE_FONTS      = 21;
+  CAPS_WINDOW_BYTE_ALIGNMENT   = 22;
+  CAPS_BITMAP_FORMATS          = 23;
+  CAPS_RASTER_CAPS             = 24;
+  CAPS_MARKER_HEIGHT           = 25;      (* pels            *)
+  CAPS_MARKER_WIDTH            = 26;      (* pels            *)
+  CAPS_DEVICE_FONTS            = 27;
+  CAPS_GRAPHICS_SUBSET         = 28;
+  CAPS_GRAPHICS_VERSION        = 29;
+  CAPS_GRAPHICS_VECTOR_SUBSET  = 30;
+  CAPS_PHYS_COLORS             = 33;
+  CAPS_COLOR_INDEX             = 34;
+  CAPS_GRAPHICS_CHAR_WIDTH     = 35;
+  CAPS_GRAPHICS_CHAR_HEIGHT    = 36;
+  CAPS_HORIZONTAL_FONT_RES     = 37;
+  CAPS_VERTICAL_FONT_RES       = 38;
+  CAPS_DEVICE_FONT_SIM         = 39;
+  CAPS_LINEWIDTH_THICK         = 40;
+  CAPS_DEVICE_POLYSET_POINTS   = 41;
+
+CONST (* Constants for CAPS_IO_CAPS *)
+  CAPS_IO_DUMMY                = 1;
+  CAPS_IO_SUPPORTS_OP          = 2;
+  CAPS_IO_SUPPORTS_IP          = 3;
+  CAPS_IO_SUPPORTS_IO          = 4;
+
+CONST (* Constants for CAPS_TECHNOLOGY *)
+  CAPS_TECH_UNKNOWN            = 0;
+  CAPS_TECH_VECTOR_PLOTTER     = 1;
+  CAPS_TECH_RASTER_DISPLAY     = 2;
+  CAPS_TECH_RASTER_PRINTER     = 3;
+  CAPS_TECH_RASTER_CAMERA      = 4;
+  CAPS_TECH_POSTSCRIPT         = 5;
+
+CONST (* Constants for CAPS_COLOR_TABLE_SUPPORT *)
+  CAPS_COLTABL_RGB_8           = 1;
+  CAPS_COLTABL_RGB_8_PLUS      = 2;
+  CAPS_COLTABL_TRUE_MIX        = 4;
+  CAPS_COLTABL_REALIZE         = 8;
+
+CONST (* Constants for CAPS_FOREGROUND_MIX_SUPPORT *)
+  CAPS_FM_OR                   =  1;
+  CAPS_FM_OVERPAINT            =  2;
+  CAPS_FM_XOR                  =  8;
+  CAPS_FM_LEAVEALONE           = 16;
+  CAPS_FM_AND                  = 32;
+  CAPS_FM_GENERAL_BOOLEAN      = 64;
+
+CONST (* Constants for CAPS_BACKGROUND_MIX_SUPPORT *)
+  CAPS_BM_OR                   =   1;
+  CAPS_BM_OVERPAINT            =   2;
+  CAPS_BM_XOR                  =   8;
+  CAPS_BM_LEAVEALONE           =  16;
+  CAPS_BM_AND                  =  32;
+  CAPS_BM_GENERAL_BOOLEAN      =  64;
+  CAPS_BM_SRCTRANSPARENT       = 128;
+  CAPS_BM_DESTTRANSPARENT      = 256;
+
+CONST (* Constants for CAPS_DEVICE_WINDOWING *)
+  CAPS_DEV_WINDOWING_SUPPORT   =  1;
+
+CONST (* Constants for CAPS_ADDITIONAL_GRAPHICS *)
+  CAPS_VDD_DDB_TRANSFER         = 1;
+  CAPS_GRAPHICS_KERNING_SUPPORT = 2;
+  CAPS_FONT_OUTLINE_DEFAULT     = 4;
+  CAPS_FONT_IMAGE_DEFAULT       = 8;
+  (* bits represented by values 16 and 32 are reserved *)
+  CAPS_SCALED_DEFAULT_MARKERS    = 64;
+  CAPS_COLOR_CURSOR_SUPPORT      = 128;
+  CAPS_PALETTE_MANAGER           = 256;
+  CAPS_COSMETIC_WIDELINE_SUPPORT = 512;
+  CAPS_DIRECT_FILL               = 1024;
+  CAPS_REBUILD_FILLS             = 2048;
+  CAPS_CLIP_FILLS                = 4096;
+  CAPS_ENHANCED_FONTMETRICS      = 8192;
+
+CONST (* Constants for CAPS_WINDOW_BYTE_ALIGNMENT *)
+  CAPS_BYTE_ALIGN_REQUIRED       = 0;
+  CAPS_BYTE_ALIGN_RECOMMENDED    = 1;
+  CAPS_BYTE_ALIGN_NOT_REQUIRED   = 2;
+
+CONST (* Constants for CAPS_RASTER_CAPS *)
+  CAPS_RASTER_BITBLT             = 1;
+  CAPS_RASTER_BANDING            = 2;
+  CAPS_RASTER_BITBLT_SCALING     = 4;
+  CAPS_RASTER_SET_PEL            = 16;
+  CAPS_RASTER_FONTS              = 32;
+  CAPS_RASTER_FLOOD_FILL         = 64;
+
+PROCEDURE DevOpenDC
+( AnchorBlockHandle              : HAB;
+  Type                           : LONGINT;
+  Token                          : ARRAY OF CHAR;
+  Count                          : LONGINT;
+  Data                           : PDEVOPENDATA;
+  CompDevHandle                  : HDC
+)                                : HDC;
+
+PROCEDURE DevCloseDC
+( DevHandle                      : HDC
+)                                : HMF;
+
+PROCEDURE DevQueryCaps
+( DCHandle                       : HDC;
+  Start                          : LONGINT;
+  Count                          : LONGINT;
+  Array                          : ARRAY OF LONGINT
+)                                : BOOLEAN;
+
+TYPE (* structures for DEVESC_QUERYVIOCELLSIZES *)
+  VIOSIZECOUNT                   = RECORD  (* vios *)
+    CASE                           : TYPEPREFIX OF
+    | TRUE                         :
+      maxcount                     : LONGINT;
+      count                        : LONGINT;
+    | FALSE                        :
+      MaxCount                     : LONGINT;
+      Count                        : LONGINT;
+    END;                           END;
+  PVIOSIZECOUNT                  = POINTER TO VIOSIZECOUNT;
+  VIOFONTCELLSIZE                = RECORD   (* viof *)
+    CASE                           : TYPEPREFIX OF
+    | TRUE                         :
+      cx                           : LONGINT;
+      cy                           : LONGINT;
+    | FALSE                        :
+      xSize                        : LONGINT;
+      ySize                        : LONGINT;
+    END;                           END;
+  PVIOFONTCELLSIZE               = POINTER TO VIOFONTCELLSIZE;
+
+TYPE (* structure for DEVESC_GETSCALINGFACTOR *)
+  SFACTORS                       = RECORD  (* sfactors *)
+    x                              : LONGINT;
+    y                              : LONGINT;
+                                   END;
+  PSFACTORS                      = POINTER TO SFACTORS;
+
+TYPE (* structure for DEVESC_NEXTBAND *)
+  BANDRECT                       = RECORD  (* bandrect *)
+    CASE                           : TYPEPREFIX OF
+    | TRUE                         :
+      xleft                        : LONGINT;
+      ybottom                      : LONGINT;
+      xright                       : LONGINT;
+      ytop                         : LONGINT;
+    | FALSE                        :
+      xLeft                        : LONGINT;
+      yBottom                      : LONGINT;
+      xRight                       : LONGINT;
+      yTop                         : LONGINT;
+    END;                           END;
+  PBANDRECT                      = POINTER TO BANDRECT;
+
+CONST (* return codes for DevEscape *)
+  DEVESC_ERROR                   = -1;
+  DEVESC_NOTIMPLEMENTED          = 0;
+
+CONST (* codes for DevEscape *)
+  DEVESC_QUERYESCSUPPORT         =     0;
+  DEVESC_GETSCALINGFACTOR        =     1;
+  DEVESC_QUERYVIOCELLSIZES       =     2;
+  DEVESC_GETCP                   =  8000;
+  DEVESC_STARTDOC                =  8150;
+  DEVESC_ENDDOC                  =  8151;
+  DEVESC_NEXTBAND                =  8152;
+  DEVESC_ABORTDOC                =  8153;
+  DEVESC_NEWFRAME                = 16300;
+  DEVESC_DRAFTMODE               = 16301;
+  DEVESC_FLUSHOUTPUT             = 16302;
+  DEVESC_RAWDATA                 = 16303;
+  DEVESC_SETMODE                 = 16304;
+  DEVESC_DBE_FIRST               = 24450;
+  DEVESC_DBE_LAST                = 24455;
+
+CONST (* DevEscape codes for adding extra space to character strings *)
+  DEVESC_CHAR_EXTRA              = 16998;
+  DEVESC_BREAK_EXTRA             = 16999;
+
+CONST (* codes for DevEscape PM_Q_ESC spool files *)
+  DEVESC_STD_JOURNAL             = 32600;
+
+TYPE (* structure for DEVESC_SETMODE *)
+  ESCMODE                        = RECORD   (* em *)
+    CASE                           : TYPEPREFIX OF
+    | TRUE                         :
+      mode                         : LONGCARD;
+      modedata                     : ARRAY [0..0] OF SHORTCARD;
+    | FALSE                        :
+      Node                         : LONGCARD;
+      NodeData                     : ARRAY [0..0] OF SHORTCARD;
+    END;                           END;
+  PESCMODE                       = POINTER TO ESCMODE;
+
+CONST (* return codes for DevPostDeviceModes *)
+  DPDM_ERROR                     = -1;
+  DPDM_NONE                      = 0;
+
+CONST (* codes for DevPostDeviceModes *)
+  DPDM_POSTJOBPROP               = 0;
+  DPDM_CHANGEPROP                = 1;
+  DPDM_QUERYJOBPROP              = 2;
+
+TYPE (* string types for DevQueryDeviceNames *)
+  STR16                          = ARRAY [0..15] OF CHAR;     (* str16 *)
+  PSTR16                         = POINTER TO STR16;
+  STR32                          = ARRAY [0..31] OF CHAR;     (* str32 *)
+  PSTR32                         = POINTER TO STR32;
+  STR64                          = ARRAY [0..63] OF CHAR;     (* str64 *)
+  PSTR64                         = POINTER TO STR64;
+
+CONST (* return code for DevQueryHardcopyCaps *)
+  DQHC_ERROR                     = -1;
+
+CONST (* codes for DevQueryHardcopyCaps *)
+  HCAPS_CURRENT                  = 1;
+  HCAPS_SELECTABLE               = 2;
+
+TYPE (* structure for DevQueryHardcopyCaps *)
+  HCINFO                         = RECORD   (* hci *)
+    CASE                           : TYPEPREFIX OF
+    | TRUE                         :
+      szFormname                   : ARRAY [0..31] OF CHAR;
+      cx                           : LONGINT;
+      cy                           : LONGINT;
+    | FALSE                        :
+      Formname                     : ARRAY [0..31] OF CHAR;
+      xSize                        : LONGINT;
+      ySize                        : LONGINT;
+    END;
+    xLeftClip                      : LONGINT;
+    yBottomClip                    : LONGINT;
+    xRightClip                     : LONGINT;
+    yTopClip                       : LONGINT;
+    xPels                          : LONGINT;
+    yPels                          : LONGINT;
+    CASE                           : TYPEPREFIX OF
+    | TRUE                         :
+      flAttributes                 : LONGINT;
+    | FALSE                        :
+      Attributes                   : LONGINT;
+    END;                           END;
+  PHCINFO                        = POINTER TO HCINFO;
+
+PROCEDURE DevEscape
+( DCHandle                       : HDC;
+  Code                           : LONGINT;
+  InCount                        : LONGINT;
+  InData                         : ARRAY OF SYSTEM.BYTE;
+  VAR OutCount                   : LONGINT;
+  VAR OutData                    : ARRAY OF SYSTEM.BYTE
+)                                : LONGINT;
+
+PROCEDURE DevQueryDeviceNames
+( AnchorBlockHandle              : HAB;
+  DriverName                     : ARRAY OF CHAR;
+  VAR DeviceCount                : LONGINT;
+  VAR DeviceName                 : STR32;
+  VAR DeviceDesc                 : STR64;
+  VAR DataTypeCount              : LONGINT;
+  VAR DataType                   : STR16
+)                                : BOOLEAN;
+
+PROCEDURE DevQueryHardcopyCaps
+( DCHandle                       : HDC;
+  StartForm                      : LONGINT;
+  Forms                          : LONGINT;
+  VAR HCInfo                     : HCINFO
+)                                : LONGINT;
+
+PROCEDURE DevPostDeviceModes
+( AnchorBlockHandle              : HAB;
+  DriverData                     : PDRIVDATA;
+  DriverName                     : ARRAY OF CHAR;
+  DeviceName                     : ARRAY OF CHAR;
+  Name                           : ARRAY OF CHAR;
+  Options                        : LONGCARD
+)                                : LONGINT;
+
+END DEV.

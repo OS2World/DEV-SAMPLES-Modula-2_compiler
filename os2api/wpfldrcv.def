@@ -1,0 +1,56 @@
+DEFINITION MODULE WPFLDRCV;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPFolderCV
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPCNRVW;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPFolderCV            = POINTER TO WPFolderCV;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPFolderCV
+*************************************************************************)
+
+
+(*************************************************************************
+  SOM class API for WPFolderCV, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPFolderCV_MajorVersion     = 1;
+  WPFolderCV_MinorVersion     = 2;
+
+TYPE
+  WPFolderCVClassDataStructure     = RECORD
+    classObject                    : PSOMClass;
+                                   END;
+
+VAR
+  WPFolderCVClassData : WPFolderCVClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPFolderCV = RECORD( WPCNRVW.WPCnrView ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPFolderCVNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+END WPFLDRCV.

@@ -1,0 +1,130 @@
+DEFINITION MODULE WPSYSTEM;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPSystem;
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPABS;
+IMPORT OS2DEF;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPSystem            = POINTER TO WPSystem;
+TYPE PM_WPSystem          = POINTER TO M_WPSystem;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPSystem
+*************************************************************************)
+
+TYPE HWND                 = OS2DEF.HWND;
+
+(*************************************************************************
+  SOM class API for WPSystem, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPSystem_MajorVersion     = 1;
+  WPSystem_MinorVersion     = 2;
+
+TYPE
+  WPSystemClassDataStructure   = RECORD
+    classObject                    : PSOMClass;
+    wpAddSystemWindowPage          : somMToken;   
+    wpAddSystemLogoPage            : somMToken;   
+    wpAddSystemPrintScreenPage     : somMToken;   
+    wpAddSystemConfirmationPage    : somMToken;   
+    wpAddTitleConfirmationPage     : somMToken;   
+    wpAddSystemScreenPage          : somMToken;   
+    wpAddDMQSDisplayTypePage       : somMToken;   
+                                   END;
+
+VAR
+  WPSystemClassData : WPSystemClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPSystem = RECORD( WPABS.WPAbstract ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPSystemNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+PROCEDURE( Self : PWPSystem ) wpAddSystemWindowPage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPSystem ) wpAddSystemLogoPage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPSystem ) wpAddSystemPrintScreenPage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPSystem ) wpAddSystemConfirmationPage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPSystem ) wpAddTitleConfirmationPage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPSystem ) wpAddSystemScreenPage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPSystem ) wpAddDMQSDisplayTypePage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+
+(*************************************************************************
+  SOM class API for M_WPSystem, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPSystem_MajorVersion   = 1;
+  M_WPSystem_MinorVersion   = 2;
+
+TYPE
+  M_WPSystemClassDataStructure   = RECORD
+    classObject                      : PSOMClass;
+                                     END;
+
+VAR
+  M_WPSystemClassData : M_WPSystemClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPSystem = RECORD( WPABS.M_WPAbstract ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPSystemNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+END WPSYSTEM.

@@ -1,0 +1,6 @@
+LIBRARY WPCONFIG
+EXPORTS
+  WPMouseClassData         @0x0011
+  WPMouseNewClass          @0x0012
+  M_WPMouseClassData       @0x0075
+  M_WPMouseNewClass        @0x0076

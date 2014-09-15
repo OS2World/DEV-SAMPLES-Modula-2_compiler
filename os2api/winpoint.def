@@ -1,0 +1,218 @@
+DEFINITION MODULE WINPOINTERS;
+
+(************************************************************************
+  OS/2 2.1 interface for Presentation Manager mouse pointer functions.
+
+  Copyright (c) 1992,1994 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF  IMPORT TYPEPREFIX, LHANDLE, HWND, PID, HMODULE;
+FROM   OS2DEF  IMPORT POINTL, HBITMAP, HPS;
+FROM   OS2DEF  IMPORT ICONINFO;
+
+TYPE
+  HPOINTER                = LHANDLE;   (* hptr *)
+
+PROCEDURE WinSetPointer
+( DesktopWinHandle        : HWND;
+  NewPointer              : HPOINTER
+)                         : BOOLEAN;
+
+PROCEDURE WinSetPointerOwner
+( PointerHandle           : HPOINTER;
+  ProcessId               : PID;
+  Destroy                 : BOOLEAN
+)                         : BOOLEAN;
+
+PROCEDURE WinShowPointer
+( DesktopWinHandle        : HWND;
+  Show                    : BOOLEAN
+)                         : BOOLEAN;
+
+PROCEDURE WinLockPointerUpdate
+( DesktopWinHandle        : HWND;
+  NewPointerHandle        : HPOINTER;
+  TimeInterval            : LONGCARD
+)                         : BOOLEAN;
+
+PROCEDURE WinQuerySysPointer
+( DesktopWinHandle        : HWND;
+  SysPointerId            : LONGINT;
+  Load                    : BOOLEAN
+)                         : HPOINTER;
+
+PROCEDURE WinQuerySysPointerData
+( DesktopWinHandle        : HWND;
+  SysPointerIndex         : LONGCARD;
+  VAR IconInfo            : ICONINFO
+)                         : BOOLEAN;
+
+PROCEDURE WinSetSysPointerData
+( DesktopWinHandle        : HWND;
+  SysPointerIndex         : LONGCARD;
+  VAR IconInfo            : ICONINFO
+)                         : BOOLEAN;
+
+CONST (* System pointers (NOTE: these are 1-based) *)
+  SPTR_ARROW              = 1;
+  SPTR_TEXT               = 2;
+  SPTR_WAIT               = 3;
+  SPTR_SIZE               = 4;
+  SPTR_MOVE               = 5;
+  SPTR_SIZENWSE           = 6;
+  SPTR_SIZENESW           = 7;
+  SPTR_SIZEWE             = 8;
+  SPTR_SIZENS             = 9;
+  SPTR_APPICON            = 10;
+  SPTR_ICONINFORMATION    = 11;
+  SPTR_ICONQUESTION       = 12;
+  SPTR_ICONERROR          = 13;
+  SPTR_ICONWARNING        = 14;
+  SPTR_CPTR               = 14;   (* count loaded by pmwin *)
+  SPTR_ILLEGAL            = 18;
+  SPTR_FILE               = 19;
+  SPTR_FOLDER             = 20;
+  SPTR_MULTFILE           = 21;
+  SPTR_PROGRAM            = 22;
+  SPTR_HANDICON           = SPTR_ICONERROR;
+  SPTR_QUESICON           = SPTR_ICONQUESTION;
+  SPTR_BANGICON           = SPTR_ICONWARNING;
+  SPTR_NOTEICON           = SPTR_ICONINFORMATION;
+
+PROCEDURE WinLoadPointer
+( DesktopWinHandle        : HWND;
+  Resource                : HMODULE;
+  PointerId               : LONGCARD
+)                         : HPOINTER;
+
+PROCEDURE WinCreatePointer
+( DesktopWinHandle        : HWND;
+  BitMapHandle            : HBITMAP;
+  PointerSizeFlag         : BOOLEAN;
+  xHotspot                : LONGINT;
+  yHotspot                : LONGINT
+)                         : HPOINTER;
+
+PROCEDURE WinSetPointerPos
+( DesktopWinHandle        : HWND;
+  x                       : LONGINT;
+  y                       : LONGINT
+)                         : BOOLEAN;
+
+PROCEDURE WinDestroyPointer
+( PointerHandle           : HPOINTER
+)                         : BOOLEAN;
+
+PROCEDURE WinQueryPointer
+( DesktopWinHandle        : HWND
+)                         : HPOINTER;
+
+PROCEDURE WinQueryPointerPos
+( DesktopWinHandle        : HWND;
+  VAR Point               : POINTL
+)                         : BOOLEAN;
+
+TYPE
+  POINTERINFO               = RECORD (* ptri *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      fPointer                : LONGCARD;
+    | FALSE                   :
+      Pointer                 : LONGCARD;
+    END;
+    xHotspot                  : LONGINT;
+    yHotspot                  : LONGINT;
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      hbmPointer              : HBITMAP;
+      hbmColor                : HBITMAP;
+      hbmMiniPointer          : HBITMAP;
+      hbmMiniColor            : HBITMAP;
+    | FALSE                   :
+      PointerBitMapHandle     : HBITMAP;
+      ColorBitMapHandle       : HBITMAP;
+      MiniPointerBitMapHandle : HBITMAP;
+      MiniColorBitMapHandle   : HBITMAP;
+    END;                      END;
+  PPOINTERINFO              = POINTER TO POINTERINFO;
+
+PROCEDURE WinCreatePointerIndirect
+( DesktopWinHandle        : HWND;
+  VAR PointerInfo         : POINTERINFO
+)                         : HPOINTER;
+
+PROCEDURE WinQueryPointerInfo
+( PointerHandle           : HPOINTER;
+  VAR PointerInfo         : POINTERINFO
+)                         : BOOLEAN;
+
+PROCEDURE WinDrawPointer
+( PresSpaceHandle         : HPS;
+  x                       : LONGINT;
+  y                       : LONGINT;
+  PointerHandle           : HPOINTER;
+  Halftone                : LONGCARD
+)                         : BOOLEAN;
+
+CONST (* WinDrawPointer() Halftone constants *)
+  DP_NORMAL               = 0000H;
+  DP_HALFTONED            = 0001H;
+  DP_INVERTED             = 0002H;
+
+PROCEDURE WinGetSysBitmap
+( DesktopWinHandle        : HWND;
+  Index                   : LONGCARD
+)                         : HBITMAP;
+
+CONST (* System bitmaps (NOTE: these are 1-based) *)
+  SBMP_OLD_SYSMENU        = 1;
+  SBMP_OLD_SBUPARROW      = 2;
+  SBMP_OLD_SBDNARROW      = 3;
+  SBMP_OLD_SBRGARROW      = 4;
+  SBMP_OLD_SBLFARROW      = 5;
+  SBMP_MENUCHECK          = 6;
+  SBMP_OLD_CHECKBOXES     = 7;
+  SBMP_BTNCORNERS         = 8;
+  SBMP_OLD_MINBUTTON      = 9;
+  SBMP_OLD_MAXBUTTON      = 10;
+  SBMP_OLD_RESTOREBUTTON  = 11;
+  SBMP_OLD_CHILDSYSMENU   = 12;
+  SBMP_DRIVE              = 15;
+  SBMP_FILE               = 16;
+  SBMP_FOLDER             = 17;
+  SBMP_TREEPLUS           = 18;
+  SBMP_TREEMINUS          = 19;
+  SBMP_PROGRAM            = 22;
+  SBMP_MENUATTACHED       = 23;
+  SBMP_SIZEBOX            = 24;
+  SBMP_SYSMENU            = 25;
+  SBMP_MINBUTTON          = 26;
+  SBMP_MAXBUTTON          = 27;
+  SBMP_RESTOREBUTTON      = 28;
+  SBMP_CHILDSYSMENU       = 29;
+  SBMP_SYSMENUDEP         = 30;
+  SBMP_MINBUTTONDEP       = 31;
+  SBMP_MAXBUTTONDEP       = 32;
+  SBMP_RESTOREBUTTONDEP   = 33;
+  SBMP_CHILDSYSMENUDEP    = 34;
+  SBMP_SBUPARROW          = 35;
+  SBMP_SBDNARROW          = 36;
+  SBMP_SBLFARROW          = 37;
+  SBMP_SBRGARROW          = 38;
+  SBMP_SBUPARROWDEP       = 39;
+  SBMP_SBDNARROWDEP       = 40;
+  SBMP_SBLFARROWDEP       = 41;
+  SBMP_SBRGARROWDEP       = 42;
+  SBMP_SBUPARROWDIS       = 43;
+  SBMP_SBDNARROWDIS       = 44;
+  SBMP_SBLFARROWDIS       = 45;
+  SBMP_SBRGARROWDIS       = 46;
+  SBMP_COMBODOWN          = 47;
+  SBMP_CHECKBOXES         = 48;
+
+END WINPOINTERS.

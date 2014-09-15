@@ -1,0 +1,6 @@
+LIBRARY WPCONFIG
+EXPORTS
+  WPSpecialNeedsClassData         @0x000E
+  WPSpecialNeedsNewClass          @0x000F
+  M_WPSpecialNeedsClassData       @0x0072
+  M_WPSpecialNeedsNewClass        @0x0073

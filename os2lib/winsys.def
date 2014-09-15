@@ -1,0 +1,10 @@
+LIBRARY PMWIN
+EXPORTS
+  WinQuerySysValue     @829
+  WinSetSysValue       @873
+  WinSetPresParam      @938
+  WinQueryPresParam    @939
+  WinRemovePresParam   @940
+  WinQuerySysColor     @826
+  WinSetSysColors      @871
+

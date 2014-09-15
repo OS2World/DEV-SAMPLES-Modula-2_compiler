@@ -1,0 +1,11 @@
+LIBRARY PMGPI
+EXPORTS
+  GpiQueryDefArcParams       @567
+  GpiQueryDefAttrs           @590
+  GpiQueryDefTag             @568
+  GpiQueryDefViewingLimits   @569
+  GpiSetDefArcParams         @570
+  GpiSetDefAttrs             @591
+  GpiSetDefTag               @571
+  GpiSetDefViewingLimits     @572
+

@@ -1,0 +1,41 @@
+DEFINITION MODULE SOMMISC;
+
+(***************************************************************************
+  OS/2 2.x/3.0 Miscellaneous development support for SOM.
+
+  Copyright (c) 1994,1995 by Juergen Neuhoff
+****************************************************************************)
+
+(*$CDECL+    C-style procedures                                         *)
+
+IMPORT SOM;
+
+VAR
+  somWriteString : PROCEDURE( ARRAY OF CHAR );
+  somWriteLn     : PROCEDURE( );
+  somDebug       : PROCEDURE
+  (
+    ARRAY OF CHAR,  (* szClass *)
+    ARRAY OF CHAR,  (* szMethod *)
+    ARRAY OF CHAR,  (* szFile *)
+    ARRAY OF CHAR   (* szLine *)
+  );
+
+(*
+ *  Get the address of a static string constant.
+ *  
+ *  Example:
+ *
+ *  VAR 
+ *    psz : POINTER TO ARRAY [0..10] OF CHAR;
+ *     :
+ *  BEGIN
+ *     :
+ *    psz := somString( "myString" );
+ *     :
+ *  END ..
+ *
+ *)
+PROCEDURE somString( s : ARRAY OF CHAR ) : SOM.ADDRESS;
+
+END SOMMISC.

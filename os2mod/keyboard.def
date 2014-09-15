@@ -1,0 +1,31 @@
+DEFINITION MODULE Keyboard;
+
+(**************************************************************************
+   OS/2 2.x  Modula-2 utility for keyboard input.
+
+   Copyright (c) 1993, 1995 by Juergen Neuhoff
+**************************************************************************)
+
+PROCEDURE Read( VAR ch: CHAR );
+  (* Waits for key to be typed and returns a character.    *)
+  (* If it is a function key then return 0C.               *)
+  (* Character read is not echoed on the screen.           *)
+
+PROCEDURE BusyRead( VAR ch: CHAR );
+  (* Returns a character immediately from the keyboard.    *)
+  (* If no key has been typed or if it is a function key   *)
+  (* then return 0C. Character read is not echoed.         *)
+
+PROCEDURE ScanCode():SHORTCARD;
+  (* Returns the scan scode of the last character read.    *)
+  (* If the last character read is 0C and if the           *)
+  (* scan code returned is greater then 0 then it is a     *)
+  (* function key.                                         *)
+
+PROCEDURE Status() : SHORTCARD;
+  (* Returns the keyboard state from the last 'Read'       *)
+
+PROCEDURE State() : CARDINAL;
+  (* Returns the keyboard shift state from the last 'Read' *)
+
+END Keyboard.

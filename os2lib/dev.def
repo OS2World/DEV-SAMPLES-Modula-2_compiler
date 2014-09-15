@@ -1,0 +1,10 @@
+LIBRARY PMGPI
+EXPORTS
+  DevOpenDC             @610
+  DevCloseDC            @604
+  DevQueryCaps          @606
+  DevEscape             @605
+  DevQueryDeviceNames   @607
+  DevQueryHardcopyCaps  @608
+  DevPostDeviceModes    @609
+

@@ -1,0 +1,417 @@
+DEFINITION MODULE WINMESSAGEMGR;
+
+(************************************************************************
+  OS/2 2.0 interface for window message management.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM OS2DEF IMPORT TYPEPREFIX, HWND, HMQ, HAB, PID, TID, POINTL, APIRET, PSZ;
+FROM WINDEF IMPORT MPARAM, MRESULT;
+FROM DOSSEMAPHORES IMPORT HEV, HMTX, HMUX;
+
+TYPE (* message record from queue *)
+   QMSG            = RECORD
+     CASE            : TYPEPREFIX OF
+     | TRUE          :
+       hwnd          : HWND;
+       msg           : LONGCARD;
+       mp1           : MPARAM;
+       mp2           : MPARAM;
+       time          : LONGCARD;
+       ptl           : POINTL;
+       reserved      : LONGCARD;
+     | FALSE         :
+       WinHandle     : HWND;
+       MsgId         : LONGCARD;
+       Param1        : MPARAM;
+       Param2        : MPARAM;
+       Time          : LONGCARD;
+       Point         : POINTL;
+       Reserved      : LONGCARD;
+     END;            END;
+   PQMSG           = POINTER TO QMSG;
+
+CONST (* Standard Window Messages *)
+  WM_NULL                  = 0000H;
+  WM_CREATE                = 0001H;
+  WM_DESTROY               = 0002H;
+  WM_ENABLE                = 0004H;
+  WM_SHOW                  = 0005H;
+  WM_MOVE                  = 0006H;
+  WM_SIZE                  = 0007H;
+  WM_ADJUSTWINDOWPOS       = 0008H;
+  WM_CALCVALIDRECTS        = 0009H;
+  WM_SETWINDOWPARAMS       = 000AH;
+  WM_QUERYWINDOWPARAMS     = 000BH;
+  WM_HITTEST               = 000CH;
+  WM_ACTIVATE              = 000DH;
+  WM_SETFOCUS              = 000FH;
+  WM_SETSELECTION          = 0010H;
+
+CONST (* language support Winproc *)
+  WM_PPAINT                = 0011H;
+  WM_PSETFOCUS             = 0012H;
+  WM_PSYSCOLORCHANGE       = 0013H;
+  WM_PSIZE                 = 0014H;
+  WM_PACTIVATE             = 0015H;
+  WM_PCONTROL              = 0016H;
+  WM_COMMAND               = 0020H;
+  WM_SYSCOMMAND            = 0021H;
+  WM_HELP                  = 0022H;
+  WM_PAINT                 = 0023H;
+  WM_TIMER                 = 0024H;
+  WM_SEM1                  = 0025H;
+  WM_SEM2                  = 0026H;
+  WM_SEM3                  = 0027H;
+  WM_SEM4                  = 0028H;
+  WM_CLOSE                 = 0029H;
+  WM_QUIT                  = 002AH;
+  WM_SYSCOLORCHANGE        = 002BH;
+  WM_SYSVALUECHANGED       = 002DH;
+  WM_APPTERMINATENOTIFY    = 002EH;
+  WM_PRESPARAMCHANGED      = 002FH;
+
+CONST (* Control notification messages *)
+  WM_CONTROL               = 0030H;
+  WM_VSCROLL               = 0031H;
+  WM_HSCROLL               = 0032H;
+  WM_INITMENU              = 0033H;
+  WM_MENUSELECT            = 0034H;
+  WM_MENUEND               = 0035H;
+  WM_DRAWITEM              = 0036H;
+  WM_MEASUREITEM           = 0037H;
+  WM_CONTROLPOINTER        = 0038H;
+  WM_QUERYDLGCODE          = 003AH;
+  WM_INITDLG               = 003BH;
+  WM_SUBSTITUTESTRING      = 003CH;
+  WM_MATCHMNEMONIC         = 003DH;
+  WM_SAVEAPPLICATION       = 003EH;
+
+CONST
+  (*************************************************************************
+  * Reserve a range of messages for help manager.  This range includes
+  * public messages, defined below, and private ones, which need to be
+  * reserved here to prevent clashing with application messages
+  *************************************************************************)
+  WM_HELPBASE         = 0F00H; (* Start of msgs for help manager   *)
+  WM_HELPTOP          = 0FFFH; (* End of msgs for help manager     *)
+  WM_USER             = 1000H;
+
+CONST (* WM_COMMAND msg source codes *)
+  CMDSRC_PUSHBUTTON   = 1;
+  CMDSRC_MENU         = 2;
+  CMDSRC_ACCELERATOR  = 3;
+  CMDSRC_FONTDLG      = 4;
+  CMDSRC_FILEDLG      = 5;
+  CMDSRC_PRINTDLG     = 6;
+  CMDSRC_COLORDLG     = 7;
+  CMDSRC_OTHER        = 0;
+
+TYPE
+ (*
+  * The following structure is used to access the
+  * WM_COMMAND, WM_HELP, and WM_SYSCOMMAND message parameters, e.g.:
+  *
+  *   PROCEDURE MyWindowProc
+  *   ( WinHandle:HWND; MsgId:LONGCARD; Param1,Param2:MPARAM ):MRESULT;
+  *   ...
+  *   VAR CommandMsg : POINTER TO COMMANDMSG;
+  *   ...
+  *   BEGIN
+  *     CASE MsgId OF
+  *       WM_COMMAND:
+  *       WM_HELP:
+  *       WM_SYSCOMMAND:
+  *         CommandMsg := SYSTEM.ADR( Param1 );
+  *         ...
+  *         RETURN ...;
+  *       ELSE
+  *         RETURN WinDefWindowProc( WinHandle, MsgId, Param1, Param2 );
+  *     END;
+  *   END MyWindowProc;
+  *)
+  (*$A1 BYTE alignment for record fields *)
+  COMMANDMSG  = RECORD
+    CASE        : TYPEPREFIX OF
+    | TRUE      :
+      cmd       : CARDINAL;      (* mp1 *)
+      unused    : CARDINAL;
+      source    : CARDINAL;      (* mp2 *)
+      fMouse    : CARDINAL;
+    | FALSE     :
+      Cmd       : CARDINAL;      (* mp1 *)
+      Unused    : CARDINAL;
+      Source    : CARDINAL;      (* mp2 *)
+      MouseFlag : CARDINAL;
+    END;        END;
+  CMDMSG      = COMMANDMSG;
+  PCMDMSG     = POINTER TO CMDMSG;
+  PCOMMANDMSG = POINTER TO COMMANDMSG;
+  (*$A default alignment for record fields *)
+
+TYPE (* The following structure is used by WinQueryQueueInfo() *)
+  MQINFO      = RECORD
+    CASE        : TYPEPREFIX OF
+    | TRUE      :
+      cb        : LONGCARD;
+      pid       : PID;
+      tid       : TID;
+      cmsgs     : LONGCARD;
+      pReserved : SYSTEM.ADDRESS;
+    | FALSE     :
+      Count     : LONGCARD;
+      ProcessId : PID;
+      ThreadId  : TID;
+      Messages  : LONGCARD;
+      Reserved  : SYSTEM.ADDRESS;
+    END;        END;
+  PMQINFO     = POINTER TO MQINFO;
+
+
+PROCEDURE WinSendMsg
+( WinHandle          : HWND;
+  MessageId          : LONGCARD;
+  Param1             : MPARAM;
+  Param2             : MPARAM
+)                    : MRESULT;
+
+PROCEDURE WinCreateMsgQueue
+( AnchorBlockHandle  : HAB;
+  QueueSize          : LONGINT
+)                    : HMQ;
+
+PROCEDURE WinDestroyMsgQueue
+( MsgQueueHandle     : HMQ
+)                    : BOOLEAN;
+
+PROCEDURE WinQueryQueueInfo
+( MsgQueueHandle     : HMQ;
+  VAR MsgQueueInfo   : MQINFO;
+  MsgQueueInfoSize   : LONGCARD
+)                    : BOOLEAN;
+
+PROCEDURE WinCancelShutdown
+( MsgQueueHandle     : HMQ;
+  CancelAlways       : BOOLEAN
+)                    : BOOLEAN;
+
+PROCEDURE WinGetMsg
+( AnchorBlockHandle  : HAB;
+  VAR QueueMessage   : QMSG;
+  FilterWinHandle    : HWND;
+  FilterFirst        : LONGCARD;
+  FilterLast         : LONGCARD
+)                    : BOOLEAN;
+
+PROCEDURE WinPeekMsg
+( AnchorBlockHandle  : HAB;
+  VAR QueueMessage   : QMSG;
+  FilterWinHandle    : HWND;
+  FilterFirst        : LONGCARD;
+  FilterLast         : LONGCARD;
+  Options            : LONGCARD
+)                    : BOOLEAN;
+
+CONST (* WinPeekMsg() constants *)
+  PM_REMOVE          = 0001H;
+  PM_NOREMOVE        = 0000H;
+
+PROCEDURE WinDispatchMsg
+( AnchorBlockHandle  : HAB;
+  VAR QueueMessage   : QMSG
+)                    : MRESULT;
+
+PROCEDURE WinPostMsg
+( WinHandle          : HWND;
+  MessageId          : LONGCARD;
+  Param1             : MPARAM;
+  Param2             : MPARAM
+)                    : BOOLEAN;
+
+PROCEDURE WinRegisterUserMsg
+( AnchorBlockHandle  : HAB;
+  MessageId          : LONGCARD;
+  Type1              : LONGINT;
+  Dir1               : LONGINT;
+  Type2              : LONGINT;
+  Dir2               : LONGINT;
+  TypeR              : LONGINT
+)                    : BOOLEAN;
+
+CONST (* WinRegisterUserMsg() direction codes *)
+  RUM_IN             = 1;
+  RUM_OUT            = 2;
+  RUM_INOUT          = 3;
+
+PROCEDURE WinRegisterUserDatatype
+( AnchorBlockHandle  : HAB;
+  DataType           : LONGINT;            (* see WINTYPES.DEF *)
+  Count              : LONGINT;
+  VAR Types          : ARRAY OF LONGINT    (* see WINTYPES.DEF *)
+)                    : BOOLEAN;
+
+PROCEDURE WinSetMsgMode
+( AnchorBlockHandle  : HAB;
+  ClassName          : ARRAY OF CHAR;
+  Control            : LONGINT
+)                    : BOOLEAN;
+
+CONST (* WinSetMsgMode() constants *)
+  SMD_DELAYED        = 0001H;
+  SMD_IMMEDIATE      = 0002H;
+
+PROCEDURE WinSetSynchroMode
+( AnchorBlockHandle  : HAB;
+  Mode               : LONGINT
+)                    : BOOLEAN;
+
+CONST (* WinSetSynchroMode() constants *)
+  SSM_SYNCHRONOUS    = 0001H;
+  SSM_ASYNCHRONOUS   = 0002H;
+  SSM_MIXED          = 0003H;
+
+CONST (* WM_CALCVALIDRECTS return flags *)
+  CVR_ALIGNLEFT      = 0001H;
+  CVR_ALIGNBOTTOM    = 0002H;
+  CVR_ALIGNRIGHT     = 0004H;
+  CVR_ALIGNTOP       = 0008H;
+  CVR_REDRAW         = 0010H;
+
+CONST (* WM_HITTEST return codes *)
+  HT_NORMAL          =  0;
+  HT_TRANSPARENT     = -1;
+  HT_DISCARD         = -2;
+  HT_ERROR           = -3;
+
+TYPE (* WM_SET/QUERYWINDOWPARAMS structure *)
+  WNDPARAMS          = RECORD
+    CASE               : TYPEPREFIX OF
+    | TRUE             :
+      fsStatus         : LONGCARD;
+      cchText          : LONGCARD;
+      pszText          : PSZ;
+      cbPresParams     : LONGCARD;
+      pPresParams      : SYSTEM.ADDRESS;
+      cbCtlData        : LONGCARD;
+      pCtlData         : SYSTEM.ADDRESS;
+    | FALSE            :
+      Status           : LONGCARD;
+      TextSize         : LONGCARD;
+      Text             : PSZ;
+      PresParamsCount  : LONGCARD;
+      PresParams       : SYSTEM.ADDRESS;
+      CtlDataSize      : LONGCARD;
+      CtlData          : SYSTEM.ADDRESS;
+    END;               END;
+  PWNDPARAMS         = POINTER TO WNDPARAMS;
+
+CONST (* WM_SET/QUERYWINDOWPARAMS flags *)
+  WPM_TEXT           = 0001H;
+  WPM_CTLDATA        = 0002H;
+  WPM_PRESPARAMS     = 0004H;
+  WPM_CCHTEXT        = 0008H;
+  WPM_CBCTLDATA      = 0010H;
+  WPM_CBPRESPARAMS   = 0020H;
+
+PROCEDURE WinInSendMsg
+( AnchorBlockHandle  : HAB
+)                    : BOOLEAN;
+
+PROCEDURE WinBroadcastMsg
+( ParentWinHandle    : HWND;
+  MessageId          : LONGCARD;
+  Param1             : MPARAM;
+  Param2             : MPARAM;
+  CmdFlags           : LONGCARD
+)                    : BOOLEAN;
+
+CONST (* WinBroadcastMsg() codes *)
+  BMSG_POST          = 0000H;
+  BMSG_SEND          = 0001H;
+  BMSG_POSTQUEUE     = 0002H;
+  BMSG_DESCENDANTS   = 0004H;
+  BMSG_FRAMEONLY     = 0008H;
+
+PROCEDURE WinWaitMsg
+( AnchorBlockHandle  : HAB;
+  First              : LONGCARD;
+  Last               : LONGCARD
+)                    : BOOLEAN;
+
+PROCEDURE WinQueryQueueStatus
+( DesktopWinHandle   : HWND
+)                    : LONGCARD;
+
+CONST (* WinQueryQueueStatus() constants *)
+  QS_KEY             = 0001H;
+  QS_MOUSEBUTTON     = 0002H;
+  QS_MOUSEMOVE       = 0004H;
+  QS_MOUSE           = 0006H;   (* QS_MOUSEMOVE OR QS_MOUSEBUTTON *)
+  QS_TIMER           = 0008H;
+  QS_PAINT           = 0010H;
+  QS_POSTMSG         = 0020H;
+  QS_SEM1            = 0040H;
+  QS_SEM2            = 0080H;
+  QS_SEM3            = 0100H;
+  QS_SEM4            = 0200H;
+  QS_SENDMSG         = 0400H;
+
+PROCEDURE WinQueryMsgPos
+( AnchorBlockHandle  : HAB;
+  VAR PointerPos     : POINTL
+)                    : BOOLEAN;
+
+PROCEDURE WinQueryMsgTime
+( AnchorBlockHandle  : HAB
+)                    : LONGCARD;
+
+PROCEDURE WinWaitEventSem
+( EventHandle        : HEV;
+  TimeOut            : LONGCARD (* in milliseconds *)
+)                    : APIRET;
+
+PROCEDURE WinRequestMutexSem
+( MutexHandle        : HMTX;
+  TimeOut            : LONGCARD (* in millisenconds *)
+)                    : APIRET;
+
+PROCEDURE WinWaitMuxWaitSem
+( MuxWaitHandle      : HMUX;
+  TimeOut            : LONGCARD; (* in milliseconds *)
+  VAR User           : LONGCARD
+)                    : APIRET;
+
+PROCEDURE WinPostQueueMsg
+( MsgQueueHandle     : HMQ;
+  MsgId              : LONGCARD;
+  Param1             : MPARAM;
+  Param2             : MPARAM
+)                    : BOOLEAN;
+
+CONST (* WinSetMsgInterest()/WinSetClassMsgInterest() constants *)
+  SMIM_ALL           = 0EFFH;
+  SMI_NOINTEREST     = 0001H;
+  SMI_INTEREST       = 0002H;
+  SMI_RESET          = 0004H;
+  SMI_AUTODISPATCH   = 0008H;
+
+PROCEDURE WinSetMsgInterest
+( WinHandle          : HWND;
+  MsgClass           : LONGCARD;
+  Control            : LONGINT
+)                    : BOOLEAN;
+
+PROCEDURE WinSetClassMsgInterest
+( AnchorBlockHandle  : HAB;
+  ClassName          : ARRAY OF CHAR;
+  MsgClass           : LONGCARD;
+  Control            : LONGINT
+)                    : BOOLEAN;
+
+END WINMESSAGEMGR.

@@ -1,0 +1,4 @@
+LIBRARY PMWP
+EXPORTS
+  WinLockupSystem          @283
+  WinUnlockSystem          @282

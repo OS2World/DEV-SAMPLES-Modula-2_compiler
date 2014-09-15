@@ -1,0 +1,111 @@
+DEFINITION MODULE WINSTDSPIN;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager
+           CUA spin button control class.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+(*************************************************************************)
+(*    SPINBUTTON Creation Flags                                          *)
+(*************************************************************************)
+
+(*************************************************************************)
+(*    Character Acceptance                                               *)
+(*************************************************************************)
+CONST
+  SPBS_ALLCHARACTERS         = 00000000H; (* Default: All chars accepted *)
+  SPBS_NUMERICONLY           = 00000001H; (* Only 0 - 9 accepted & VKeys *)
+  SPBS_READONLY              = 00000002H; (* No chars allowed in entryfld*)
+
+(*************************************************************************)
+(*    Type of Component                                                  *)
+(*************************************************************************)
+CONST
+  SPBS_MASTER                = 00000010H;
+  SPBS_SERVANT               = 00000000H; (* Default: Servant            *)
+
+(*************************************************************************)
+(*    Type of Justification                                              *)
+(*************************************************************************)
+CONST
+  SPBS_JUSTDEFAULT           = 00000000H; (* Default: Same as Left       *)
+  SPBS_JUSTLEFT              = 00000008H;
+  SPBS_JUSTRIGHT             = 00000004H;
+  SPBS_JUSTCENTER            = 0000000CH;
+
+(*************************************************************************)
+(*    Border or not                                                      *)
+(*************************************************************************)
+CONST
+  SPBS_NOBORDER              = 00000020H; (* Borderless SpinField        *)
+                                          (* Default is to have a border.*)
+
+(*************************************************************************)
+(*    Fast spin or not                                                   *)
+(*************************************************************************)
+CONST
+  SPBS_FASTSPIN              = 00000100H; (* Allow fast spinning.  Fast  *)
+                                          (* spinning is performed by    *)
+                                          (* skipping over numbers       *)
+
+(*************************************************************************)
+(*    Pad numbers on front with 0's                                      *)
+(*************************************************************************)
+CONST
+  SPBS_PADWITHZEROS          = 00000080H; (* Pad the number with zeroes  *)
+
+(*************************************************************************)
+(*    SPINBUTTON Messages                                                *)
+(*************************************************************************)
+
+(*************************************************************************)
+(*    Notification from Spinbutton to the application is sent in a       *)
+(*    WM_CONTROL message.                                                *)
+(*************************************************************************)
+CONST
+  SPBN_UPARROW               = 20AH;    (* up arrow button was pressed   *)
+  SPBN_DOWNARROW             = 20BH;    (* down arrow button was pressed *)
+  SPBN_ENDSPIN               = 20CH;    (* mouse button was released     *)
+  SPBN_CHANGE                = 20DH;    (* spinfield text has changed    *)
+  SPBN_SETFOCUS              = 20EH;    (* spinfield received focus      *)
+  SPBN_KILLFOCUS             = 20FH;    (* spinfield lost focus          *)
+
+(*************************************************************************)
+(*    Messages from application to Spinbutton                            *)
+(*************************************************************************)
+CONST
+  SPBM_OVERRIDESETLIMITS     = 200H;    (* Set spinbutton limits without *)
+                                        (*  resetting the current value  *)
+  SPBM_QUERYLIMITS           = 201H;    (* Query limits set by           *)
+                                        (*   SPBM_SETLIMITS              *)
+  SPBM_SETTEXTLIMIT          = 202H;    (* Max entryfield characters     *)
+  SPBM_SPINUP                = 203H;    (* Tell entry field to spin up   *)
+  SPBM_SPINDOWN              = 204H;    (* Tell entry field to spin down *)
+  SPBM_QUERYVALUE            = 205H;    (* Tell entry field to send      *)
+                                        (*   current value               *)
+
+(*************************************************************************)
+(*    Query Flags                                                        *)
+(*************************************************************************)
+CONST
+  SPBQ_UPDATEIFVALID         = 0;       (* Default                       *)
+  SPBQ_ALWAYSUPDATE          = 1;
+  SPBQ_DONOTUPDATE           = 3;
+
+(*************************************************************************)
+(*    Return value for Empty Field.                                      *)
+(*       If ptr too long, variable sent in query msg                     *)
+(*************************************************************************)
+CONST
+  SPBM_SETARRAY              = 206H;    (* Change the data to spin       *)
+  SPBM_SETLIMITS             = 207H;    (* Change the numeric Limits     *)
+  SPBM_SETCURRENTVALUE       = 208H;    (* Change the current value      *)
+  SPBM_SETMASTER             = 209H;    (* Tell entryfield who master is *)
+
+END WINSTDSPIN.

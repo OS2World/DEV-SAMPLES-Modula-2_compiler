@@ -1,0 +1,16 @@
+LIBRARY PMWIN
+EXPORTS
+  WinCopyRect         @710
+  WinSetRect          @868
+  WinIsRectEmpty      @770
+  WinEqualRect        @741
+  WinSetRectEmpty     @869
+  WinOffsetRect       @792
+  WinInflateRect      @762
+  WinPtInRect         @797
+  WinIntersectRect    @764
+  WinUnionRect        @891
+  WinSubtractRect     @887
+  WinMakeRect         @786
+  WinMakePoints       @785
+

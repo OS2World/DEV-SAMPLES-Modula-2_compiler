@@ -1,0 +1,69 @@
+DEFINITION MODULE WINMENU;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager additional menu functions.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM   OS2DEF   IMPORT HWND;
+
+(***************************************************************************
+*    WinCheckMenuItem() Sets the check state of menuitem #id to fcheck.
+*    returns success flag.
+***************************************************************************)
+PROCEDURE WinCheckMenuItem
+( MenuWinHandle        : HWND;
+  ItemId               : CARDINAL;
+  Check                : BOOLEAN
+)                      : BOOLEAN;
+
+(***************************************************************************
+*  WinIsMenuItemChecked() returns the check state of menuitem #id.
+***************************************************************************)
+PROCEDURE WinIsMenuItemChecked
+( MenuWinHandle        : HWND;
+  ItemId               : CARDINAL
+)                      : BOOLEAN;
+
+(***************************************************************************
+*    WinEnableMenuItem() sets the enable state of menuitem #id to fenable.
+*    returns success flag.
+***************************************************************************)
+PROCEDURE WinEnableMenuItem
+( MenuWinHandle        : HWND;
+  ItemId               : CARDINAL;
+  Enable               : BOOLEAN
+)                      : BOOLEAN;
+
+(***************************************************************************
+*  WinIsMenuItemEnabled() returns the enable state of menuitem #id.
+***************************************************************************)
+PROCEDURE WinIsMenuItemEnabled
+( MenuWinHandle        : HWND;
+  ItemId               : CARDINAL
+)                      : BOOLEAN;
+
+(***************************************************************************
+*  WinSetMenuItemText() sets the text of menuitem #id.
+*  returns success flag.
+***************************************************************************)
+PROCEDURE WinSetMenuItemText
+( MenuWinHandle        : HWND;
+  ItemId               : CARDINAL;
+  Text                 : ARRAY OF CHAR
+)                      : BOOLEAN;
+
+(***************************************************************************
+*  WinIsMenuItemValid() returns TRUE if the specified item is a valid choice.
+***************************************************************************)
+PROCEDURE WinIsMenuItemValid
+( MenuWinHandle        : HWND;
+  ItemId               : CARDINAL
+)                      : BOOLEAN;
+
+END WINMENU.

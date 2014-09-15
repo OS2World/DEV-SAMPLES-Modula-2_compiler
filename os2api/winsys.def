@@ -1,0 +1,282 @@
+DEFINITION MODULE WINSYS;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager system values and colors.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF  IMPORT TYPEPREFIX, HWND;
+
+PROCEDURE WinQuerySysValue
+( DesktopWinHandle         : HWND;
+  ValueId                  : LONGINT
+)                          : LONGINT;
+
+PROCEDURE WinSetSysValue
+( DesktopWinHandle         : HWND;
+  ValueId                  : LONGINT;
+  Value                    : LONGINT
+)                          : BOOLEAN;
+
+CONST
+  SV_SWAPBUTTON            = 0;
+  SV_DBLCLKTIME            = 1;
+  SV_CXDBLCLK              = 2;
+  SV_CYDBLCLK              = 3;
+  SV_CXSIZEBORDER          = 4;
+  SV_CYSIZEBORDER          = 5;
+  SV_ALARM                 = 6;
+  SV_RESERVEDFIRST1        = 7;
+  SV_RESERVEDLAST1         = 8;
+  SV_CURSORRATE            = 9;
+  SV_FIRSTSCROLLRATE       = 10;
+  SV_SCROLLRATE            = 11;
+  SV_NUMBEREDLISTS         = 12;
+  SV_WARNINGFREQ           = 13;
+  SV_NOTEFREQ              = 14;
+  SV_ERRORFREQ             = 15;
+  SV_WARNINGDURATION       = 16;
+  SV_NOTEDURATION          = 17;
+  SV_ERRORDURATION         = 18;
+  SV_RESERVEDFIRST         = 19;
+  SV_RESERVEDLAST          = 19;
+  SV_CXSCREEN              = 20;
+  SV_CYSCREEN              = 21;
+  SV_CXVSCROLL             = 22;
+  SV_CYHSCROLL             = 23;
+  SV_CYVSCROLLARROW        = 24;
+  SV_CXHSCROLLARROW        = 25;
+  SV_CXBORDER              = 26;
+  SV_CYBORDER              = 27;
+  SV_CXDLGFRAME            = 28;
+  SV_CYDLGFRAME            = 29;
+  SV_CYTITLEBAR            = 30;
+  SV_CYVSLIDER             = 31;
+  SV_CXHSLIDER             = 32;
+  SV_CXMINMAXBUTTON        = 33;
+  SV_CYMINMAXBUTTON        = 34;
+  SV_CYMENU                = 35;
+  SV_CXFULLSCREEN          = 36;
+  SV_CYFULLSCREEN          = 37;
+  SV_CXICON                = 38;
+  SV_CYICON                = 39;
+  SV_CXPOINTER             = 40;
+  SV_CYPOINTER             = 41;
+  SV_DEBUG                 = 42;
+  SV_CMOUSEBUTTONS         = 43;
+  SV_CPOINTERBUTTONS       = 43;
+  SV_POINTERLEVEL          = 44;
+  SV_CURSORLEVEL           = 45;
+  SV_TRACKRECTLEVEL        = 46;
+  SV_CTIMERS               = 47;
+  SV_MOUSEPRESENT          = 48;
+  SV_CXBYTEALIGN           = 49;
+  SV_CXALIGN               = 49;
+  SV_CYBYTEALIGN           = 50;
+  SV_CYALIGN               = 50;
+  SV_NOTRESERVED           = 56;
+  SV_EXTRAKEYBEEP          = 57;
+  SV_SETLIGHTS             = 58;
+  SV_INSERTMODE            = 59;
+  SV_MENUROLLDOWNDELAY     = 64;
+  SV_MENUROLLUPDELAY       = 65;
+  SV_ALTMNEMONIC           = 66;
+  SV_TASKLISTMOUSEACCESS   = 67;
+  SV_CXICONTEXTWIDTH       = 68;
+  SV_CICONTEXTLINES        = 69;
+  SV_CHORDTIME             = 70;
+  SV_CXCHORD               = 71;
+  SV_CYCHORD               = 72;
+  SV_CXMOTION              = 73;
+  SV_CYMOTION              = 74;
+  SV_BEGINDRAG             = 75;
+  SV_ENDDRAG               = 76;
+  SV_SINGLESELECT          = 77;
+  SV_OPEN                  = 78;
+  SV_CONTEXTMENU           = 79;
+  SV_CONTEXTHELP           = 80;
+  SV_TEXTEDIT              = 81;
+  SV_BEGINSELECT           = 82;
+  SV_ENDSELECT             = 83;
+  SV_BEGINDRAGKB           = 84;
+  SV_ENDDRAGKB             = 85;
+  SV_SELECTKB              = 86;
+  SV_OPENKB                = 87;
+  SV_CONTEXTMENUKB         = 88;
+  SV_CONTEXTHELPKB         = 89;
+  SV_TEXTEDITKB            = 90;
+  SV_BEGINSELECTKB         = 91;
+  SV_ENDSELECTKB           = 92;
+  SV_ANIMATION             = 93;
+  SV_ANIMATIONSPEED        = 94;
+  SV_MONOICONS             = 95;
+  SV_KBDALTERED            = 96;
+  SV_PRINTSCREEN           = 97;
+  SV_CSYSVALUES            = 98;
+
+TYPE (* Presentation parameter structures *)
+  PARAM                    = RECORD     (* param *)
+    CASE                     : TYPEPREFIX OF
+    | TRUE                   :
+      id                     : LONGCARD;
+      cb                     : LONGCARD;
+      ab                     : ARRAY [0..0] OF SHORTCARD;
+    | FALSE                  :
+      Ident                  : LONGCARD;
+      Count                  : LONGCARD;
+      Bytes                  : ARRAY [0..0] OF SHORTCARD;
+    END;                     END;
+  NPPARAM                  = POINTER TO PARAM;
+  PPARAM                   = POINTER TO PARAM;
+  PRESPARAMS               = RECORD  (* pres *)
+    CASE                     : TYPEPREFIX OF
+    | TRUE                   :
+      cb                     : LONGCARD;
+      aparam                 : ARRAY [0..0] OF PARAM;
+    | FALSE                  :
+      Count                  : LONGCARD;
+      Params                 : ARRAY [0..0] OF PARAM;
+    END;                     END;
+  NPPRESPARAMS             = POINTER TO PRESPARAMS;
+  PPRESPARAMS              = POINTER TO PRESPARAMS;
+
+PROCEDURE WinSetPresParam
+( WinHandle                : HWND;
+  AttrType                 : LONGCARD;
+  AttrValueLen             : LONGCARD;
+  VAR AttrValue            : ARRAY OF SYSTEM.BYTE
+)                          : BOOLEAN;
+
+PROCEDURE WinQueryPresParam
+( WinHandle                : HWND;
+  AttrType1                : LONGCARD;
+  AttrType2                : LONGCARD;
+  VAR AttrTypeFound        : LONGCARD;
+  AttrValueLen             : LONGCARD;
+  VAR AttrValue            : ARRAY OF SYSTEM.BYTE;
+  Options                  : LONGCARD
+)                          : LONGCARD;
+
+PROCEDURE WinRemovePresParam
+( WinHandle                : HWND;
+  AttrType                 : LONGCARD
+)                          : BOOLEAN;
+
+CONST (* Presentation parameter types *)
+  PP_FOREGROUNDCOLOR                    = 1;
+  PP_FOREGROUNDCOLORINDEX               = 2;
+  PP_BACKGROUNDCOLOR                    = 3;
+  PP_BACKGROUNDCOLORINDEX               = 4;
+  PP_HILITEFOREGROUNDCOLOR              = 5;
+  PP_HILITEFOREGROUNDCOLORINDEX         = 6;
+  PP_HILITEBACKGROUNDCOLOR              = 7;
+  PP_HILITEBACKGROUNDCOLORINDEX         = 8;
+  PP_DISABLEDFOREGROUNDCOLOR            = 9;
+  PP_DISABLEDFOREGROUNDCOLORINDEX       = 10;
+  PP_DISABLEDBACKGROUNDCOLOR            = 11;
+  PP_DISABLEDBACKGROUNDCOLORINDEX       = 12;
+  PP_BORDERCOLOR                        = 13;
+  PP_BORDERCOLORINDEX                   = 14;
+  PP_FONTNAMESIZE                       = 15;
+  PP_FONTHANDLE                         = 16;
+  PP_RESERVED                           = 17;
+  PP_ACTIVECOLOR                        = 18;
+  PP_ACTIVECOLORINDEX                   = 19;
+  PP_INACTIVECOLOR                      = 20;
+  PP_INACTIVECOLORINDEX                 = 21;
+  PP_ACTIVETEXTFGNDCOLOR                = 22;
+  PP_ACTIVETEXTFGNDCOLORINDEX           = 23;
+  PP_ACTIVETEXTBGNDCOLOR                = 24;
+  PP_ACTIVETEXTBGNDCOLORINDEX           = 25;
+  PP_INACTIVETEXTFGNDCOLOR              = 26;
+  PP_INACTIVETEXTFGNDCOLORINDEX         = 27;
+  PP_INACTIVETEXTBGNDCOLOR              = 28;
+  PP_INACTIVETEXTBGNDCOLORINDEX         = 29;
+  PP_SHADOW                             = 30;
+  PP_MENUFOREGROUNDCOLOR                = 31;
+  PP_MENUFOREGROUNDCOLORINDEX           = 32;
+  PP_MENUBACKGROUNDCOLOR                = 33;
+  PP_MENUBACKGROUNDCOLORINDEX           = 34;
+  PP_MENUHILITEFGNDCOLOR                = 35;
+  PP_MENUHILITEFGNDCOLORINDEX           = 36;
+  PP_MENUHILITEBGNDCOLOR                = 37;
+  PP_MENUHILITEBGNDCOLORINDEX           = 38;
+  PP_MENUDISABLEDFGNDCOLOR              = 39;
+  PP_MENUDISABLEDFGNDCOLORINDEX         = 40;
+  PP_MENUDISABLEDBGNDCOLOR              = 41;
+  PP_MENUDISABLEDBGNDCOLORINDEX         = 42;
+  PP_USER                               = 8000H;
+
+CONST (* Flags for WinQueryPresParams() *)
+  QPF_NOINHERIT          = 0001H; (* Don't inherit                      *)
+  QPF_ID1COLORINDEX      = 0002H; (* Convert id1 color index into RGB   *)
+  QPF_ID2COLORINDEX      = 0004H; (* Convert id2 color index into RGB   *)
+  QPF_PURERGBCOLOR       = 0008H; (* Return pure RGB colors             *)
+  QPF_VALIDFLAGS         = 000FH; (* Valid WinQueryPresParams() flags.  *)
+
+PROCEDURE WinQuerySysColor
+( DeskTopWinHandle         : HWND;
+  Color                    : LONGINT;
+  Reserved                 : LONGINT
+)                          : LONGINT;
+
+PROCEDURE WinSetSysColors
+( DesktopWinHandle         : HWND;
+  Options                  : LONGCARD;
+  Format                   : LONGCARD;
+  StartIndex               : LONGINT;
+  ColorTableLen            : LONGCARD;
+  VAR ColorTable           : ARRAY OF LONGINT
+)                          : BOOLEAN;
+
+CONST
+  SYSCLR_SHADOWHILITEBGND         = -50;
+  SYSCLR_SHADOWHILITEFGND         = -49;
+  SYSCLR_SHADOWTEXT               = -48;
+  SYSCLR_ENTRYFIELD               = -47;
+  SYSCLR_MENUDISABLEDTEXT         = -46;
+  SYSCLR_MENUHILITE               = -45;
+  SYSCLR_MENUHILITEBGND           = -44;
+  SYSCLR_PAGEBACKGROUND           = -43;
+  SYSCLR_FIELDBACKGROUND          = -42;
+  SYSCLR_BUTTONLIGHT              = -41;
+  SYSCLR_BUTTONMIDDLE             = -40;
+  SYSCLR_BUTTONDARK               = -39;
+  SYSCLR_BUTTONDEFAULT            = -38;
+  SYSCLR_TITLEBOTTOM              = -37;
+  SYSCLR_SHADOW                   = -36;
+  SYSCLR_ICONTEXT                 = -35;
+  SYSCLR_DIALOGBACKGROUND         = -34;
+  SYSCLR_HILITEFOREGROUND         = -33;
+  SYSCLR_HILITEBACKGROUND         = -32;
+  SYSCLR_INACTIVETITLETEXTBGND    = -31;
+  SYSCLR_ACTIVETITLETEXTBGND      = -30;
+  SYSCLR_INACTIVETITLETEXT        = -29;
+  SYSCLR_ACTIVETITLETEXT          = -28;
+  SYSCLR_OUTPUTTEXT               = -27;
+  SYSCLR_WINDOWSTATICTEXT         = -26;
+  SYSCLR_SCROLLBAR                = -25;
+  SYSCLR_BACKGROUND               = -24;
+  SYSCLR_ACTIVETITLE              = -23;
+  SYSCLR_INACTIVETITLE            = -22;
+  SYSCLR_MENU                     = -21;
+  SYSCLR_WINDOW                   = -20;
+  SYSCLR_WINDOWFRAME              = -19;
+  SYSCLR_MENUTEXT                 = -18;
+  SYSCLR_WINDOWTEXT               = -17;
+  SYSCLR_TITLETEXT                = -16;
+  SYSCLR_ACTIVEBORDER             = -15;
+  SYSCLR_INACTIVEBORDER           = -14;
+  SYSCLR_APPWORKSPACE             = -13;
+  SYSCLR_HELPBACKGROUND           = -12;
+  SYSCLR_HELPTEXT                 = -11;
+  SYSCLR_HELPHILITE               = -10;
+  SYSCLR_CSYSCOLORS               = 41;
+
+END WINSYS.

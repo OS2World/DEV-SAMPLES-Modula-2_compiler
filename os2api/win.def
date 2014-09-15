@@ -1,0 +1,52 @@
+DEFINITION MODULE WIN;
+
+(************************************************************************
+  OS/2 2.x/3.0 toplevel interface for all components of
+               PM window system
+
+  Copyright (c) 1995 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+ language extensions: '_' for identifiers, extended import syntax *)
+
+IMPORT FROM WINDEF              ;
+IMPORT FROM WINWINDOWMGR        ;
+IMPORT FROM WINMESSAGEMGR       ;
+IMPORT FROM WININPUT            ;
+IMPORT FROM WINDIALOGS          ;
+IMPORT FROM WINSTATICS          ;
+IMPORT FROM WINBUTTONS          ;
+IMPORT FROM WINENTRYFIELDS      ;
+IMPORT FROM WINMLE              ;
+IMPORT FROM WINLISTBOXES        ;
+IMPORT FROM WINMENUS            ;
+IMPORT FROM WINMENU             ;
+IMPORT FROM WINSCROLLBARS       ;
+IMPORT FROM WINFRAMEMGR         ;
+IMPORT FROM WINRECTANGLES       ;
+IMPORT FROM WINSYS              ;
+IMPORT FROM WINTIMER            ;
+IMPORT FROM WINACCELERATORS     ;
+IMPORT FROM WINTRACKRECT        ;
+IMPORT FROM WINCLIPBOARD        ;
+IMPORT FROM WINCURSORS          ;
+IMPORT FROM WINPOINTERS         ;
+IMPORT FROM WINHOOKS            ;
+IMPORT FROM WINSWITCHLIST       ;
+IMPORT FROM WINPROGRAMLIST      ;
+IMPORT FROM WINSHELLDATA        ;
+IMPORT FROM WINCOUNTRY          ;
+IMPORT FROM WINATOM             ;
+IMPORT FROM WINERRORS           ;
+IMPORT FROM WINDDE1             ;
+IMPORT FROM WINDDE2             ;
+IMPORT FROM WINHELP             ;
+IMPORT FROM WINSEI              ;
+IMPORT FROM WINLOAD             ;
+IMPORT FROM WINTYPES            ;
+IMPORT FROM WINDESKTOP          ;
+IMPORT FROM WINPALETTE          ;
+IMPORT FROM WINTHUNKAPI         ;
+IMPORT FROM WINSTDDLGS          ;
+
+END WIN.

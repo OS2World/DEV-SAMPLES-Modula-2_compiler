@@ -1,0 +1,6 @@
+LIBRARY PMWP
+EXPORTS
+  WPIconClassData         @0x003E
+  WPIconNewClass          @0x003F
+  M_WPIconClassData       @0x016A
+  M_WPIconNewClass        @0x016B

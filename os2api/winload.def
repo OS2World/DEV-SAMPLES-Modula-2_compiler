@@ -1,0 +1,42 @@
+DEFINITION MODULE WINLOAD;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager
+           Load/Delete Library/Procedure.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM   OS2DEF  IMPORT HAB, HMODULE;
+FROM   WINDEF  IMPORT PFNWP;
+
+TYPE
+  HLIB                  = HMODULE;
+  PHLIB                 = POINTER TO HLIB;
+
+PROCEDURE WinDeleteProcedure
+( AnchorBlockHandle     : HAB;
+  WinProc               : PFNWP
+)                       : BOOLEAN;
+
+PROCEDURE WinDeleteLibrary
+( AnchorBlockHandle     : HAB;
+  LibHandle             : HLIB
+)                       : BOOLEAN;
+
+PROCEDURE WinLoadProcedure
+( AnchorBlockHandle     : HAB;
+  LibHandle             : HLIB;
+  ProcName              : ARRAY OF CHAR
+)                       : PFNWP;
+
+PROCEDURE WinLoadLibrary
+( AnchorBlockHandle     : HAB;
+  LibName               : ARRAY OF CHAR
+)                       : HLIB;
+
+END WINLOAD.

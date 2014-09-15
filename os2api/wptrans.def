@@ -1,0 +1,86 @@
+DEFINITION MODULE WPTRANS;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPTransient
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPOBJECT;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPTransient           = POINTER TO WPTransient;
+TYPE PM_WPTransient         = POINTER TO M_WPTransient;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPTransient
+*************************************************************************)
+
+(*************************************************************************
+  SOM class API for WPTransient, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPTransient_MajorVersion     = 1;
+  WPTransient_MinorVersion     = 2;
+
+TYPE
+  WPTransientClassDataStructure     = RECORD
+    classObject                       : PSOMClass;
+                                      END;
+
+VAR
+  WPTransientClassData : WPTransientClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPTransient = RECORD( WPOBJECT.WPObject ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPTransientNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+
+(*************************************************************************
+  SOM class API for M_WPTransient, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPTransient_MajorVersion   = 1;
+  M_WPTransient_MinorVersion   = 2;
+
+TYPE
+  M_WPTransientClassDataStructure   = RECORD
+    classObject                       : PSOMClass;
+                                      END;
+
+VAR
+  M_WPTransientClassData : M_WPTransientClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPTransient = RECORD( WPOBJECT.M_WPObject ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPTransientNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+
+END WPTRANS.

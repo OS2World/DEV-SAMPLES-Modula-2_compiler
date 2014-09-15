@@ -1,0 +1,6 @@
+LIBRARY PMWP
+EXPORTS
+  WPTransientClassData         @0x0029
+  WPTransientNewClass          @0x002A
+  M_WPTransientClassData       @0x0152
+  M_WPTransientNewClass        @0x0153

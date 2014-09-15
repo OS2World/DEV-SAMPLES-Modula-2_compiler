@@ -1,0 +1,6 @@
+LIBRARY WPCONFIG
+EXPORTS
+  WPFontPaletteClassData         @0x0020
+  WPFontPaletteNewClass          @0x0021
+  M_WPFontPaletteClassData       @0x0084
+  M_WPFontPaletteNewClass        @0x0085

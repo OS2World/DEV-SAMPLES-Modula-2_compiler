@@ -1,0 +1,164 @@
+DEFINITION MODULE WPDATAF;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPDataFile
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPFSYS;
+IMPORT OS2DEF;
+IMPORT WPOBJECT;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPDataFile            = POINTER TO WPDataFile;
+TYPE PM_WPDataFile          = POINTER TO M_WPDataFile;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPDataFile
+*************************************************************************)
+
+CONST MAX_ASSOC_ITEMS      = 12;
+
+TYPE HWND                  = OS2DEF.HWND;
+TYPE PRINTDEST             = OS2DEF.PRINTDEST;
+TYPE PWPObject             = WPOBJECT.PWPObject;
+
+(* NIL pointer types for various formal types.
+ * Even if such a pointer variable p is of value NIL,
+ * p^ can be passed by reference to a formal VAR-parameter
+ * or a formal open array type. This way a formal parameter
+ * might become a NIL-reference which is sometimes needed
+ * for OS/2 2.x Workplace procedures.
+ * Example:
+ *
+ *   PROCEDURE( Self : PWPDataFile ) wpQueryAssociatedProgram
+ *   (
+ *     ...
+ *     szDefaultType     : ARRAY OF CHAR   (* might be NULL *)
+ *   )                   : PWPObject;
+ *     ...
+ *   TYPE NILCharArray   = POINTER TO ARRAY [0..0] OF CHAR;
+ *   VAR  DataFileObject = PWPDataFile;
+ *   VAR  NoCharArray    : NILCharArray;
+ *   VAR  ProgramObject  : PWPObject;
+ *     ...
+ *   NoCharArray := NIL;
+ *   ProgramObject := DataFileObject^.wpQueryAssociatedProgram
+ *   ( ... , NoCharArray^ );
+ *     ...
+ *)
+TYPE
+  NILCharArray   = POINTER TO ARRAY [0..0] OF CHAR;
+
+
+(*************************************************************************
+  SOM class API for WPDataFile, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPDataFile_MajorVersion     = 1;
+  WPDataFile_MinorVersion     = 2;
+
+TYPE
+  WPDataFileClassDataStructure     = RECORD
+    classObject                      : PSOMClass;
+    wpAddFileTypePage                : somMToken;
+    wpPrintMetaFile                  : somMToken;
+    wpPrintPifFile                   : somMToken;
+    wpPrintPrinterSpecificFile       : somMToken;
+    wpPrintUnknownFile               : somMToken;
+    wpQueryAssociatedProgram         : somMToken;
+    wpSetAssociatedFileIcon          : somMToken;
+                                     END;
+
+VAR
+  WPDataFileClassData : WPDataFileClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPDataFile = RECORD( WPFSYS.WPFileSystem ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPDataFileNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+PROCEDURE( Self : PWPDataFile ) wpAddFileTypePage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPDataFile ) wpPrintMetaFile
+(
+  VAR PrintDest : PRINTDEST
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPDataFile ) wpPrintPifFile
+(
+  VAR PrintDest : PRINTDEST
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPDataFile ) wpPrintPrinterSpecificFile
+(
+  VAR PrintDest : PRINTDEST
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPDataFile ) wpPrintUnknownFile
+(
+  VAR PrintDest : PRINTDEST
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPDataFile ) wpQueryAssociatedProgram
+(
+  ulView            : LONGCARD;
+  VAR ulHowMatched  : LONGCARD;
+  szMatchString     : ARRAY OF CHAR;
+  cbMatchString     : LONGCARD;
+  szDefaultType     : ARRAY OF CHAR
+)                   : PWPObject;
+
+PROCEDURE( Self : PWPDataFile ) wpSetAssociatedFileIcon( );
+
+
+(*************************************************************************
+  SOM class API for M_WPDataFile, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPDataFile_MajorVersion   = 1;
+  M_WPDataFile_MinorVersion   = 2;
+
+TYPE
+  M_WPDataFileClassDataStructure   = RECORD
+    classObject                      : PSOMClass;
+                                     END;
+
+VAR
+  M_WPDataFileClassData : M_WPDataFileClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPDataFile = RECORD( WPFSYS.M_WPFileSystem ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPDataFileNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+END WPDATAF.

@@ -1,0 +1,7 @@
+LIBRARY SESMGR
+EXPORTS
+  DosStartSession    @37 
+  DosSetSession      @39 
+  DosSelectSession   @38 
+  DosStopSession     @40 
+

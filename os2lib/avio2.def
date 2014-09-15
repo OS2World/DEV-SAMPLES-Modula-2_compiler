@@ -1,0 +1,3 @@
+LIBRARY PMVIOP
+EXPORTS
+  WinDefAVioWindowProc  @30

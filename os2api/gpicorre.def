@@ -1,0 +1,101 @@
+DEFINITION MODULE GPICORRELATION;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager
+           GPI Picking, Boundary and Correlation.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM   OS2DEF  IMPORT HPS, POINTL, RECTL;
+FROM   GPIDEF  IMPORT SIZEL;
+
+CONST (* options for GpiSetPickApertureSize *)
+  PICKAP_DEFAULT                = 0;
+  PICKAP_REC                    = 2;
+
+CONST (* type of correlation for GpiCorrelateChain *)
+  PICKSEL_VISIBLE               = 0;
+  PICKSEL_ALL                   = 1;
+
+CONST (* return code to indicate correlate hit(s) *)
+  GPI_HITS                      = 2;
+
+
+(*** picking,  correlation and boundary functions *)
+
+PROCEDURE GpiCorrelateChain
+( PresSpaceHandle               : HPS;
+  Type                          : LONGINT;
+  VAR PickPos                   : POINTL;
+  MaxHits                       : LONGINT;
+  MaxDepth                      : LONGINT;
+  VAR SegTag                    : ARRAY OF LONGINT
+)                               : LONGINT;
+
+PROCEDURE GpiQueryTag
+( PresSpaceHandle               : HPS;
+  VAR Tag                       : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiSetTag
+( PresSpaceHandle               : HPS;
+  Tag                           : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryPickApertureSize
+( PresSpaceHandle               : HPS;
+  VAR Size                      : SIZEL
+)                               : BOOLEAN;
+
+PROCEDURE GpiSetPickApertureSize
+( PresSpaceHandle               : HPS;
+  Options                       : LONGINT;
+  VAR Size                      : SIZEL
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryPickAperturePosition
+( PresSpaceHandle               : HPS;
+  VAR Point                     : POINTL
+)                               : BOOLEAN;
+
+PROCEDURE GpiSetPickAperturePosition
+( PresSpaceHandle               : HPS;
+  VAR Point                     : POINTL
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryBoundaryData
+( PresSpaceHandle               : HPS;
+  VAR Boundary                  : RECTL
+)                               : BOOLEAN;
+
+PROCEDURE GpiResetBoundaryData
+( PresSpaceHandle               : HPS
+)                               : BOOLEAN;
+
+PROCEDURE GpiCorrelateFrom
+( PresSpaceHandle               : HPS;
+  FirstSegment                  : LONGINT;
+  LastSegment                   : LONGINT;
+  Type                          : LONGINT;
+  VAR PickPos                   : POINTL;
+  MaxHit                        : LONGINT;
+  MaxDepth                      : LONGINT;
+  VAR SegTag                    : ARRAY OF LONGINT
+)                               : LONGINT;
+
+PROCEDURE GpiCorrelateSegment
+( PresSpaceHandle               : HPS;
+  Segment                       : LONGINT;
+  Type                          : LONGINT;
+  VAR PickPos                   : POINTL;
+  MaxHit                        : LONGINT;
+  MaxDepth                      : LONGINT;
+  VAR SegTag                    : ARRAY OF LONGINT
+)                               : LONGINT;
+
+END GPICORRELATION.

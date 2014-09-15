@@ -1,0 +1,7 @@
+LIBRARY NLS
+EXPORTS
+  DosQueryCtryInfo    @5
+  DosQueryDBCSEnv     @6
+  DosMapCase          @7
+  DosQueryCollate     @8
+

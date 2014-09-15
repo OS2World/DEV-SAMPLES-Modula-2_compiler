@@ -1,0 +1,12 @@
+LIBRARY PMGPI
+EXPORTS
+  GpiBeginPath      @354
+  GpiEndPath        @387
+  GpiCloseFigure    @360
+  GpiModifyPath     @403
+  GpiFillPath       @392
+  GpiSetClipPath    @515
+  GpiOutlinePath    @563
+  GpiPathToRegion   @559
+  GpiStrokePath     @554
+

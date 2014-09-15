@@ -1,0 +1,86 @@
+DEFINITION MODULE ASCII;
+(*
+    Title     : A definition of ASCII constants
+    Author    : I.R. Matters (Ian.Matters@anu.edu.au)
+    System    : Juergen Neuhoff's Modula-2 compiler on OS/2
+    Version   : 1.00
+    Last Edit : 24 June 1995
+*)
+
+CONST
+
+    (* ASCII control characters by name *)
+
+    nul = 00C;
+    soh = 01C;
+    stx = 02C;
+    etx = 03C;
+    eot = 04C;
+    enq = 05C;
+    ack = 06C;
+    bel = 07C;
+    bs  = 10C;
+    ht  = 11C;
+    lf  = 12C;
+    vt  = 13C;
+    ff  = 14C;
+    cr  = 15C;
+    so  = 16C;
+    si  = 17C;
+    dle = 20C;
+    dc1 = 21C;
+    dc2 = 22C;
+    dc3 = 23C;
+    dc4 = 24C;
+    nak = 25C;
+    syn = 26C;
+    etb = 27C;
+    can = 30C;
+    em  = 31C;
+    sub = 32C;
+    esc = 33C;
+    fs  = 34C;
+    gs  = 35C;
+    rs  = 36C;
+    us  = 37C;
+    sp  = 40C;
+    del = 177C;
+
+    (* ASCII control characters by keystroke *)
+
+    CtrlA = 01C;
+    CtrlB = 02C;
+    CtrlC = 03C;
+    CtrlD = 04C;
+    CtrlE = 05C;
+    CtrlF = 06C;
+    CtrlG = 07C;
+    CtrlH = 10C;
+    CtrlI = 11C;
+    CtrlJ = 12C;
+    CtrlK = 13C;
+    CtrlL = 14C;
+    CtrlM = 15C;
+    CtrlN = 16C;
+    CtrlO = 17C;
+    CtrlP = 20C;
+    CtrlQ = 21C;
+    CtrlR = 22C;
+    CtrlS = 23C;
+    CtrlT = 24C;
+    CtrlU = 25C;
+    CtrlV = 26C;
+    CtrlW = 27C;
+    CtrlX = 30C;
+    CtrlY = 31C;
+    CtrlZ = 32C;
+
+    (* Special Modula-2 end of line character *)
+
+    EOL = 36C;
+
+    (* End of file character for text files *)
+
+    EOF = CtrlZ;
+
+END ASCII.

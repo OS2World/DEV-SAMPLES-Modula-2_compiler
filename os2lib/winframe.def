@@ -1,0 +1,10 @@
+LIBRARY PMWIN
+EXPORTS
+  WinCreateStdWindow       @908
+  WinFlashWindow           @745
+  WinCreateFrameControls   @906
+  WinCalcFrameRect         @704
+  WinGetMinPosition        @755
+  WinGetMaxPosition        @754
+  WinSaveWindowPos         @943
+

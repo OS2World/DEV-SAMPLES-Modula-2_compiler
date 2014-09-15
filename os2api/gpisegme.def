@@ -1,0 +1,151 @@
+DEFINITION MODULE GPISEGMENTS;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager
+           GPI Segment Control and Drawing.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF  IMPORT HPS;
+
+CONST (* data formats for GpiPutData and GpiGetData *)
+  DFORM_NOCONV                  = 0;
+  DFORM_S370SHORT               = 1;
+  DFORM_PCSHORT                 = 2;
+  DFORM_PCLONG                  = 4;
+
+CONST (* segment attributes used by GpiSet/QuerySegmentAttrs and others *)
+  ATTR_ERROR                    = -1;
+  ATTR_DETECTABLE               =  1;
+  ATTR_VISIBLE                  =  2;
+  ATTR_CHAINED                  =  6;
+  ATTR_DYNAMIC                  =  8;
+  ATTR_FASTCHAIN                =  9;
+  ATTR_PROP_DETECTABLE          = 10;
+  ATTR_PROP_VISIBLE             = 11;
+
+CONST (* attribute on/off values *)
+  ATTR_OFF                      = 0;
+  ATTR_ON                       = 1;
+
+CONST (* segment priority used by GpiSetSegmentPriority and others *)
+  LOWER_PRI                     = -1;
+  HIGHER_PRI                    =  1;
+
+(*** segment control functions *)
+
+PROCEDURE GpiOpenSegment
+( PresSpaceHandle               : HPS;
+  Segment                       : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiCloseSegment
+( PresSpaceHandle               : HPS
+)                               : BOOLEAN;
+
+PROCEDURE GpiDeleteSegment
+( PresSpaceHandle               : HPS;
+  SegId                         : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryInitialSegmentAttrs
+( PresSpaceHandle               : HPS;
+  Attribute                     : LONGINT
+)                               : LONGINT;
+
+PROCEDURE GpiSetInitialSegmentAttrs
+( PresSpaceHandle               : HPS;
+  Attribute                     : LONGINT;
+  Value                         : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiQuerySegmentAttrs
+( PresSpaceHandle               : HPS;
+  SegId                         : LONGINT;
+  Attribute                     : LONGINT
+)                               : LONGINT;
+
+PROCEDURE GpiSetSegmentAttrs
+( PresSpaceHandle               : HPS;
+  SegId                         : LONGINT;
+  Attribute                     : LONGINT;
+  Value                         : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiQuerySegmentPriority
+( PresSpaceHandle               : HPS;
+  RefSegId                      : LONGINT;
+  Order                         : LONGINT
+)                               : LONGINT;
+
+PROCEDURE GpiSetSegmentPriority
+( PresSpaceHandle               : HPS;
+  SegId                         : LONGINT;
+  RefSegId                      : LONGINT;
+  Order                         : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiDeleteSegments
+( PresSpaceHandle               : HPS;
+  FirstSegment                  : LONGINT;
+  LastSegment                   : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiQuerySegmentNames
+( PresSpaceHandle               : HPS;
+  FirstSegId                    : LONGINT;
+  LastSegId                     : LONGINT;
+  Max                           : LONGINT;
+  VAR SegIds                    : ARRAY OF LONGINT
+)                               : LONGINT;
+
+(*** draw functions for segments *)
+
+PROCEDURE GpiGetData
+( PresSpaceHandle               : HPS;
+  SegId                         : LONGINT;
+  VAR Offset                    : LONGINT;
+  Format                        : LONGINT;
+  Length                        : LONGINT;
+  VAR Data                      : ARRAY OF SYSTEM.BYTE
+)                               : LONGINT;
+
+PROCEDURE GpiPutData
+( PresSpaceHandle               : HPS;
+  Format                        : LONGINT;
+  VAR Length                    : LONGINT;
+  VAR Data                      : ARRAY OF SYSTEM.BYTE
+)                               : LONGINT;
+
+PROCEDURE GpiDrawChain
+( PresSpaceHandle               : HPS
+)                               : BOOLEAN;
+
+PROCEDURE GpiDrawFrom
+( PresSpaceHandle               : HPS;
+  FirstSegment                  : LONGINT;
+  LastSegment                   : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiDrawSegment
+( PresSpaceHandle               : HPS;
+  Segment                       : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiDrawDynamics
+( PresSpaceHandle               : HPS
+)                               : BOOLEAN;
+
+PROCEDURE GpiRemoveDynamics
+( PresSpaceHandle               : HPS;
+  FirstSegId                    : LONGINT;
+  LastSegId                     : LONGINT
+)                               : BOOLEAN;
+
+END GPISEGMENTS.

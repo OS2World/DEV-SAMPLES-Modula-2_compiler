@@ -1,0 +1,2210 @@
+DEFINITION MODULE SOM;
+
+(***************************************************************************
+  OS/2 2.x/3.0 System Object Model.
+               01.04.95 01:28 : exception types corrected
+
+  Copyright (c) 1994, 1995 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+
+IMPORT SYSTEM;
+
+TYPE
+  BYTE                = SYSTEM.BYTE;
+  WORD                = SYSTEM.WORD;
+  DWORD               = SYSTEM.DWORD;
+  LONGWORD            = SYSTEM.LONGWORD; (* same as DWORD *)
+  ADDRESS             = SYSTEM.ADDRESS;
+
+TYPE (* basic type names *)
+  integer1            = SHORTINT;
+  integer2            = INTEGER;
+  uinteger2           = CARDINAL;
+  integer4            = LONGINT;
+  uinteger4           = LONGCARD;
+  float4              = SHORTREAL;
+  float8              = LONGREAL;
+  PSTRING             = POINTER TO ARRAY [0..MAX(LONGCARD)-1] OF CHAR;
+  zString             = PSTRING;
+  fString             = PSTRING;
+  somId               = POINTER TO PSTRING;
+  somToken            = ADDRESS;     (* Uninterpretted value   *)
+  somMToken           = ADDRESS;     (* Method token           *)
+  somDToken           = ADDRESS;     (* Data token             *)
+  somClassInfo        = somToken;
+  SOMTokBuf           = somToken;
+  somMOffset          = integer4;
+  somDOffset          = integer4;
+  somMData            = integer4;
+  size_t              = LONGCARD;
+  uchar_t             = SHORTCARD;
+  long                = LONGINT;
+  PSOMObject          = POINTER TO SOMObject;
+  PSOMClass           = POINTER TO SOMClass;
+  PSOMClassMgr        = POINTER TO SOMClassMgr;
+  PSOMAny             = PSOMObject;
+
+
+TYPE (* -- For building lists of class objects *)
+  somClassList        = RECORD
+    cls                 : PSOMClass;
+    next                : POINTER TO somClassList;
+                        END;
+  somClasses          = POINTER TO somClassList;
+
+TYPE
+  somMethodProc       = SYSTEM.LONGWORD;  (* pointer to method procedure *)
+
+TYPE
+  somTP_somClassInitFunc = PROCEDURE( PSOMClass );
+
+TYPE (* Method Table *)
+  somMethodTabStruct  = RECORD
+    classObject         : PSOMClass;
+    entries             : ARRAY [0..0] OF somMethodProc;
+                        END;
+  somMethodTab        = somMethodTabStruct;
+
+TYPE (* -- For building lists of method tables *)
+  somMethodTabList    = RECORD
+    mtab                : POINTER TO somMethodTab;
+    next                : POINTER TO somMethodTabList;
+                        END;
+  somMethodTabs       = POINTER TO somMethodTabList;
+
+TYPE (* -- Generic ClassData structure *)
+  somClassDataStructure     = RECORD
+    classObject               : PSOMClass;
+    tokens                    : ARRAY [0..0] OF somToken;
+                              END;
+  somClassDataStructurePtr  = POINTER TO somClassDataStructure;
+
+TYPE (* -- Generic Auxiliary Class Data Structure *)
+  somCClassDataStructure    = RECORD
+    parentMtab                : somMethodTabs;
+    instanceDataToken         : somDToken;
+    ptrs                      : ARRAY [0..0] OF somMethodProc;
+                              END;
+  somCClassDataStructurePtr = POINTER TO somCClassDataStructure;
+
+CONST
+  SOM_DynamicMethod      = 1;
+  SOM_StaticMethod       = 0;
+
+TYPE (* Old style name support *)
+  somMethodPtr           = somMethodProc;
+
+TYPE (* OS/2-style type synonyms *)
+  FLOAT4                 = float4;
+  FLOAT8                 = float8;
+  SOMID                  = somId;
+  SOMTOKEN               = somToken;
+  SOMMTOKEN              = somMToken;
+  SOMDTOKEN              = somDToken;
+  SOMMETHODTAB           = somMethodTab;
+  SOMMETHODPTR           = somMethodPtr;
+  SOMCLASSDATASTRUCT     = somClassDataStructure;
+  SOMCLASSDATA           = somClassDataStructure;
+  SOMMETHODPROC          = somMethodProc;
+  SOMMETHOD              = somMethodProc;
+  INT                    = LONGINT;
+  INTEGER4               = LONGINT;
+  INTEGER2               = INTEGER;
+  INTEGER1               = SHORTINT;
+
+TYPE (* pointer type names *)
+  PsomClassList          = POINTER TO somClassList;
+  PsomMethodTab          = POINTER TO somMethodTab;
+  PsomMethodTabList      = POINTER TO somMethodTabList;
+  PsomClassDataStructure = POINTER TO somClassDataStructure;
+  PPSTRING               = POINTER TO PSTRING;
+
+CONST (* error severity codes, which are added to the base error number *)
+  SOM_Ok              = 0H;
+  SOM_Warn            = 1H;
+  SOM_Ignore          = 2H;     (* don't do anything *)
+  SOM_Fatal           = 9H;     (* terminate the program *)
+  SOM_Template        = 5H;     (* used to identify msg templates *)
+
+
+CONST (* error base *)
+  SOM_EB              = 20000;
+
+CONST (* error numbers *)
+
+  (*
+   * The somDescendedFrom method was passed a NULL class argument.
+   *)
+  SOMERROR_CCNullClass    = SOM_EB + SOM_Warn + 1*10;
+
+  (*
+   * The internal buffer used in somPrintf overflowed.
+   *)
+  SOMERROR_SompntOverflow = SOM_EB + SOM_Fatal + 2*10;
+
+  (*
+   * somFindMethodOk failed to find the indicated method.
+   *)
+  SOMERROR_MethodNotFound = SOM_EB + SOM_Fatal + 3*10;
+
+  (*
+   * Method table overflow in somAddStaticMethod
+   *)
+  SOMERROR_StaticMethodTableOverflow = SOM_EB + SOM_Fatal + 4*10;
+
+  (*
+   * The somDefaultMethod was called, probably means a defined method
+   *  was not added before it was invoked
+   *)
+  SOMERROR_DefaultMethod  = SOM_EB + SOM_Fatal + 5*10;
+
+  (*
+   *   The specified method was not defined on the target object.
+   *)
+  SOMERROR_MissingMethod  = SOM_EB + SOM_Fatal + 6*10;
+
+  (*
+   *    Attempt to load, create or use a version of a class object
+   *    implementation that is incompatible with the using program.
+   *)
+  SOMERROR_BadVersion     = SOM_EB + SOM_Fatal + 7*10;
+
+  (*
+   *   somCheckId was given a NULL id to check.
+   *)
+  SOMERROR_NullId         = SOM_EB + SOM_Fatal + 8*10;
+
+  (*
+   *   Memory exhausted
+   *)
+  SOMERROR_OutOfMemory    = SOM_EB + SOM_Fatal + 9*10;
+
+  (*
+   *   somObjectTest found problems with the object it was testing
+   *)
+  SOMERROR_TestObjectFailure         = SOM_EB + SOM_Fatal + 10*10;
+
+  (*
+   *   somTest detected a failure, only generated by test code
+   *)
+  SOMERROR_FailedTest     = SOM_EB + SOM_Fatal + 11*10;
+
+  (*
+   *   somFindClass could not find the requested class.
+   *)
+  SOMERROR_ClassNotFound  = SOM_EB + SOM_Warn + 12*10;
+
+  (*
+   *   Old style method name used, change to appropriate name
+   *)
+  SOMERROR_OldMethod      = SOM_EB + SOM_Warn + 13*10;
+
+  (*
+   *   Calling somEnvironmentNew did not create the root class
+   *)
+  SOMERROR_CouldNotStartup = SOM_EB + SOM_Fatal + 14*10;
+
+  (*
+   *    somUnloadClassFile argument was not a registered class
+   *)
+  SOMERROR_NotRegistered  = SOM_EB + SOM_Fatal + 15*10;
+
+  (*
+   *   Call to somOverrideSMethod for a method that was not defined in a
+   *   parent class
+   *)
+  SOMERROR_BadOverride    = SOM_EB + SOM_Fatal + 16*10;
+
+  (*
+   *   The method raising the error message is not implemented yet
+   *)
+  SOMERROR_NotImplementedYet = SOM_EB + SOM_Fatal + 17*10;
+
+  (*
+   *   The method raising the error message should have been overridden
+   *)
+  SOMERROR_MustOverride   = SOM_EB + SOM_Fatal + 18*10;
+
+  (*
+   *   An argument to a core SOM method failed a validity test
+   *)
+  SOMERROR_BadArgument    = SOM_EB + SOM_Fatal + 19*10;
+
+  (*
+   *   During class object create, the parent class object could not be found.
+   *)
+  SOMERROR_NoParentClass  = SOM_EB + SOM_Fatal + 21*10;
+
+  (*
+   *   During class object create, the metaclass object could not be found.
+   *)
+  SOMERROR_NoMetaClass    = SOM_EB + SOM_Fatal + 22*10;
+
+  (*
+   *   An attempt to index an out-of-range buffer entry
+   *)
+  SOMERROR_Indexrange     = SOM_EB + SOM_Fatal + 23*10;
+
+  (*
+   *   An attempt to delete a character from an empty buffer
+   *)
+  SOMERROR_Underflow      = SOM_EB + SOM_Fatal + 24*10;
+
+  (*
+   *   Internal logic error during buffer manipulation
+   *)
+  SOMERROR_Logic          = SOM_EB + SOM_Fatal + 25*10;
+
+  (*
+   *
+   *)
+  SOMERROR_6              = SOM_EB + SOM_Fatal + 26*10;
+
+  (*
+   *
+   *)
+  SOMERROR_7              = SOM_EB + SOM_Fatal + 27*10;
+
+
+VAR (* control variables for printing debug messages *)
+  SOM_TraceLevel         : INT;      (* 0-none, 1-user, 2-core&user *)
+  SOM_WarnLevel          : INT;      (* 0-none, 1-all *)
+  SOM_AssertLevel        : INT;      (* 0-none, 1-user, 2-core&user *)
+
+
+
+VAR (* SOM Version Numbers *)
+  SOM_MajorVersion       : LONGINT;
+  SOM_MinorVersion       : LONGINT;
+
+TYPE (* Procedure types for replacable SOM functions *)
+  somTD_classInitRoutine =
+    PROCEDURE( PSOMClass, PSOMClass );
+  somTD_SOMOutCharRoutine =
+    PROCEDURE( CHAR ) : INT;
+  somTD_SOMLoadModule =
+    PROCEDURE
+    ( ARRAY OF CHAR, (* ClassName *)
+      ARRAY OF CHAR, (* FileName *)
+      ARRAY OF CHAR, (* FunctionName *)
+      INTEGER4,      (* MajorVersion *)
+      INTEGER4,      (* MinorVersion *)
+      VAR somToken   (* ModHandle *)
+    ) : INT;
+  somTD_SOMDeleteModule =
+    PROCEDURE( somToken ) : INT;
+  somTD_SOMClassInitFuncName =
+    PROCEDURE() : zString;
+  somTD_SOMMalloc =
+    PROCEDURE( size_t ) : ADDRESS;
+  somTD_SOMCalloc =
+    PROCEDURE
+    ( size_t,        (* ElementCount *)
+      size_t         (* ElementSize *)
+    ) : ADDRESS;
+  somTD_SOMRealloc =
+    PROCEDURE( ADDRESS, size_t ) : ADDRESS;
+  somTD_SOMFree =
+    PROCEDURE( ADDRESS );
+  somTD_SOMError =
+    PROCEDURE
+    ( INT,            (* Code  *)
+      ARRAY OF CHAR,  (* FileName *)
+      INT             (* LineNumber *)
+    );
+
+(*************************************************************************
+   Misc. procedures:
+*************************************************************************)
+
+(*
+ *  Create and initialize the SOM environment
+ *
+ *  Can be called repeatedly
+ *
+ *  Will be called automatically when first object (including a class
+ *  object) is created, if it has not already been done.
+ *
+ *  Returns the SOMClassMgrObject
+ *)
+PROCEDURE somEnvironmentNew( ) : PSOMClassMgr;
+
+
+(*************************************************************************
+ *  String Manager functions
+*************************************************************************)
+
+(*
+ * makes sure that the id is registered and in normal form, returns
+ * the id
+ *)
+PROCEDURE somCheckId( Ident : somId ) : somId;
+
+(*
+ * Same as somCheckId except returns 1 (true) if this is the first
+ * time the string associated with this id has been registered,
+ * returns 0 (false) otherwise
+ *)
+PROCEDURE somRegisterId( Id : somId ) : INT;
+
+PROCEDURE somIdFromString( Str : ARRAY OF CHAR ) : somId;
+
+PROCEDURE somStringFromId( Ident : somId ) : zString;
+
+(*
+ * Returns 1 (TRUE) if identifiers represent same string values
+ * Returns 0 (FALSE) if identifiers represent unequal string values
+ *)
+PROCEDURE somCompareIds( Ident1, Ident2 : somId ) : INT;
+
+(*
+ * Returns the total number of ids that have been registered so far,
+ * you can use this to advise the SOM runtime concerning expected
+ * number of ids in later executions of your program, via a call to
+ * somSetExpectedIds defined below
+ *)
+PROCEDURE somTotalRegIds() : LONGCARD;
+
+(*
+ * Tells the SOM runtime how many unique ids you expect to use during
+ * the execution of your program, this can improve space and time
+ * utilization slightly, this routine must be called before the SOM
+ * environment is created to have any effect
+ *)
+PROCEDURE somSetExpectedIds( NunIds : LONGCARD );
+
+(*
+ * Returns the unique key for this id, this key will be the same as the
+ * key in another id if and only if the other id refers to the same
+ * name as this one
+ *)
+PROCEDURE somUniqueKey( Ident : somId ) : LONGCARD;
+
+(*
+ * Tells the id manager that strings for any new ids that are
+ * registered will never be freed or otherwise modified. This allows
+ * the id manager to just use a pointer to the string in the
+ * unregistered id as the master copy of the ids string. Thus saving
+ * space
+ * Under normal use (where ids are static varibles) the string
+ * associated with an id would only be freed if the code module in
+ * which it occured was unloaded
+ *)
+PROCEDURE somBeginPersistentIds();
+
+(*
+ * Tells the id manager that strings for any new ids that are
+ * registered may be freed or otherwise modified.  Therefore the id
+ * manager must copy the strings inorder to remember the name of an
+ * id.
+ *)
+PROCEDURE somEndPersistentIds();
+
+
+
+(*************************************************************************
+  Global Class Manager Object.
+**************************************************************************)
+
+VAR
+  SOMClassMgrObject      : PSOMClassMgr;
+
+
+
+(*************************************************************************
+  Basic offset based method resolution, this is used in every method
+  class that uses offset resolution.
+  It returns the appropriate method procedure for the method
+  identified by <mdata>, Mdata id the 32 bit value stored in the
+  class data structure in the entry with the methods name. I.e., if
+  a object, obj, of class, Foo, has a method, bar, then:
+  somResolve(obj, FooClassData.bar)
+  will return the appropriate method procedure for bar.
+  The way that <mdata> identifies a method and the algorithm used by
+  somResolve to locate the appropriate method procedure is not part
+  of the visible SOM architecture and is subject to change in
+  subsequent releases.
+**************************************************************************)
+
+PROCEDURE somResolve
+( obj            : PSOMAny;
+  mdata          : somMToken
+)                : somMethodProc;
+
+PROCEDURE somParentResolve
+( parentMtab     : PsomMethodTabList;
+  mdata          : somMToken
+)                : somMethodProc;
+
+PROCEDURE somParentNumResolve
+( parentMtabs    : PsomMethodTabList;
+  parentNum      : LONGINT;
+  mToken         : somMToken
+)                : somMethodProc;
+
+PROCEDURE somClassResolve
+( classObject    : PSOMClass;
+  mdata          : somMToken
+)                : somMethodProc;
+
+PROCEDURE somResolveByName
+( obj            : PSOMObject;
+  methodName     : ARRAY OF CHAR
+)                : somMethodProc;
+
+PROCEDURE somDataResolve
+( obj            : PSOMAny;
+  dataId         : somDToken
+)                : ADDRESS;
+
+PROCEDURE somIsObj
+( obj            : somToken
+)                : BOOLEAN;
+
+
+
+(*************************************************************************
+   Method Stubs -- Signature Support
+**************************************************************************)
+
+(*
+ *
+ * This section defines the structures used to pass method signature
+ * ingo to the runtime. This supports selection of generic apply stubs
+ * and runtime generation of redispatchstubs when these are needed. The
+ * information is registered with the runtime when methods are defined.
+ *
+ * When calling somAddStaticMethod, if the redispatchStub is -1, then a
+ * pointer to a struct of type somApRdInfo is passed as the applyStub.
+ * Otherwise, the passed redispatchstub and applystub are taken as given.
+ * When calling somAddDynamicMethod, an actual apply stub must be passed.
+ * Redispatch stubs for dynamic methods are not available, nor is
+ * automated support for dynamic method apply stubs. The following
+ * atructures only appropriate in relation to static methods.
+ *
+ * In SOMr2, somAddStaticMethod can be called with an actual redispatchstub
+ * and applystub *ONLY* if the method doesn't return a structure. Recall
+ * that no SOMr1 methods returned structures, so SOMr1 binaries obey this
+ * restriction. The reason for this rule is that SOMr2 *may* use thunks,
+ * and thunks need to know if a structure is returned. We therefore assume
+ * that if no signature information is provided for a method through the
+ * somAddStaticMethod interface, then the method returns a scalar.
+ *
+ * If a structure is returned, then a -1 *must* be passed to
+ * somAddStaticMethod as a redispatchstub. In any case, if a -1 is passed,
+ * then this means that the applystub actually points to a structure of type
+ * somApRdInfo. This structure is used to hold and access signature
+ * information encoded as follows.
+ *
+ * If the somApRdInfo pointer is NULL, then, if the runtime was built with
+ * SOM_METHOD_STUBS defined, a default signature is assumed (no arguments,
+ * and no structure returned); otherwise, the stubs are taken as
+ * somDefaultMethod (which produces a runtime error when used) if dynamic
+ * stubs are not available.
+ *
+ * If the somApRdInfo pointer is not NULL, then the structure it points to can
+ * either include (non-null) redispatch and applystubs (the method is then
+ * assumed to return a structure), or null stubs followed by information needed
+ * to generate necessary stubs dynamically.
+ *)
+
+TYPE
+  somRdAppType = LONGCARD;      (* method signature code -- see def below *)
+  somFloatMap  = ARRAY [0..12] OF LONGCARD; (* float map -- see def below *)
+
+TYPE
+  somMethodInfoStruct = RECORD
+    callType            : somRdAppType;
+    va_listSize         : LONGINT;
+    float_map           : POINTER TO somFloatMap;
+                        END;
+  somMethodInfo       = somMethodInfoStruct;
+
+TYPE
+  somApRdInfoStruct   = RECORD
+    rdStub              : POINTER TO somMethodProc;
+    apStub              : POINTER TO somMethodProc;
+    stubInfo            : POINTER TO somMethodInfo;
+                        END;
+  somApRdInfo         = POINTER TO somApRdInfoStruct;
+
+(*
+ * Values for somRdAppType are generated by summing one from column A and one
+ * from column B of the following constants:
+ *)
+
+CONST (* Column A: return type *)
+  SOMRdRetsimple      =  0; (* Return type is a non-float fullword *)
+  SOMRdRetfloat       =  2; (* Return type is (single) float *)
+  SOMRdRetdouble      =  4; (* Return type is double *)
+  SOMRdRetlongdouble  =  6; (* Return type is long double *)
+  SOMRdRetaggregate   =  8; (* Return type is struct or union *)
+  SOMRdRetbyte        = 10; (* Return type is a byte *)
+  SOMRdRethalf        = 12; (* Return type is a (2 byte) halfword *)
+
+CONST (* Column B: are there any floating point scalar arguments? *)
+  SOMRdNoFloatArgs    = 0;
+  SOMRdFloatArgs      = 1;
+
+(* A somFloatMap is only needed on RS/6000 *)
+(*
+ * This is an array of offsets for up to the first 13 floating point arguments.
+ * If there are fewer than 13 floating point arguments, then there will be
+ * zero entries following the non-zero entries which represent the float args.
+ * A non-zero entry signals either a single- or a double-precision floating point
+ * argument. For a double-precision argument, the entry is the stack
+ * frame offset. For a single-precision argument the entry is the stack
+ * frame offset + 1. For the final floating point argument, add 2 to the
+ * code that would otherwise be used.
+ *)
+CONST
+  SOMFMSingle         = 1; (* add to indicate single-precision *)
+  SOMFMLast           = 2; (* add to indicate last floating point arg *)
+
+TYPE
+  somSharedMethodData = somToken;
+
+TYPE
+  somMethodDataStruct = RECORD
+    id                  : somId;
+    type                : LONGCARD;      (* 0=static, 1=dynamic *)
+    descriptor          : somId;         (* for use with IR interfaces *)
+    mToken              : somMToken;     (* NULL for dynamic methods *)
+    method              : somMethodPtr;  (* depends on resolution context *)
+    shared              : POINTER TO somSharedMethodData;
+                        END;
+  somMethodData       = somMethodDataStruct;
+  somMethodDataPtr    = POINTER TO somMethodDataStruct;
+  SOMMETHODDATA       = somMethodData;
+  PsomMethodData      = POINTER TO somMethodData;
+
+
+PROCEDURE somApply
+(
+  somSelf             : PSOMObject;
+  VAR retVal          : ADDRESS;
+  mdPtr               : somMethodDataPtr;
+  VAR ap              : ARRAY OF LONGWORD
+)                     : BOOLEAN;
+
+(* This routine replaces direct use of applyStubs in SOMr1. The reason
+ * for the replacement is that the SOMr1 style of applyStub is not
+ * generally available in SOMr2, which uses a fixed set of applyStubs,
+ * according to method information in the somMethodData. In particular,
+ * neither the redispatch stub nor the apply stub found in the method
+ * data structure are necessarily useful as such. The method somGetRdStub
+ * is the way to get a redispatch stub, and the above function is the
+ * way to call an apply stub. If an appropriate apply stub for the
+ * method indicated by md is available, then this is invoked and TRUE is
+ * returned; otherwise FALSE is returned.
+ *
+ * The va_list passed to somApply *must* include the target object,
+ * somSelf, as its first entry, and any single precision floating point
+ * arguments being passed to the the method procedure must be
+ * represented on the va_list using double precision values. retVal cannot
+ * be NULL.
+ *)
+
+
+(*************************************************************************
+   somBuildClass is a convenience procedure that automates construction
+   of a new class object. The following structures are required for its use.
+**************************************************************************)
+
+TYPE (* to specify a new static method *)
+  somStaticMethodStruct    = RECORD
+    classData                : POINTER TO somMToken;
+    methodId                 : POINTER TO somId;
+    methodDescriptor         : POINTER TO somId;
+    method                   : somMethodProc;
+    redispatchStub           : somMethodProc;
+    applyStub                : somMethodProc;
+                             END;
+  somStaticMethod_t        = somStaticMethodStruct;
+
+TYPE (* to specify an overridden method *)
+  somOverideMethodStruct   = RECORD
+    methodId                 : POINTER TO somId;
+    method                   : somMethodProc;
+                             END;
+  somOverrideMethod_t      = somOverideMethodStruct;
+
+TYPE (* to specify non-internal data *)
+  somNonInternalDataStruct = RECORD
+    classData                : POINTER TO somDToken;
+    basisForDataOffset       : POINTER TO CHAR;
+                             END;
+  somNonInternalData_t     = somNonInternalDataStruct;
+
+TYPE (* to specify a "procedure" method *)
+  somProcMethodsStruct     = RECORD
+    classData                : POINTER TO somMethodProc;
+    pEntry                   : somMethodProc;
+                             END;
+  somProcMethods_t         = somProcMethodsStruct;
+
+TYPE (* to specify a varargs function *)
+  somVarargsFuncsStruct    = RECORD
+    classData                : POINTER TO somMethodProc;
+    vEntry                   : somMethodProc;
+                             END;
+  somVarargsFuncs_t        = somVarargsFuncsStruct;
+
+(*
+ * The address of the class's ClassData structure is passed to
+ * somBuildClass, to allow somBuildClass to initialize it. This
+ * structure should have the external name, <className>ClassData.
+ * The tokens array should have (numStaticMethods + numNonInternalData)
+ * entries, and the classObject should be NIL (if it is not NIL,
+ * then a new class will not be built).
+ *
+ * somClassDataStructure    = RECORD
+ *   classObject              : PSOMClass;
+ *   tokens                   : ARRAY [0..0] OF somToken;
+ *                            END;
+ * somClassDataStructurePtr = POINTER TO somClassDataStructure;
+ *)
+
+(*
+ * The address of the class's auxiliary ClassData structure is passed to
+ * somBuildClass, to allow somBuildClass to initialize it. This
+ * structure (whose actual typedef is located in this file) should
+ * have the external name, <className>CClassData. The wrappers array
+ * should have numVarargsFuncs entries.
+ *
+ *  somCClassDataStructure  = RECORD
+ *    parentMtab              : PsomMethodTabList;
+ *    instanceDataToken       : somDToken;
+ *    wrappers                : ARRAY [0..0] OF somMethodProc;
+ *                            END;
+ *)
+
+TYPE (* The Static Class Info Structure passed to somBuildClass *)
+  somStaticClassInfoStruct  = RECORD
+    layoutVersion             : INTEGER4; (* this is layout version 2 *)
+    numStaticMethods          : INTEGER4; (* count of smt entries *)
+    numStaticOverrides        : INTEGER4; (* count of omt entries *)
+    numNonInternalData        : INTEGER4; (* count of nit entries *)
+    numProcMethods            : INTEGER4; (* count of pmt entries *)
+    numVarargsFuncs           : INTEGER4; (* count of vft entries *)
+    majorVersion              : INTEGER4;
+    minorVersion              : INTEGER4;
+    instanceDataSize          : INTEGER4;
+    maxMethods                : INTEGER4;
+    numParents                : INTEGER4;
+    classId                   : somId;
+    explicitMetaId            : somId;
+    implicitParentMeta        : INTEGER4;
+    parents                   : POINTER TO somId;
+    cds                       : POINTER TO somClassDataStructure;
+    ccds                      : POINTER TO somCClassDataStructure;
+    smt                       : POINTER TO somStaticMethod_t;
+    omt                       : POINTER TO somOverrideMethod_t;
+    nitReferenceBase          : POINTER TO CHAR;
+    nit                       : POINTER TO somNonInternalData_t;
+    pmt                       : POINTER TO somProcMethods_t;
+    vft                       : POINTER TO somVarargsFuncs_t;
+    cif                       : POINTER TO somTP_somClassInitFunc;
+    dataAlignment             : INTEGER4;  (* only layout versions > 1:
+                                              the desired alignment for
+                                              instance data
+                                           *)
+                              END;
+  somStaticClassInfo        = somStaticClassInfoStruct;
+  somStaticClassInfoPtr     = POINTER TO somStaticClassInfoStruct;
+
+PROCEDURE somBuildClass
+( inherit_vars              : LONGINT;
+  VAR sci                   : somStaticClassInfo;
+  majorVersion              : LONGINT;
+  minorVersion              : LONGINT
+)                           : PSOMClass;
+
+
+(*************************************************************************
+  Used to make class object creation an atomic operation, this is
+  called by the generated <class name>NewClass routine.  You should
+  never call this routine directly. Kept for backwards compatability.
+**************************************************************************)
+
+PROCEDURE somConstructClass
+( classInitRoutine      : somTD_classInitRoutine;
+  parentClass           : PSOMClass;
+  metaClass             : PSOMClass;
+  cds                   : PsomClassDataStructure
+);
+
+
+(*************************************************************************
+  Replaceable character output handler.
+  Points to the character output routine to be used in development
+  support.  Initialized to <somOutChar>, but may be reset at anytime.
+  Should return 0 (false) if an error occurs and 1 (true) otherwise.
+**************************************************************************)
+
+VAR
+  SOMOutCharRoutine     : somTD_SOMOutCharRoutine;
+
+(*************************************************************************
+  Pointers to routines used to do dynamic code loading and deleting
+**************************************************************************)
+
+VAR
+  SOMLoadModule         : somTD_SOMLoadModule;
+  SOMDeleteModule       : somTD_SOMDeleteModule;
+  SOMClassInitFuncName  : somTD_SOMClassInitFuncName;
+
+
+(*************************************************************************
+  Replaceable SOM Memory Management Interface
+
+  External procedure variables SOMCalloc, SOMFree, SOMMalloc, SOMRealloc
+  have the same interface as standard C-library analogs,
+  and they may be used under Modula-2 as well.
+**************************************************************************)
+
+VAR
+  SOMCalloc             : somTD_SOMCalloc;
+  SOMFree               : somTD_SOMFree;
+  SOMMalloc             : somTD_SOMMalloc;
+  SOMRealloc            : somTD_SOMRealloc;
+
+
+(**************************************************************************
+  Replaceable SOM Error handler
+***************************************************************************)
+
+VAR
+  SOMError              : somTD_SOMError;
+
+
+(**************************************************************************
+  Externals used in the implementation of SOM, but not part of the
+  SOM API.
+**************************************************************************)
+
+PROCEDURE somTestCls
+( obj                   : PSOMAny;
+  classObj              : PSOMClass;
+  fileName              : ARRAY OF CHAR;
+  lineNumber            : INT
+)                       : PSOMAny;
+
+PROCEDURE somTest
+( condition             : BOOLEAN;
+  severity              : INT;
+  fileName              : ARRAY OF CHAR;
+  lineNum               : INT;
+  msg                   : ARRAY OF CHAR
+);
+
+PROCEDURE somAssert
+( condition             : BOOLEAN;
+  ecode                 : INT;
+  fileName              : ARRAY OF CHAR;
+  lineNum               : INT;
+  msg                   : ARRAY OF CHAR
+);
+
+
+
+
+
+
+
+
+
+(*************************************************************************
+   Additional types for new 'SOMClass' method parameters.
+**************************************************************************)
+
+TYPE
+  _IDL_SEQUENCE_SOMClass    = RECORD
+    _maximum                  : LONGCARD;
+    _length                   : LONGCARD;
+    _buffer                   : POINTER TO PSOMClass;
+                              END;
+  SOMClass_SOMClassSequence = _IDL_SEQUENCE_SOMClass;
+
+TYPE (* a structure to describe a class-related offset *)
+  SOMClass_somOffsetInfo    = RECORD
+    cls                       : PSOMClass;
+    offset                    : LONGINT;
+                              END;
+
+TYPE (* a sequence of class-related offsets *)
+  _IDL_SEQUENCE_SOMClass_somOffsetInfo = RECORD
+    _maximum                             : LONGCARD;
+    _length                              : LONGCARD;
+    _buffer                              : POINTER TO SOMClass_somOffsetInfo;
+                                         END;
+  SOMClass_somOffsets                  = _IDL_SEQUENCE_SOMClass_somOffsetInfo;
+
+
+(*************************************************************************
+  'SOMObject' Class API for Modula-2
+**************************************************************************)
+
+(*
+ * SOMObject is the root class for all SOM classes. It defines the
+ * essential behavior common to all SOM objects. As SOMObject has
+ * no own instance data (except for a pointer to its metaclass object),
+ * it contributes nothing to the size of derived classes.
+ * All SOM classes are expected to derive from SOMObject. Three methods
+ * would typically be overwritten by any subclass that has instance data-
+ * somInit, somUninit, and somDumpSelfInt. See the descriptions of these
+ * methods for further information.
+ *
+ * Note:
+ *
+ * Currently no further SOM support beyond the mere usage of SOM classes
+ * is supported by this compiler version. No special SOM emitters
+ * or language bindings has been implemented. SOM is supposed to
+ * represent a language independent object management. But due to the
+ * poor SOM documentation and its closeness to the C-language this
+ * claim can hardly be substantiated. Nevertheless is the limited
+ * support by this Modula-2 compiler enough for using any SOM-based
+ * library such as the OS/2 2.x Workplace Shell.
+ *
+ *)
+
+
+CONST
+  SOMObject_MajorVersion     = 1;
+  SOMObject_MinorVersion     = 1;
+
+
+(* A procedure to create the SOMObject Class *)
+PROCEDURE SOMObjectNewClass
+( majorVersion          : INTEGER4;
+  minorVersion          : INTEGER4
+)                       : PSOMClass;
+
+
+(* The static interface to SOMObject and its instances *)
+TYPE
+  SOMObjectClassDataStructure = RECORD
+    classObject                 : PSOMClass;
+    somInit                     : somMethodProc;
+    somUninit                   : somMethodProc;
+    somFree                     : somMethodProc;
+    somMissingMethod            : somMethodProc;
+    somGetClassName             : somMethodProc;
+    somGetClass                 : somMethodProc;
+    somIsA                      : somMethodProc;
+    somRespondsTo               : somMethodProc;
+    somIsInstanceOf             : somMethodProc;
+    somGetSize                  : somMethodProc;
+    somDumpSelf                 : somMethodProc;
+    somDumpSelfInt              : somMethodProc;
+    somPrintSelf                : somMethodProc;
+    somFreeObj                  : somMethodProc;
+    somDispatchV                : somMethodProc;
+    somDispatchL                : somMethodProc;
+    somDispatchA                : somMethodProc;
+    somDispatchD                : somMethodProc;
+    somDispatch                 : somMethodProc;
+    somClassDispatch            : somMethodProc;
+                                END;
+VAR
+  SOMObjectClassData          : SOMObjectClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  SOMObject           = RECORD
+    mtab                : POINTER TO somMethodTabStruct;
+    (* body             : ARRAY [0..0] OF integer1; *)
+                        END;
+  (*$SOM- *)
+
+
+PROCEDURE( Self : PSOMObject ) somInit( );
+(*
+ *  Initializes <Self>.  As instances of <SOMObject> do not have any
+ *  instance data there is nothing to initialize and you need not call
+ *  this method.  It is provided to induce consistency among
+ *  subclasses that require initialization.
+ *
+ *  <somInit> is called automatically as a side effect of object
+ *  creation (ie, by <somNew>).  If this effect is not desired, you
+ *  can supply your own version of <somNew> (in a user-written metaclass)
+ *  which does not invoke <somInit>.
+ *
+ *  When overriding this method you should always call the parent class
+ *  version of this method BEFORE doing your own initialization.
+ *)
+
+
+PROCEDURE( Self : PSOMObject ) somUninit( );
+(*
+ *  Un-initializes self.  As instances of <SOMObject> do not have any
+ *  instance data there is nothing to un-initialize and you need not
+ *  call this method.  It is provided to induce consistency among
+ *  subclasses that require un-initialization.
+ *
+ *  Use this method to clean up anything necessary such as dynamically
+ *  allocated storage. However this method does not release the actual
+ *  storage assigned to the object instance. This method is provided as
+ *  a complement to <somFree> which also releases the storage
+ *  associated with a dynamically allocated object. Usually you would
+ *  just call <somFree> which will always call <somUninit>. However, in
+ *  cases where <somRenew> (see the definition of <SOMClass>) was used
+ *  to create an object instance, <somFree> cannot be called and you
+ *  must call <somUninit> explicitly.
+ *
+ *  When overriding this method you should always call the parentclass
+ *  version of this method AFTER doing your own un-initialization.
+ *)
+
+
+PROCEDURE( Self : PSOMObject ) somFree( );
+(*
+ *  Releases the storage associated with <self>, assuming that <self>
+ *  was created by <somNew> (or another class method that used
+ *  <somNew>).  No future references should be made to <self>.  Will
+ *  call <somUninit> on <self> before releasing the storage.
+ *
+ *  This method must only be called on objects created by <somNew> (see
+ *  the definition of <somClass>) and never on objects created by
+ *  <somRenew>.
+ *
+ *  It should not be necessary to override this method. (Override
+ *  <somUninit> instead.)
+ *)
+
+
+PROCEDURE( Self : PSOMObject ) somGetClass( ) : PSOMClass;
+(*
+ *  Returns this object's class object.
+ *)
+
+
+PROCEDURE( Self : PSOMObject ) somGetClassName( ) : zString;
+(*
+ *  Returns a pointer to this object's class's name, as a NULL
+ *  terminated string.
+ *
+ *  It should not be necessary to override this method as it just
+ *  invokes the class object's method (<somGetName>) to get the name.
+ *)
+
+
+PROCEDURE( Self : PSOMObject ) somGetSize( ) : INTEGER4;
+(*
+ *  Returns the size of this instance in bytes.
+ *)
+
+
+PROCEDURE( Self : PSOMObject ) somIsA
+(
+  aClassObj     : PSOMClass
+)               : BOOLEAN;
+(*
+ *  Returns 1 (true) if <self>'s class is a descendent class of
+ *  <aClassObj> and 0 (false) otherwise.  Note: a class object is
+ *  considered to be descended from itself for the purposes of this
+ *  method.
+ *)
+
+
+PROCEDURE( Self : PSOMObject ) somIsInstanceOf
+(
+  aClassObj     : PSOMClass
+)               : BOOLEAN;
+(*
+ *  Returns 1 (true) if <self> is an instance of the specified
+ *  <aClassObj> and 0 (false) otherwise.
+ *)
+
+
+PROCEDURE( Self : PSOMObject ) somRespondsTo
+(
+  mId : somId
+)     : BOOLEAN;
+(*
+ *  Returns 1 (true) if the indicated method is supported by this
+ *  object's class and 0 (false) otherwise.
+ *)
+
+
+PROCEDURE( Self : PSOMObject ) somPrintSelf( ) : PSOMObject;
+(*
+ *  Uses <SOMOutCharRoutine> to write a brief string with identifying
+ *  information about this object.  The default implementation just gives
+ *  the object's class name and its address in memory.
+ *  <self> is returned.
+ *)
+
+
+PROCEDURE( Self : PSOMObject ) somDumpSelf
+(
+  level : INT
+);
+(*
+ *  Uses <SOMOutCharRoutine> to write a detailed description of this object
+ *  and its current state.
+ *
+ *  <level> indicates the nesting level for describing compound objects
+ *  it must be greater than or equal to zero.  All lines in the
+ *  description will be preceeded by <2*level> spaces.
+ *
+ *  This routine only actually writes the data that concerns the object
+ *  as a whole, such as class, and uses <somDumpSelfInt> to describe
+ *  the object's current state.  This approach allows readable
+ *  descriptions of compound objects to be constructed.
+ *
+ *  Generally it is not necessary to override this method, if it is
+ *  overriden it generally must be completely replaced.
+ *)
+
+
+PROCEDURE( Self : PSOMObject ) somDumpSelfInt
+(
+  level : INT
+);
+(*
+ *  Uses <SOMOutCharRoutine> to write out the current state of this object.
+ *  Generally this method will need to be overridden.  When overriding
+ *  it, begin by calling the parent class form of this method and then
+ *  write out a description of your class's instance data. This will
+ *  result in a description of all the object's instance data going
+ *  from its root ancestor class to its specific class.
+ *)
+
+
+(*
+ *  The following somDispatchX methods make it easier for very dynamic
+ *  domains to bind to the SOM object protocol boundry.
+ *
+ *  These methods determine the appropriate method procedure and then
+ *  call it with the arguments specified.  The default implementation
+ *  of these methods provided in this class simply lookup the method by
+ *  name and call it.  However, other classes may choose to implement
+ *  any form of lookup they wish.  For example, one could provide an
+ *  implementation of these methods that used the CLOS form of method
+ *  resolution. For domains that can do so it will generally be much
+ *  faster to invoke their methods directly rather than going through a
+ *  dispatch method.  However, all methods are reachable through the
+ *  dispatch methods.  SOM provides a small set of external procedures
+ *  that wrap these method calls so that the caller need never do method
+ *  resolution.
+ *
+ *  These methods are declared to take a variable length argument list,
+ *  but like all such methods the SOM object protocol boundry requires
+ *  that the variable part of the argument list be assembled into the
+ *  standard, platform-specific, data structure for variable argument
+ *  lists before the method is actually invoked.  This can be very
+ *  useful in domains that need to construct the argument list at
+ *  runtime. As they can invoke methods without being able to put the
+ *  constructed arguments in the normal form for a call.  This is
+ *  helpful because such an operation is usually impossible in most
+ *  high level languages and platform-specific assembler language
+ *  routines would have to be used.
+ *
+ *  Note: It was decided to have different methods for different return
+ *  value shapes. This avoids the memory mangement problems that would
+ *  arise in some domains if an additional parameter was required to
+ *  carry the return value.
+ *
+ *  Note: SOM does not support return values except for the four
+ *  families shown below. Within a family (such as integer) SOM only
+ *  supports the largest member.
+ *)
+
+PROCEDURE( Self : PSOMObject ) somDispatchV
+(
+  methodId      : somId;
+  descriptor    : somId;
+  ap            : ARRAY OF BYTE
+);
+(*
+ *  Does not return a value.
+ *)
+
+
+PROCEDURE( Self : PSOMObject ) somDispatchL
+(
+  methodId      : somId;
+  descriptor    : somId;
+  ap            : ARRAY OF BYTE
+)               : INTEGER4;
+(*
+ *  Returns a 4 byte quanity in the normal manner that integer data is
+ *  returned. This 4 byte quanity can, of course, be something other
+ *  than an integer.
+ *)
+
+
+PROCEDURE( Self : PSOMObject ) somDispatchA
+(
+  methodId      : somId;
+  descriptor    : somId;
+  ap            : ARRAY OF BYTE
+)               : ADDRESS;
+(*
+ *  Returns a data structure address in the normal manner that such data is
+ *  returned.
+ *)
+
+
+PROCEDURE( Self : PSOMObject ) somDispatchD
+(
+  methodId      : somId;
+  descriptor    : somId;
+  ap            : ARRAY OF BYTE
+)               : FLOAT8;
+(*
+ *  Returns a 8 byte quanity in the normal manner that floating point
+ *  data is returned.
+ *)
+
+
+
+PROCEDURE( Self : PSOMObject ) somDispatch
+(
+  VAR retValue  : somToken;
+  methodId      : somId;
+  ap            : ARRAY OF BYTE
+)               : BOOLEAN;
+(*
+ *  The procedure that supports this method accepts as input a pointer to
+ *  memory area to be loaded with the result of dispatching a method, a
+ *  methodId indicating the id of the method to be dispatched, and a
+ *  va_list containing method arguments. If an appropriate apply stub
+ *  is available for the indicated method, the procedure that
+ *  implements somDispatch for SOMClass instances invokes this apply stub
+ *  for the method, and then returns TRUE; otherwise, FALSE is returned.
+ *  For static methods, method resolution necessary to select the method
+ *  procedure to be used by the apply stub is performed using the method
+ *  table of the target object, Self.
+ *)
+
+
+PROCEDURE( Self : PSOMObject ) somClassDispatch
+(
+  clsObj        : PSOMClass;
+  VAR retValue  : somToken;
+  methodId      : somId;
+  ap            : ARRAY OF BYTE
+)               : BOOLEAN;
+(*
+ *  The procedure that supports this method accepts as input a class
+ *  object, a pointer to
+ *  memory area to be loaded with the result of dispatching a method, a
+ *  methodId indicating the id of the method to be dispatched, and a
+ *  va_list containing method arguments. If an appropriate apply stub
+ *  is available for the indicated method, the procedure that
+ *  implements somDispatch for SOMClass instances invokes this apply stub
+ *  for the method, and then returns TRUE; otherwise, FALSE is returned.
+ *  For static methods, method resolution necessary to select the method
+ *  procedure to be used by the apply stub is performed using the instance
+ *  method table of clsObj.
+ *)
+
+
+
+(*************************************************************************
+  'SOMClass' Class API for Modula-2
+**************************************************************************)
+
+(*
+ *  SOMClass is the root class for all SOM metaclasses. it defines the
+ *  essential behavior common to all SOM classes. In particular, it has
+ *  two generic methods for manufacturing object instances (somNew and
+ *  somRenew), and a suite of methods for constructing classes.
+ *  It also has methods that can be used to dynamically obtain (or augment)
+ *  information about a class and its methods at run time.
+ *
+ *  The instances of this class are class objects.
+ *  When the SOM environment is created one
+ *  instance of this class with the external name
+ *  <SOMClassClassData.classObject> is created. This class object is
+ *  unique in that it is its own class object.
+ *  SOMClass can be subclassed just like any SOM class. The subclasses
+ *  of SOMClass are new metaclasses and can generate class objects with
+ *  different implementations than those produced by SOMClass object.
+ *)
+
+CONST
+  SOMClass_MajorVersion  = 1;
+  SOMClass_MinorVersion  = 1;
+
+(* A procedure to create the SOMClass Class *)
+PROCEDURE SOMClassNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+(* The static interface to SOMClass and its instances *)
+TYPE
+  SOMClassClassDataStructure    = RECORD
+    classObject                   : PSOMClass;
+    somNew                        : somMToken;
+    somRenew                      : somMToken;
+    somInitClass                  : somMToken;
+    somClassReady                 : somMToken;
+    somGetName                    : somMToken;
+    somGetParent                  : somMToken;
+    somDescendedFrom              : somMToken;
+    somCheckVersion               : somMToken;
+    somFindMethod                 : somMToken;
+    somFindMethodOk               : somMToken;
+    somSupportsMethod             : somMToken;
+    somGetNumMethods              : somMToken;
+    somGetInstanceSize            : somMToken;
+    somGetInstanceOffset          : somMToken;
+    somGetInstancePartSize        : somMToken;
+    somGetMethodIndex             : somMToken;
+    somGetNumStaticMethods        : somMToken;
+    somGetPClsMtab                : somMToken;
+    somGetClassMtab               : somMToken;
+    somAddStaticMethod            : somMToken;
+    somOverrideSMethod            : somMToken;
+    somAddDynamicMethod           : somMToken;
+    somGetMethodOffset            : somMToken;
+    somGetApplyStub               : somMToken;
+    somFindSMethod                : somMToken;
+    somFindSMethodOk              : somMToken;
+    somGetMethodDescriptor        : somMToken;
+    somGetNthMethodInfo           : somMToken;
+    somSetClassData               : somMToken;
+    somGetClassData               : somMToken;
+    somNewNoInit                  : somMToken;
+    somRenewNoInit                : somMToken;
+    somGetInstanceToken           : somMToken;
+    somGetMemberToken             : somMToken;
+    somSetMethodDescriptor        : somMToken;
+    somGetMethodData              : somMToken;
+    somOverrideMtab               : somMToken;
+    somGetMethodToken             : somMToken;
+    somGetParents                 : somMToken;
+    somGetPClsMtabs               : somMToken;
+    somInitMIClass                : somMToken;
+    somGetVersionNumbers          : somMToken;
+    somLookupMethod               : somMToken;
+    _get_somInstanceDataOffsets   : somMToken;
+    somRenewNoZero                : somMToken;
+    somRenewNoInitNoZero          : somMToken;
+    somAllocate                   : somMToken;
+    somDeallocate                 : somMToken;
+    somGetRdStub                  : somMToken;
+    somGetNthMethodData           : somMToken;
+                                  END;
+VAR
+  SOMClassClassData             : SOMClassClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  SOMClass = RECORD( SOMObject ) END;
+  (*$SOM- *)
+
+
+PROCEDURE( Self : PSOMClass ) somAddStaticMethod
+(
+  methodId         : somId;
+  methodDescriptor : somId;
+  method           : somMethodProc;
+  redispatchStub   : somMethodProc;
+  applyStub        : somMethodProc
+)                  : somMToken;
+(*
+ *  Adds/overrides the indicated method, returns the value that
+ *  should be used to set the method slot in the class data structure
+ *  for this method name.
+ *
+ *  <methodDescriptor> is a somId for a string describing the calling
+ *  sequence to this method as described in <somcGetNthMethodInfo>
+ *  defined in the SOMObject class definition.
+ *
+ *  <method> is the actual method procedure for this method
+ *
+ *  <redispatchStub> is a procedure with the same calling sequence as
+ *  <method> that re-dispatches the method to one of this class's
+ *  dispatch functions.
+ *
+ *  <applyStub> is a procedure that takes a standard variable argument
+ *  list data structure applies it to its target object by calling
+ *  <method> with arguments derived from the data structure.  Its
+ *  calling sequence is the same as the calling sequence of the
+ *  dispatch methods defined in SOMObject.  This stub is used in the
+ *  support of the dispatch methods used in some classes.  In classes
+ *  where the dispatch functions do not need such a function this
+ *  parameter may be null.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somClassReady( );
+(*
+ *  This method is invoked when all of the static initialization for
+ *  the class has been finished.  The default implementation simply
+ *  registers the newly constructed class with the SOMClassMgr.
+ *  Metaclasses may override this method to augment the class construction
+ *  sequence in any way that they wish.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somInitClass
+(
+  className         : ARRAY OF CHAR;
+  parentClass       : PSOMObject;
+  instanceSize      : INTEGER4;
+  maxStaticMethods  : INT;
+  majorVersion      : INTEGER4;
+  minorVersion      : INTEGER4
+);
+(*
+ *  Initializes <self>.
+ *  <parentClass> is the parent (or parent class) of this class, it may
+ *  be NULL in which case it defaults to SOMObject (actually
+ *  SOMObjectClassData.classObject the class object for SOMObject).
+ *  If a parent class is specifed then it must have already been created
+ *  as a pointer to its class object is required.
+ *
+ *  <instanceSize> should be just the space needed for this class, it
+ *  is not necessary to consider the parent class's (if any) space
+ *  requirements.
+ *
+ *  <maxStaticMethods> should be just the static methods defined by
+ *  this class, it is not necessary to consider the parent class's
+ *  methods (if any), even if they are overriden in this class.
+ *
+ *  <majorVersion> indicates the major version number for this
+ *  implementation of the class definition, and <minorVersion>
+ *  indicates the minor version number.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somOverrideSMethod
+(
+  methodId : somId;
+  method   : somMethodProc
+);
+(*
+ *  This method can be used instead of <somAddStaticMethod> or
+ *  <somAddDynamicMethod> when it is known that the class' parent
+ *  class already supports this method.  This call does not require the
+ *  method descriptor and stub methods that the others do.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somNew( ) : ADDRESS;
+(*
+ *  Make an instance of this class.  When applied to SOMClass, or any
+ *  other metaclass object, this will produce a new class object;
+ *  when applied to a regular class object, this will produce an
+ *  instance of that class.  The somInit method of the newly created
+ *  object is then invoked automatically.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somNewNoInit( ) : ADDRESS;
+(*
+ *  Equivalent to somNew except that somInit is not automatically invoked.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somRenew
+(
+  VAR obj : ARRAY OF BYTE
+)         : ADDRESS;
+(*
+ *  Make an instance of this class, but use the space pointed to by
+ *  <obj> rather than allocating new space for the object.  Note: no
+ *  test is made to insure that <obj> points to enough space.  <obj>
+ *  is returned, but it is now a pointer to a valid, initialized,
+ *  object (the somInit method of the "renewed" object is invoked
+ *  automatically).
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somRenewNoInit
+(
+  VAR obj : ARRAY OF BYTE
+)         : ADDRESS;
+(*
+ *  Equivalent to somRenew except that somInit is not automatically invoked.
+ *)
+
+
+PROCEDURE( Self : PSOMClass )  somGetApplyStub
+(
+  methodId : somId
+)          : somMethodProc;
+(*
+ *  Returns the apply stub associated with the specified method. NULL
+ *  is returned if the method is not supported by this class.  An apply
+ *  stub is a procedure that is called with a fixed calling sequence,
+ *  namely (SOMObject *self, somId methodId, somId descriptor, ap_list
+ *  ap) where <ap> is a varargs data structure that contains the actual
+ *  argument list to be passed to the method.  The apply stub fowards
+ *  the call to its associated method and then returns any result
+ *  produced by the method.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somGetClassData( ) : PsomClassDataStructure;
+(*
+ *  Returns a pointer to the static <className>ClassData structure.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somGetClassMtab
+( ) : PsomMethodTab;
+(*
+ *  Returns a pointer to the method table of this class.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somGetInstanceToken( ) : somDToken;
+(*
+ *  Returns a token that identifies the introduced portion of this class
+ *  within itself or any derived class.  This token can be subsequently
+ *  passed to the run-time somDataResolve function to locate the instance
+ *  data introduced by this class.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somGetMemberToken
+(
+  memberOffset  : INTEGER4;
+  instanceToken : somDToken
+)               : somDToken;
+(*
+ *  Returns a token that represents the data member at offset
+ *  "memberOffset" within the introduced portion of the class identified
+ *  by instanceToken.  The instance token must have been obtained from a
+ *  previous invocation of somGetInstanceToken.  The returned member
+ *  token can be subsequently passed to the run-time somDataResolve
+ *  function to locate the data member.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somGetInstanceOffset( ) : INTEGER4;
+(*
+ *  Returns the offset in the body part of this [class] object for the
+ *  instance data introduced by this class, as the distance in bytes along
+ *  the class' "left-hand" derivation path.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somGetInstancePartSize( ) : INTEGER4;
+(*
+ *  Returns the size in bytes of the instance data introduced by this
+ *  class.  This does not include the instance data space required for
+ *  this class' ancestor or descendent classes.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somGetInstanceSize( ) : INTEGER4;
+(*
+ *  Returns the total size of an instance of <self>.
+ *  All instances of <self> have the same size.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somGetMethodDescriptor
+(
+  methodId : somId
+)          : somId;
+(*
+ *  Returns the method descriptor for the indicated method.  If
+ *  this object does not support the indicated method then NULL is
+ *  returned.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somGetName( ) : zString;
+(*
+ *  Returns this object's class name as a NULL terminated string.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somGetNumMethods( ) : INT;
+(*
+ *  Returns the number of methods currently supported by this class,
+ *  including inherited methods (both static and dynamic).
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somGetNumStaticMethods( ) : INT;
+(*
+ *  Returns the number of static methods that this class has.  This is
+ *  used by a child class in initializing its method table.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somGetParent( ) : PSOMClass;
+(*
+ *  Returns the parent class of self (along its "left-hand" derivation
+ *  path), if one exists and NULL otherwise.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somGetPClsMtab( ) : PsomMethodTabList;
+(*
+ *  Returns a pointer to the method table list of this class's parent class
+ *  (along its "left-hand" derivation path).  If this class is a root
+ *  class (SOMObject), NULL is returned.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somSetClassData
+(
+  cds : PsomClassDataStructure
+);
+(*
+ *  Sets the class' pointer to the static <className>ClassData structure.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somCheckVersion
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : INT;
+(*
+ *  Returns 1 (true) if the implementation of this class is
+ *  compatible with the specified major and minor version number and
+ *  false (0) otherwise.  An implementation is compatible with the
+ *  specified version numbers if it has the same major version number
+ *  and a minor version number that is equal to or greater than
+ *  <minorVersion>.  The major, minor version number pair (0,0) is
+ *  considered to match any version.  This method is usually called
+ *  immediately after creating the class object to verify that a
+ *  dynamically loaded class definition is compatible with a using
+ *  application.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somDescendedFrom
+(
+  aClassObj     : PSOMClass
+)               : BOOLEAN;
+(*
+ *  Returns 1 (true) if <self> is a descendent class of <aClassObj> and
+ *  0 (false) otherwise.  Note: a class object is considered to be
+ *  descended itself for the purposes of this method.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somSupportsMethod
+(
+  mId : somId
+)     : BOOLEAN;
+(*
+ *  Returns 1 (true) if the indicated method is supported by this
+ *  class and 0 (false) otherwise.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somFindMethod
+(
+  methodId : somId;
+  VAR m    : somMethodProc
+)          : BOOLEAN;
+(*
+ *  Finds the method procedure associated with <methodId> for this
+ *  class and sets <m> to it.  1 (true) is returned when the
+ *  method procedure is directly callable and 0 (false) is returned
+ *  when the method procedure is a dispatch function.
+ *
+ *  If the class does not support the specified method then
+ *  <m> is set to NULL and the return value is meaningless.
+ *
+ *  Returning a dispatch function does not guarantee that a
+ *  class supports the specified method; the dispatch may fail.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somFindMethodOk
+(
+  methodId : somId;
+  VAR m    : somMethodProc
+)          : BOOLEAN;
+(*
+ *  Just like <somFindMethod> except that if the method is not
+ *  supported then an error is raised and execution is halted.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somFindSMethod
+(
+  methodId : somId
+)          : somMethodProc;
+(*
+ *  Finds the indicated method, which must be a static method defined
+ *  for this class, and returns a pointer to its method procedure.
+ *
+ *  If the method is not defined (as a static method or at all) for
+ *  this class then a NULL pointer is returned.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somFindSMethodOk
+(
+  methodId : somId
+)          : somMethodProc;
+(*
+ *  Just like <somFindSMethod> except that an error is raised if the
+ *  method is not defined for this class.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somOverrideMtab( );
+(*
+ *  Overrides the method table pointers to point to the redispatch stubs.
+ *  All the methods except somDispatch methods are overriden.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somGetMethodToken
+(
+  methodId      : somId
+)               : somMToken;
+(*
+ *  Returns the specified method's access token. This token can then
+ *  be passed to method resolution routines, which use the token
+ *  to select a method pointer from a method table.
+ *)
+
+
+
+PROCEDURE( Self : PSOMClass ) somGetPClsMtabs( ) : PsomMethodTabList;
+(*
+ *  A list of the method tables of this class's parent classes.
+ *  If this class is a root class (SOMObject), NULL is returned.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somInitMIClass
+(
+  inherit_vars      : LONGINT;
+  className         : ARRAY OF CHAR;
+  VAR parentClasses : SOMClass_SOMClassSequence;
+  dataSize          : LONGINT;
+  dataAlignment     : LONGINT;
+  maxStaticMethods  : LONGINT;
+  majorVersion      : LONGINT;
+  minorVersion      : LONGINT
+);
+(*
+ *  These methods implement the second phase of dynamic class creation:
+ *  inheritance of interface and possibly implementation (instance
+ *  variables) by suitable initialization of <self> (a class object).
+ *  This primarily involves
+ *  allocation of a method table for instances, and copying parent method
+ *  table entries into the new table. In addition, the locations of
+ *  instance variable groups are recorded (for those classes from which
+ *  instance variables are inherited).
+ *
+ *  Implementation is always inherited when using somInitClass; this is the
+ *  old single inheritance initialization method kept for binary
+ *  compatability.
+ *
+ *  For somInitMIClass, the inherit_vars argument controls whether abstract
+ *  or implementation inheritance is used. Inherit_vars is a 32 bit
+ *  bit-vector. Implementation is inherited from parent i if the bit
+ *  (1 SHL i) is on, or (i >= 32).
+ *
+ *  On a class-by-class basis, for each class ancestor, implementation
+ *  inheritance always takes precidence over abstract inheritance. This is
+ *  necessary to guarantee that procedures supporting parent method calls
+ *  (available on non-abstract parents) are always supported by parent
+ *  instance variables.
+ *
+ *  --  for somInitClass.
+ *  <parentClass> is a pointer to the parent class of <self>
+ *  or
+ *  -- for somInitMIClass.
+ *  <parentClasses> is a SOMClassSequence containing pointers to the
+ *  parent classes. somInitMIClass makes a copy of this, so it may
+ *  be freed upon return to the caller if this is desired.
+ *
+ *  <dataSize> is the space needed for the instance variables
+ *  introduced by this class.
+ *
+ *  <dataAlignment> specifies the desired byte alignment for instance
+ *  data introduced by this class. A value of 0 selects a system-wide default;
+ *  any other argument is taken as the desired byte alignment multiple. Thus,
+ *  for example, even if a byte multiple of 8 is needed for double precision
+ *  values on a given system (so 8 is the default), a class whose instance data
+ *  doesn't require this can indicate otherwise. If A is the next memory address
+ *  available for holding instance data, the address that will be used is
+ *  A + (A mod byte-alignment).
+ *
+ *  <maxStaticMethods> is the maximum number of static methods that will be
+ *  added to the initialized class using addStaticMethod.
+ *
+ *  <majorVersion> indicates the major version number for this
+ *  implementation of the class definition, and <minorVersion>
+ *  indicates the minor version number.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somGetVersionNumbers
+(
+  VAR majorVersion : LONGINT;
+  VAR minorVersion : LONGINT
+);
+(*
+ *  Returns for the class its major and minor version numbers in the
+ *  corresponding output parameters.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somLookupMethod
+(
+  methodId      : somId
+)               : somMethodPtr;
+(*
+ *  Like <somFindSMethodOK> except that dynamic methods are allowed.
+ *)
+
+
+
+PROCEDURE( Self : PSOMClass ) somRenewNoZero
+(
+  VAR obj       : ARRAY OF BYTE
+)               : ADDRESS;
+(*
+ *  Equivalent to somRenew except that object memory is not set to zeros.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somRenewNoInitNoZero
+(
+  VAR obj       : ARRAY OF BYTE
+)               : ADDRESS;
+(*
+ *  Equivalent to somRenewNoInit except that object memory is not set to zeros.
+ *  [Initialization / Termination Group]
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somAllocate
+(
+  size          : LONGINT
+)               : PSTRING;
+(*
+ *  Allocates memory, and returns a pointer to it. The default implementation
+ *  for somAllocate (used by SOMClass) is to access default memory allocation
+ *  through the external procedure variable, SOMMalloc.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somDeallocate
+(
+  memptr        : PSTRING
+);
+(*
+ *  Deallocates memory originally allocated using somAllocate. The default
+ *  implementation for somDeallocate (used by SOMClass) is to access default
+ *  memory deallocation from the external procedure variable, SOMFree.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somGetRdStub
+(
+  methodId      : somId
+)               : somMethodProc;
+(*
+ *  Returns a redispatch stub for the indicated method, if possible.
+ *  If not possible (because a valid redispatch stub has not been
+ *  registered, and there is insufficient information to dynamically
+ *  construct one), then a NULL is returned.
+ *)
+
+
+PROCEDURE( Self : PSOMClass ) somGetNthMethodData
+(
+  n             : LONGINT;
+  VAR md        : somMethodData
+)               : BOOLEAN;
+(*
+ *  loads *md with the method data associated with the the nth method,
+ *  or NULL if there is no such method. Returns true is successful;
+ *  false otherwise.
+ *)
+
+
+
+(*************************************************************************
+  'SOMClassMgr' Class API for Modula-2
+**************************************************************************)
+
+(*
+ * One instance of SOMClassMgr is created during SOM initialization.
+ * It acts as a run-time registry for all SOM class objects that have been
+ * created or dynamically loaded by the current process. Each SOM class
+ * automatically registers itself with the SOMClassMgr instance
+ * ( pointed to by the global variable, SOMClassMgrObject) during the
+ * final stage of its initialization.
+ *)
+
+CONST
+  SOMClassMgr_MajorVersion  = 1;
+  SOMClassMgr_MinorVersion  = 1;
+
+
+(* A procedure to create the SOMClassMgr Class *)
+PROCEDURE SOMClassMgrNewClass
+( majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+
+(* The static interface to SOMClassMgr and its instances *)
+TYPE
+  SOMClassMgrClassDataStructure   = RECORD
+    classObject                     : PSOMClass;
+    somFindClsInFile                : somMToken;
+    somFindClass                    : somMToken;
+    somClassFromId                  : somMToken;
+    somRegisterClass                : somMToken;
+    somUnregisterClass              : somMToken;
+    somLocateClassFile              : somMToken;
+    somLoadClassFile                : somMToken;
+    somUnloadClassFile              : somMToken;
+    somGetInitFunction              : somMToken;
+    somMergeInto                    : somMToken;
+    somGetRelatedClasses            : somMToken;
+    somSubstituteClass              : somMToken;
+    _get_somInterfaceRepository     : somMToken;
+    _set_somInterfaceRepository     : somMToken;
+    _get_somRegisteredClasses       : somMToken;
+                                    END;
+VAR
+  SOMClassMgrClassData            : SOMClassMgrClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  SOMClassMgr = RECORD( SOMObject ) END;
+  (*$SOM- *)
+
+TYPE
+  PPSOMClass = POINTER TO PSOMClass;
+
+PROCEDURE( Self : PSOMClassMgr ) somLoadClassFile
+(
+  classId      : somId;
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4;
+  file         : ARRAY OF CHAR
+)              : PSOMClass;
+(*
+ *  Loads the class' code and initializes the class object.
+ *)
+
+
+PROCEDURE( Self : PSOMClassMgr ) somLocateClassFile
+(
+  classId      : somId;
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : zString;
+(*
+ *  Real implementation supplied by subclasses.  Default implementation
+ *  returns the class name as the file name.   Subclasses may use
+ *  version number info to assist in deriving the file name.
+ *)
+
+
+PROCEDURE( Self : PSOMClassMgr ) somRegisterClass
+(
+  classObj      : PSOMClass
+);
+(*
+ *  Lets the class manager know that the specified class is installed
+ *  and tells it where the class object is.
+ *)
+
+
+PROCEDURE( Self : PSOMClassMgr ) somUnloadClassFile
+(
+  classObj     : PSOMClass
+)              : INT;
+(*
+ *  Releases the class' code and unregisters all classes in the
+ *  same affinity group (see somGetRelatedClasses below).
+ *)
+
+
+PROCEDURE( Self : PSOMClassMgr ) somUnregisterClass
+(
+  classObj     : PSOMClass
+)              : INT;
+(*
+ *  Free the class object and removes the class from the SOM registry.
+ *  If the class caused dynamic loading to occur, it is also unloaded
+ *  (causing its entire affinity group to be unregistered as well).
+ *)
+
+
+PROCEDURE( Self : PSOMClassMgr ) somGetInitFunction( ) : zString;
+(*
+ *  Supplies the name of the initialization function in the class' code
+ *  file.  Default implementation returns SOM.SOMClassInitFuncName().
+ *)
+
+
+PROCEDURE( Self : PSOMClassMgr ) somGetRelatedClasses
+(
+  classObj     : PSOMClass
+)              : PPSOMClass;
+(*
+ *  Returns an array of class objects that were all registered during
+ *  the dynamic loading of a class. These classes are considered to
+ *  define an affinity group.  Any class is a member of at most one
+ *  affinity group. The affinity group returned by this call is the
+ *  one containing the class identified by classObj.  The first element
+ *  in the array is the class that caused the group to be loaded, or the
+ *  special value -1 which means that the SOMClassMgr is currently in the
+ *  process of unregistering and deleting the affinity group (only
+ *  SOMClassMgr subclasses would ever see this value).
+ *  The remainder of the array (elements one thru n) consists of
+ *  pointers to class objects ordered in reverse chronological sequence
+ *  to that in which they were originally registered.  This list includes
+ *  the given argument, classObj, as one of its elements, as well as the
+ *  class, if any, returned as element[0] above.  The array is terminated
+ *  by a NULL pointer as the last element.  Use SOMFree to release the
+ *  array when it is no longer needed.  If the supplied class was not
+ *  dynamically loaded, it is not a member of any affinity
+ *  group and NULL is returned.
+ *)
+
+
+PROCEDURE( Self : PSOMClassMgr ) somClassFromId
+(
+  classId : somId
+)         : PSOMClass;
+(*
+ *  Finds the class object, given its Id, if it already exists.
+ *  Does not load the class.  Returns NULL if the class object does
+ *  not yet exist.
+ *)
+
+
+PROCEDURE( Self : PSOMClassMgr ) somFindClass
+(
+  classId      : somId;
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+(*
+ *  Returns the class object for the specified class.  This may result
+ *  in dynamic loading.  Uses somLocateClassFile to obtain the name of
+ *  the file where the class' code resides, then uses somFindClsInFile.
+ *)
+
+
+PROCEDURE( Self : PSOMClassMgr ) somFindClsInFile
+(
+  classId      : somId;
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4;
+  file         : ARRAY OF CHAR
+)              : PSOMClass;
+(*
+ *  Returns the class object for the specified class.  This may result
+ *  in dynamic loading.  If the class already exists <file> is ignored,
+ *  otherwise it is used to locate and dynamically load the class.
+ *  Values of 0 for major and minor version numbers bypass version checking.
+ *)
+
+
+PROCEDURE( Self : PSOMClassMgr ) somMergeInto
+(
+  targetObj : PSOMClassMgr
+);
+(*
+ *  Merges the SOMClassMgr registry information from the receiver to
+ *  <targetObj>.  <targetObj> is required to be an instance of SOMClassMgr
+ *  or one of its subclasses.  At the completion of this operation,
+ *  the <targetObj> should be able to function as a replacement for the
+ *  receiver.  At the end of the operation the receiver object (which is
+ *  then in a newly uninitialized state) is freed.  Subclasses that
+ *  override this method should similarly transfer their sections of
+ *  the object and pass this method to their parent as the final step.
+ *  If the receiving object is the distinguished instance pointed to
+ *  from the global variable SOMClassMgrObject, SOMCLassMgrObject is
+ *  then reassigned to point to <targetObj>.
+ *)
+
+
+PROCEDURE( Self : PSOMClassMgr ) somSubstituteClass
+(
+  origClassName : ARRAY OF CHAR;
+  newClassName  : ARRAY OF CHAR
+)               : LONGINT;
+(*
+ *  This method causes the somFindClass, somFindClsInFile, and
+ *  somClassFromId methods to return the class named newClassName
+ *  whenever they would have normally returned the class named
+ *  origClassName.  This effectively results in class <newClassName>
+ *  replacing or substituting itself for class <origClassName>.
+ *  Some restrictions are enforced to insure that this works well.
+ *  Both class <origClassName> and class <newClassName> must
+ *  have been already registered before issuing this method, and newClass
+ *  must be an immediate child of origClass.  In addition (although not
+ *  enforceable), no instances should exist of either class at the time
+ *  this method is invoked.  A return value of zero indicates success;
+ *  a non-zero value indicates an error was detected.
+ *)
+
+
+(*************************************************************************
+   Types, records, constants and procedures in support
+   of CORBA extensions to the SOM run-time
+**************************************************************************)
+
+
+TYPE (* in SOM, a CORBA object is a SOM object *)
+  CORBAObject            = SOMObject;
+
+TYPE
+  Object                 = CORBAObject;
+
+TYPE (* CORBA 5.7, p.89 *)
+  boolean                = BOOLEAN;
+  octet                  = SHORTCARD;
+  string                 = PSTRING;
+
+TYPE (* CORBA 7.5.1, p. 129 *)
+  Identifier             = string;
+
+TYPE (* CORBA 4.13, p. 80 *)
+  exception_type         = LONGCARD;
+  completion_status      = LONGCARD;
+  StExcep                = RECORD
+    minor                  : LONGCARD;
+    completed              : completion_status;
+                           END;
+  Environment            = RECORD
+    _major                 : exception_type;
+    exception              : RECORD
+      _exception_name        : POINTER TO CHAR;
+      _params                : ADDRESS;
+                             END;
+    _somdAnchor            : ADDRESS;
+                           END;
+  PEnvironment           = POINTER TO Environment;
+
+CONST (* for exception_type *)
+  NO_EXCEPTION           = 0;
+  USER_EXCEPTION         = 1;
+  SYSTEM_EXCEPTION       = 2;
+
+CONST (* for completion_status *)
+  YES                    = 0;
+  NO                     = 1;
+  MAYBE                  = 2;
+
+TYPE (* CORBA 7.6.1, p.139 plus 5.7, p.89 enum Data Type Mapping *)
+  TCKind                 = LONGCARD;
+CONST
+  TypeCode_tk_null       =   1;
+  TypeCode_tk_void       =   2;
+  TypeCode_tk_short      =   3;
+  TypeCode_tk_long       =   4;
+  TypeCode_tk_ushort     =   5;
+  TypeCode_tk_ulong      =   6;
+  TypeCode_tk_float      =   7;
+  TypeCode_tk_double     =   8;
+  TypeCode_tk_boolean    =   9;
+  TypeCode_tk_char       =  10;
+  TypeCode_tk_octet      =  11;
+  TypeCode_tk_any        =  12;
+  TypeCode_tk_TypeCode   =  13;
+  TypeCode_tk_Principal  =  14;
+  TypeCode_tk_objref     =  15;
+  TypeCode_tk_struct     =  16;
+  TypeCode_tk_union      =  17;
+  TypeCode_tk_enum       =  18;
+  TypeCode_tk_string     =  19;
+  TypeCode_tk_sequence   =  20;
+  TypeCode_tk_array      =  21;
+  TypeCode_tk_pointer    = 101; (* SOM extension *)
+  TypeCode_tk_self       = 102; (* SOM extension *)
+  TypeCode_tk_foreign    = 103; (* SOM extension *)
+
+CONST (* Short forms of tk_<x> enumerators *)
+  tk_null                = TypeCode_tk_null;
+  tk_void                = TypeCode_tk_void;
+  tk_short               = TypeCode_tk_short;
+  tk_long                = TypeCode_tk_long;
+  tk_ushort              = TypeCode_tk_ushort;
+  tk_ulong               = TypeCode_tk_ulong;
+  tk_float               = TypeCode_tk_float;
+  tk_double              = TypeCode_tk_double;
+  tk_boolean             = TypeCode_tk_boolean;
+  tk_char                = TypeCode_tk_char;
+  tk_octet               = TypeCode_tk_octet;
+  tk_any                 = TypeCode_tk_any;
+  tk_TypeCode            = TypeCode_tk_TypeCode;
+  tk_Principal           = TypeCode_tk_Principal;
+  tk_objref              = TypeCode_tk_objref;
+  tk_struct              = TypeCode_tk_struct;
+  tk_union               = TypeCode_tk_union;
+  tk_enum                = TypeCode_tk_enum;
+  tk_string              = TypeCode_tk_string;
+  tk_sequence            = TypeCode_tk_sequence;
+  tk_array               = TypeCode_tk_array;
+  tk_pointer             = TypeCode_tk_pointer;
+  tk_self                = TypeCode_tk_self;
+  tk_foreign             = TypeCode_tk_foreign;
+
+TYPE
+  TypeCode               = ADDRESS;
+
+TYPE (* CORBA 5.7, p.89 *)
+  any                    = RECORD
+    _type                  : TypeCode;
+    _value                 : ADDRESS;
+                           END;
+
+PROCEDURE somExceptionId
+( VAR ev                 : Environment
+)                        : PSTRING;
+
+PROCEDURE somExceptionValue
+( VAR ev                 : Environment
+)                        : ADDRESS;
+
+PROCEDURE somExceptionFree
+( VAR ev                 : Environment
+);
+
+PROCEDURE somSetException
+( VAR ev                 : Environment;
+  major                  : exception_type;
+  exception_name         : ARRAY OF CHAR;
+  VAR params             : ARRAY OF BYTE
+);
+
+PROCEDURE somGetGlobalEnvironment
+( )                      : PEnvironment;
+
+
+(* aliased function name per CORBA 5.19, p.99 *)
+PROCEDURE exception_id
+( VAR ev                 : Environment
+)                        : PSTRING;
+
+(* aliased function name per CORBA 5.19, p.99 *)
+PROCEDURE exception_value
+( VAR ev                 : Environment
+)                        : ADDRESS;
+
+(* aliased function name per CORBA 5.19, p.99 *)
+PROCEDURE exception_free
+( VAR ev                 : Environment
+);
+
+
+END SOM.

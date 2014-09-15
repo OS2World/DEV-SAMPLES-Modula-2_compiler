@@ -1,0 +1,72 @@
+DEFINITION MODULE WINCURSORS;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager Text cursors.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF  IMPORT TYPEPREFIX, HWND, RECTL;
+
+PROCEDURE WinDestroyCursor
+( WinHandle                 : HWND
+)                           : BOOLEAN;
+
+PROCEDURE WinShowCursor
+( WinHandle                 : HWND;
+  Show                      : BOOLEAN
+)                           : BOOLEAN;
+
+PROCEDURE WinCreateCursor
+( WinHandle                 : HWND;
+  x                         : LONGINT;
+  y                         : LONGINT;
+  xSize                     : LONGINT;
+  ySize                     : LONGINT;
+  Flags                     : LONGCARD;
+  VAR ClipRect              : RECTL
+)                           : BOOLEAN;
+
+CONST (* WinCreateCursor() flags *)
+  CURSOR_SOLID              = 0000H;
+  CURSOR_HALFTONE           = 0001H;
+  CURSOR_FRAME              = 0002H;
+  CURSOR_FLASH              = 0004H;
+  CURSOR_SETPOS             = 8000H;
+
+TYPE
+  CURSORINFO                = RECORD (* csri *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      hwnd                    : HWND;
+    | FALSE                   :
+      WinHandle               : HWND;
+    END;
+    x                         : LONGINT;
+    y                         : LONGINT;
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      cx                      : LONGINT;
+      cy                      : LONGINT;
+      fs                      : LONGCARD;
+      rclClip                 : RECTL;
+    | FALSE                   :
+      xSize                   : LONGINT;
+      ySize                   : LONGINT;
+      Flags                   : LONGCARD;
+      ClipRect                : RECTL;
+    END;                      END;
+  PCURSORINFO               = POINTER TO CURSORINFO;
+
+PROCEDURE WinQueryCursorInfo
+( DesktopWinHandle          : HWND;
+  VAR CursorInfo            : CURSORINFO
+)                           : BOOLEAN;
+
+
+END WINCURSORS.

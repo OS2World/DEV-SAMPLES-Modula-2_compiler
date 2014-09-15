@@ -1,0 +1,113 @@
+DEFINITION MODULE WPCLOCK;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPClock;
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPABS;
+IMPORT OS2DEF;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPClock               = POINTER TO WPClock;
+TYPE PM_WPClock             = POINTER TO M_WPClock;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPClock
+*************************************************************************)
+
+TYPE HWND                   = OS2DEF.HWND;
+
+
+(*************************************************************************
+  SOM class API for WPClock, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPClock_MajorVersion     = 1;
+  WPClock_MinorVersion     = 2;
+
+TYPE 
+  WPClockClassDataStructure   = RECORD
+    classObject                 : PSOMClass;
+    wpAddClockView1Page         : somMToken;
+    wpAddClockView2Page         : somMToken;
+    wpAddClockDateTimePage      : somMToken;
+    wpAddClockAlarmPage         : somMToken;
+                                END;
+
+VAR
+  WPClockClassData : WPClockClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPClock = RECORD( WPABS.WPAbstract ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPClockNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+PROCEDURE( Self : PWPClock ) wpAddClockView1Page
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPClock ) wpAddClockView2Page
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPClock ) wpAddClockDateTimePage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPClock ) wpAddClockAlarmPage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+
+(*************************************************************************
+  SOM class API for M_WPClock, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPClock_MajorVersion   = 1;
+  M_WPClock_MinorVersion   = 2;
+
+TYPE 
+  M_WPClockClassDataStructure   = RECORD
+    classObject                   : PSOMClass;
+                                  END;
+
+VAR
+  M_WPClockClassData : M_WPClockClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPClock = RECORD( WPABS.M_WPAbstract ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPClockNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+END WPCLOCK.

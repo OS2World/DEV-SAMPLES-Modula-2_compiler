@@ -1,0 +1,4 @@
+LIBRARY DOSCALLS
+EXPORTS
+  DosQueryAppType    @323
+

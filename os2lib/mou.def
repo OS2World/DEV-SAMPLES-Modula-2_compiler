@@ -1,0 +1,29 @@
+LIBRARY MOUCALLS
+EXPORTS
+  MouRegister               @24
+  MouDeRegister             @14
+  MouFlushQue               @7
+  MouGetPtrPos              @19
+  MouSetPtrPos              @21
+  MouSetPtrShape            @2
+  MouGetPtrShape            @1
+  MouGetDevStatus           @22
+  MouGetNumButtons          @8
+  MouGetNumMickeys          @3
+  MouReadEventQue           @20
+  MouGetNumQueEl            @13
+  MouGetEventMask           @15
+  MouSetEventMask           @16
+  MouGetScaleFact           @6
+  MouSetScaleFact           @11
+  MouOpen                   @17
+  MouClose                  @9
+  MouRemovePtr              @18
+  MouDrawPtr                @26
+  MouSetDevStatus           @25
+  MouInitReal               @27
+  MouSynch                  @23
+  MouGetThreshold           @29
+  MouSetThreshold           @30
+  MouGetHotKey              @4
+  MouSetHotKey              @10

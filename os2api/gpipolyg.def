@@ -1,0 +1,59 @@
+DEFINITION MODULE GPIPOLYGON;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager
+           GPI Polygons.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM   OS2DEF  IMPORT TYPEPREFIX, PPOINTL, HPS;
+
+TYPE
+  POLYGON                 = RECORD   (* plygn *)
+    CASE                    : TYPEPREFIX OF
+    | TRUE                  :
+      ulPoints              : LONGCARD;
+      aPointl               : PPOINTL;
+    | FALSE                 :
+      PointCount            : LONGCARD;
+      PointArray            : PPOINTL;
+    END;                    END;
+  PPOLYGON                = POINTER TO POLYGON;
+
+TYPE
+  POLYSET                 = RECORD   (* plyst *)
+    CASE                    : TYPEPREFIX OF
+    | TRUE                  :
+      ulPolys               : LONGCARD;
+      aPolygon              : ARRAY [0..0] OF POLYGON;
+    | FALSE                 :
+      PolygonCount          : LONGCARD;
+      PolygonArray          : ARRAY [0..0] OF POLYGON;
+    END;                    END;
+  PPOLYSET                = POINTER TO POLYSET;
+
+CONST (* control flags used by GpiPolygons *)
+  POLYGON_NOBOUNDARY      =     0;
+  POLYGON_BOUNDARY        = 0001H;
+  POLYGON_ALTERNATE       =     0;
+  POLYGON_WINDING         = 0002H;
+  POLYGON_EXCL            =     0;
+  POLYGON_INCL            = 0008H;
+
+
+(*** default functions *)
+
+PROCEDURE GpiPolygons
+( PresSpaceHandle         : HPS;
+  Count                   : LONGCARD;
+  VAR Polygons            : ARRAY OF POLYGON;
+  Options                 : LONGCARD;
+  Model                   : LONGCARD
+)                         : LONGINT;
+
+END GPIPOLYGON.

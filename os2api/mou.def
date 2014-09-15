@@ -1,0 +1,332 @@
+DEFINITION MODULE MOU;
+
+(*************************************************************************
+  OS/2 2.x or 3.0  Mouse Kernel API.
+
+  (c) 1995 by Juergen Neuhoff
+**************************************************************************)
+
+(*$XL+    Modula-2 language extensions: '_' allowed for symbol names     *)
+(*$A      default alignment for record fields                            *)
+(*$API16+ 32 to 16 bit thunking for API functions                        *)
+
+IMPORT DOSDEVIOCTL;
+IMPORT SYSTEM;
+
+TYPE
+  HMOU                = CARDINAL;
+  PHMOU               = POINTER TO HMOU;
+  APIRET16            = CARDINAL;
+  TYPEPREFIX          = BOOLEAN;
+
+PROCEDURE MouRegister
+(
+  ModName             : ARRAY OF CHAR;
+  EntryName           : ARRAY OF CHAR;
+  Funs                : LONGCARD
+)                     : APIRET16;
+
+CONST
+  MR_MOUGETNUMBUTTONS = 00000001H;
+  MR_MOUGETNUMMICKEYS = 00000002H;
+  MR_MOUGETDEVSTATUS  = 00000004H;
+  MR_MOUGETNUMQUEEL   = 00000008H;
+  MR_MOUREADEVENTQUE  = 00000010H;
+  MR_MOUGETSCALEFACT  = 00000020H;
+  MR_MOUGETEVENTMASK  = 00000040H;
+  MR_MOUSETSCALEFACT  = 00000080H;
+  MR_MOUSETEVENTMASK  = 00000100H;
+  MR_MOUOPEN          = 00000800H;
+  MR_MOUCLOSE         = 00001000H;
+  MR_MOUGETPTRSHAPE   = 00002000H;
+  MR_MOUSETPTRSHAPE   = 00004000H;
+  MR_MOUDRAWPTR       = 00008000H;
+  MR_MOUREMOVEPTR     = 00010000H;
+  MR_MOUGETPTRPOS     = 00020000H;
+  MR_MOUSETPTRPOS     = 00040000H;
+  MR_MOUINITREAL      = 00080000H;
+  MR_MOUSETDEVSTATUS  = 00100000H;
+
+PROCEDURE MouDeRegister
+( )                   : APIRET16;
+
+PROCEDURE MouFlushQue
+(
+  Handle              : HMOU
+)                     : APIRET16;
+
+TYPE (* structure for MouGetPtrPos() and MouSetPtrPos() *)
+  PTRLOC              = RECORD (* moupl *)
+    CASE                : TYPEPREFIX OF
+    | FALSE             :
+      Row               : CARDINAL;
+      Col               : CARDINAL;
+    | TRUE              :
+      row               : CARDINAL;
+      col               : CARDINAL;
+    END;                END;
+  PPTRLOC             = POINTER TO PTRLOC;
+
+PROCEDURE MouGetPtrPos
+(
+  VAR Location        : PTRLOC;
+  Handle              : HMOU
+)                     : APIRET16;
+
+PROCEDURE MouSetPtrPos
+(
+  VAR Location        : PTRLOC;
+  Handle              : HMOU
+)                     : APIRET16;
+
+TYPE (* structure for MouGetPtrShape() and MouSetPtrShape() *)
+  PTRSHAPE            = RECORD (* moups *)
+    CASE                : TYPEPREFIX OF
+    | FALSE             :
+      Size              : CARDINAL;
+      Col               : CARDINAL;
+      Row               : CARDINAL;
+      ColHot            : CARDINAL;
+      RowHot            : CARDINAL;
+    | TRUE              :
+      cb                : CARDINAL;
+      col               : CARDINAL;
+      row               : CARDINAL;
+      colHot            : CARDINAL;
+      rowHot            : CARDINAL;
+    END;                END;
+  PPTRSHAPE           = POINTER TO PTRSHAPE;
+
+PROCEDURE MouSetPtrShape
+(
+  VAR Shape           : ARRAY OF SYSTEM.BYTE;
+  VAR Info            : PTRSHAPE;
+  Handle              : HMOU
+)                     : APIRET16;
+
+PROCEDURE MouGetPtrShape
+(
+  VAR Shape           : ARRAY OF SYSTEM.BYTE;
+  VAR Info            : PTRSHAPE;
+  Handle              : HMOU
+)                     : APIRET16;
+
+CONST (* device status for MouGetDevStatus() and MouSetDevStatus() *)
+  MOUSE_QUEUEBUSY        = 0001H;
+  MOUSE_BLOCKREAD        = 0002H;
+  MOUSE_FLUSH            = 0004H;
+  MOUSE_UNSUPPORTED_MODE = 0008H;
+  MOUSE_DISABLED         = 0100H;
+  MOUSE_MICKEYS          = 0200H;
+
+PROCEDURE MouGetDevStatus
+(
+  VAR DevStatus       : CARDINAL;
+  Handle              : HMOU
+)                     : APIRET16;
+
+PROCEDURE MouGetNumButtons
+(
+  VAR Buttons         : CARDINAL;
+  Handle              : HMOU
+)                     : APIRET16;
+
+PROCEDURE MouGetNumMickeys
+(
+  VAR Mickeys         : CARDINAL;
+  Handle              : HMOU
+)                     : APIRET16;
+
+CONST (* for MouReadEventQue() *)
+  MOU_NOWAIT          = DOSDEVIOCTL.MOU_NOWAIT;
+  MOU_WAIT            = DOSDEVIOCTL.MOU_WAIT;
+
+(*$A2  WORD alignment for record fields >= 2 bytes *)
+
+TYPE (* structure for MouReadEventQue() *)
+  MOUEVENTINFO        = RECORD (* mouev *)
+    CASE                : TYPEPREFIX OF
+    | FALSE             :
+      Flags             : CARDINAL;
+      Time              : LONGCARD;
+      Row               : INTEGER;
+      Col               : INTEGER;
+    | TRUE              :
+      fs                : CARDINAL;
+      time              : LONGCARD;
+      row               : INTEGER;
+      col               : INTEGER;
+    END;                END;
+  PMOUEVENTINFO       = POINTER TO MOUEVENTINFO;
+
+PROCEDURE MouReadEventQue
+(
+  VAR Event           : MOUEVENTINFO;
+  VAR Wait            : CARDINAL;
+  Handle              : HMOU
+)                     : APIRET16;
+
+TYPE (* structure for MouGetNumQueEl() *)
+  MOUQUEINFO          = RECORD  (* mouqi *)
+    CASE                : TYPEPREFIX OF
+    | FALSE             :
+      Events            : CARDINAL;
+      MaxEvents         : CARDINAL;
+    | TRUE              :
+      cEvents           : CARDINAL;
+      cmaxEvents        : CARDINAL;
+    END;                END;
+  PMOUQUEINFO         = POINTER TO MOUQUEINFO;
+
+PROCEDURE MouGetNumQueEl
+(
+  VAR QueueInfo       : MOUQUEINFO;
+  Handle              : HMOU
+)                     : APIRET16;
+
+CONST (* events for MouGetEventMask() and MouSetEventMask *)
+  MOUSE_MOTION                 = DOSDEVIOCTL.MOUSE_MOTION;
+  MOUSE_MOTION_WITH_BN1_DOWN   = DOSDEVIOCTL.MOUSE_MOTION_WITH_BN1_DOWN;
+  MOUSE_BN1_DOWN               = DOSDEVIOCTL.MOUSE_BN1_DOWN;
+  MOUSE_MOTION_WITH_BN2_DOWN   = DOSDEVIOCTL.MOUSE_MOTION_WITH_BN2_DOWN;
+  MOUSE_BN2_DOWN               = DOSDEVIOCTL.MOUSE_BN2_DOWN;
+  MOUSE_MOTION_WITH_BN3_DOWN   = DOSDEVIOCTL.MOUSE_MOTION_WITH_BN3_DOWN;
+  MOUSE_BN3_DOWN               = DOSDEVIOCTL.MOUSE_BN3_DOWN;
+
+PROCEDURE MouGetEventMask
+(
+  VAR Events          : CARDINAL;
+  Handle              : HMOU
+)                     : APIRET16;
+
+PROCEDURE MouSetEventMask
+(
+  VAR Events          : CARDINAL;
+  Handle              : HMOU
+)                     : APIRET16;
+
+TYPE (* structure for MouGetScaleFact() and MouSetScaleFact() *)
+  SCALEFACT           = RECORD  (* mousc *)
+    CASE                : TYPEPREFIX OF
+    | FALSE             :
+      RowScale          : CARDINAL;
+      ColScale          : CARDINAL;
+    | TRUE              :
+      rowScale          : CARDINAL;
+      colScale          : CARDINAL;
+    END;                END;
+  PSCALEFACT          = POINTER TO SCALEFACT;
+
+PROCEDURE MouGetScaleFact
+(
+  VAR ScaleFactor     : SCALEFACT;
+  Handle              : HMOU
+)                     : APIRET16;
+
+PROCEDURE MouSetScaleFact
+(
+  VAR ScaleFactor     : SCALEFACT;
+  Handle              : HMOU
+)                     : APIRET16;
+
+PROCEDURE MouOpen
+(
+  DvrName             : ARRAY OF CHAR;
+  VAR Handle          : HMOU
+)                     : APIRET16;
+
+PROCEDURE MouClose
+(
+  Handle              : HMOU
+)                     : APIRET16;
+
+TYPE (* structure for MouRemovePtr() *)
+  NOPTRRECT           = RECORD (* mourt *)
+    CASE                : TYPEPREFIX OF
+    | FALSE             :
+      UpperLeftRow      : CARDINAL;
+      UpperLeftCol      : CARDINAL;
+      LowerRightRow     : CARDINAL;
+      LowerRightCol     : CARDINAL;
+    | TRUE              :
+      row               : CARDINAL;
+      col               : CARDINAL;
+      cRow              : CARDINAL;
+      cCol              : CARDINAL;
+    END;                END;
+  PNOPTRRECT          = POINTER TO NOPTRRECT;
+
+PROCEDURE MouRemovePtr
+(
+  VAR Rectangle       : NOPTRRECT;
+  Handle              : HMOU
+)                     : APIRET16;
+
+PROCEDURE MouDrawPtr
+(
+  Handle              : HMOU
+)                     : APIRET16;
+
+CONST
+  MOU_NODRAW          = 0001H;
+  MOU_DRAW            = 0000H;
+  MOU_MICKEYS         = 0002H;
+  MOU_PELS            = 0000H;
+
+PROCEDURE MouSetDevStatus
+(
+  VAR DevStatus       : CARDINAL;
+  Handle              : HMOU
+)                     : APIRET16;
+
+PROCEDURE MouInitReal
+(
+  Name                : ARRAY OF CHAR
+)                     : APIRET16;
+
+PROCEDURE MouSynch
+(
+  IOWait              : CARDINAL
+)                     : APIRET16;
+
+TYPE
+  THRESHOLD           = RECORD  (* threshold *)
+    Length              : CARDINAL; (* Length Field            *)
+    Level1              : CARDINAL; (* First movement level    *)
+    Lev1Mult            : CARDINAL; (* First level multiplier  *)
+    Level2              : CARDINAL; (* Second movement level   *)
+    Lev2Mult            : CARDINAL; (* Second level multiplier *)
+                        END;
+  PTHRESHOLD          = POINTER TO THRESHOLD;
+
+PROCEDURE MouGetThreshold
+(
+  VAR Threshold       : THRESHOLD;
+  Handle              : HMOU
+)                     : APIRET16;
+
+PROCEDURE MouSetThreshold
+(
+  VAR Threshold       : THRESHOLD;
+  Handle              : HMOU
+)                     : APIRET16;
+
+CONST (* for MouGetHotkey() and MouSetHotkey() *)
+  MHK_BUTTON1         = DOSDEVIOCTL.MHK_BUTTON1;
+  MHK_BUTTON2         = DOSDEVIOCTL.MHK_BUTTON2;
+  MHK_BUTTON3         = DOSDEVIOCTL.MHK_BUTTON3;
+
+PROCEDURE MouGetHotKey
+(
+  VAR Keys            : CARDINAL;
+  Handle              : HMOU
+)                     : APIRET16;
+
+PROCEDURE MouSetHotKey
+(
+  VAR Keys            : CARDINAL;
+  Handle              : HMOU
+)                     : APIRET16;
+
+
+END MOU.

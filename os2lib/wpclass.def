@@ -1,0 +1,10 @@
+LIBRARY PMWP
+EXPORTS
+  WinRegisterObjectClass    @200
+  WinDeregisterObjectClass  @201
+  WinReplaceObjectClass     @219
+  WinEnumObjectClasses      @205
+  WinCreateObject           @281
+  WinSetObjectData          @250
+  WinDestroyObject          @251
+  WinQueryObject            @252

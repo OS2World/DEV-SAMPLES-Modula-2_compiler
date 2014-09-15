@@ -1,0 +1,212 @@
+DEFINITION MODULE WINSTDBOOK;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager
+           CUA book control class.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM OS2DEF        IMPORT TYPEPREFIX, PSZ, HWND, HBITMAP;
+
+(*************************************************************************)
+(*    Message ids                                                        *)
+(*************************************************************************)
+CONST
+  BKM_CALCPAGERECT          = 0353H;  (* Calc book/page rectangle  *)
+  BKM_DELETEPAGE            = 0354H;  (* Delete page(s)            *)
+  BKM_INSERTPAGE            = 0355H;  (* Insert page               *)
+  BKM_INVALIDATETABS        = 0356H;  (* Invalidate tab area       *)
+  BKM_TURNTOPAGE            = 0357H;  (* Turn to page              *)
+  BKM_QUERYPAGECOUNT        = 0358H;  (* Query number of pages     *)
+  BKM_QUERYPAGEID           = 0359H;  (* Query page identifier     *)
+  BKM_QUERYPAGEDATA         = 035AH;  (* Query page user data      *)
+  BKM_QUERYPAGEWINDOWHWND   = 035BH;  (* Query page window handle  *)
+  BKM_QUERYTABBITMAP        = 035CH;  (* Query tab bitmap handle   *)
+  BKM_QUERYTABTEXT          = 035DH;  (* Query tab text pointer    *)
+  BKM_SETDIMENSIONS         = 035EH;  (* Set tab/dogear dimensions *)
+  BKM_SETPAGEDATA           = 035FH;  (* Set page user data        *)
+  BKM_SETPAGEWINDOWHWND     = 0360H;  (* Set page window handle    *)
+  BKM_SETSTATUSLINETEXT     = 0361H;  (* Set status line text      *)
+  BKM_SETTABBITMAP          = 0362H;  (* Set tab bitmap            *)
+  BKM_SETTABTEXT            = 0363H;  (* Set tab text              *)
+  BKM_SETNOTEBOOKCOLORS     = 0364H;  (* Set Notebook colors       *)
+  BKM_QUERYPAGESTYLE        = 0365H;  (* Query page style          *)
+  BKM_QUERYSTATUSLINETEXT   = 0366H;  (* Query status line text    *)
+  BKN_PAGESELECTED          = 130;    (* New page selected by user *)
+  BKN_NEWPAGESIZE           = 131;    (* App page size changed     *)
+  BKN_HELP                  = 132;    (* Help notification         *)
+  BKN_PAGEDELETED           = 133;    (* Page deleted notification *)
+
+(*************************************************************************)
+(*    Page deletion flags (usDeleteFlag)                                 *)
+(*************************************************************************)
+CONST
+  BKA_ALL                   = 0001H;  (* all pages                 *)
+  BKA_SINGLE                = 0002H;  (* single page               *)
+  BKA_TAB                   = 0004H;  (* minor/major section       *)
+
+(*************************************************************************)
+(*    Page insertion/query order (usPageOrder, usQueryOrder)             *)
+(*************************************************************************)
+CONST
+  BKA_LAST               = 0002H;  (* Insert/Query last page    *)
+  BKA_FIRST              = 0004H;  (* Insert/Query first page   *)
+  BKA_NEXT               = 0008H;  (* Insert/Query after page   *)
+  BKA_PREV               = 0010H;  (* Insert/Query before page  *)
+  BKA_TOP                = 0020H;  (* Query topmost page        *)
+
+(*************************************************************************)
+(*    Notebook region types (usBookRegion, usType)                       *)
+(*************************************************************************)
+CONST
+  BKA_MAJORTAB           = 0001H;  (* Major Tab                 *)
+  BKA_MINORTAB           = 0002H;  (* Minor Tab                 *)
+  BKA_PAGEBUTTON         = 0100H;  (* Page Turning Button       *)
+
+(*************************************************************************)
+(*    Page insertion/query styles (usPageStyle,usQueryEnd)               *)
+(*************************************************************************)
+CONST
+  BKA_STATUSTEXTON       = 0001H;  (* status area text          *)
+  BKA_MAJOR              = 0040H;  (* Major Tab                 *)
+  BKA_MINOR              = 0080H;  (* Minor Tab                 *)
+  BKA_AUTOPAGESIZE       = 0100H;  (* Page window position/size *)
+  BKA_END                = 0200H;  (* Query to end of book      *)
+
+(*************************************************************************)
+(*    Tab window contents (usTabDisplay)                                 *)
+(*************************************************************************)
+CONST
+  BKA_TEXT               = 0400H;  (* text data                 *)
+  BKA_BITMAP             = 0800H;  (* bitmap                    *)
+
+(*************************************************************************)
+(*    Notebook window styles (ulNotebookStyles)                          *)
+(*************************************************************************)
+
+(*************************************************************************)
+(*    Backpage Orientation                                               *)
+(*************************************************************************)
+  BKS_BACKPAGESBR        = 00000001H;  (* Bottom right          *)
+  BKS_BACKPAGESBL        = 00000002H;  (* Bottom left           *)
+  BKS_BACKPAGESTR        = 00000004H;  (* Top right             *)
+  BKS_BACKPAGESTL        = 00000008H;  (* Top left              *)
+
+(*************************************************************************)
+(*    Major Tab Side                                                     *)
+(*************************************************************************)
+CONST
+  BKS_MAJORTABRIGHT      = 00000010H;  (* Major tabs right      *)
+  BKS_MAJORTABLEFT       = 00000020H;  (* Major tabs left       *)
+  BKS_MAJORTABTOP        = 00000040H;  (* Major tabs top        *)
+  BKS_MAJORTABBOTTOM     = 00000080H;  (* Major tabs bottom     *)
+
+(*************************************************************************)
+(*    Tab Type                                                           *)
+(*************************************************************************)
+CONST
+  BKS_SQUARETABS         = 00000000H;  (* Square edged tabs     *)
+  BKS_ROUNDEDTABS        = 00000100H;  (* Round edged tabs      *)
+  BKS_POLYGONTABS        = 00000200H;  (* Polygon edged tabs    *)
+
+(*************************************************************************)
+(*    Binding type                                                       *)
+(*************************************************************************)
+CONST
+  BKS_SOLIDBIND          = 00000000H;  (* Solid binding         *)
+  BKS_SPIRALBIND         = 00000400H;  (* Spiral binding        *)
+
+(*************************************************************************)
+(*    Status line text justification                                     *)
+(*************************************************************************)
+CONST
+  BKS_STATUSTEXTLEFT     = 00000000H;  (* Left justify text     *)
+  BKS_STATUSTEXTRIGHT    = 00001000H;  (* Right justify text    *)
+  BKS_STATUSTEXTCENTER   = 00002000H;  (* Center text           *)
+
+(*************************************************************************)
+(*    Tab text justification                                             *)
+(*************************************************************************)
+CONST
+  BKS_TABTEXTLEFT        = 00000000H;  (* Left justify tab text *)
+  BKS_TABTEXTRIGHT       = 00004000H;  (* Right justify tab text*)
+  BKS_TABTEXTCENTER      = 00008000H;  (* Center tab text       *)
+
+(*************************************************************************)
+(*    Notebook color presentation param attributes                       *)
+(*************************************************************************)
+CONST
+  BKA_BACKGROUNDPAGECOLORINDEX  = 0001H; (* Page Background       *)
+  BKA_BACKGROUNDPAGECOLOR       = 0002H;
+  BKA_BACKGROUNDMAJORCOLORINDEX = 0003H; (* Major Tab Background  *)
+  BKA_BACKGROUNDMAJORCOLOR      = 0004H;
+  BKA_BACKGROUNDMINORCOLORINDEX = 0005H; (* Minor Tab Background  *)
+  BKA_BACKGROUNDMINORCOLOR      = 0006H;
+  BKA_FOREGROUNDMAJORCOLORINDEX = 0007H; (* Major Tab Text        *)
+  BKA_FOREGROUNDMAJORCOLOR      = 0008H;
+  BKA_FOREGROUNDMINORCOLORINDEX = 0009H; (* Minor Tab Text        *)
+  BKA_FOREGROUNDMINORCOLOR      = 000AH;
+
+(*************************************************************************)
+(*    Error message ids                                                  *)
+(*************************************************************************)
+CONST
+  BOOKERR_INVALID_PARAMETERS  = -1; (* Invalid parameters        *)
+
+(*************************************************************************)
+(*    BKM_QUERYTABTEXT and BKM_QUERYSTATUSLINETEXT message structure     *)
+(*************************************************************************)
+TYPE
+  BOOKTEXT                    = RECORD       (* booktxt *)
+    CASE                        : TYPEPREFIX OF
+    | TRUE                      :
+      pString                   : PSZ;       (* ptr to string buffer      *)
+      textLen                   : LONGCARD;  (* length of string to query *)
+    | FALSE                     :
+      String                    : PSZ;       (* ptr to string buffer      *)
+      TextLen                   : LONGCARD;  (* length of string to query *)
+    END;                        END;
+  PBOOKTEXT                   = POINTER TO BOOKTEXT;
+
+(*************************************************************************)
+(*    BKN_PAGEDELETED notify message structure                           *)
+(*************************************************************************)
+TYPE
+  DELETENOTIFY                = RECORD       (* delntfy *)
+    CASE                        : TYPEPREFIX OF
+    | TRUE                      :
+      hwndBook                  : HWND;      (* Notebook window handle   *)
+      hwndPage                  : HWND;      (* App. page window handle  *)
+      ulAppPageData             : LONGCARD;  (* App. page data           *)
+      hbmTab                    : HBITMAP;   (* App. tab bitmap handle   *)
+    | FALSE                     :
+      BookWinHandle             : HWND;      (* Notebook window handle   *)
+      PageWinHandle             : HWND;      (* App. page window handle  *)
+      AppPageData               : LONGCARD;  (* App. page data           *)
+      TabBitMapHandle           : HBITMAP;   (* App. tab bitmap handle   *)
+    END;                        END;
+  PDELETENOTIFY               = POINTER TO DELETENOTIFY;
+
+(*************************************************************************)
+(*    BKN_PAGESELECTED notify message structure                          *)
+(*************************************************************************)
+TYPE
+  PAGESELECTNOTIFY            = RECORD       (* pgsntfy *)
+    CASE                        : TYPEPREFIX OF
+    | TRUE                      :
+      hwndBook                  : HWND;      (* Notebook window handle   *)
+      ulPageIdCur               : LONGCARD;  (* Previous top page id     *)
+      ulPageIdNew               : LONGCARD;  (* New top Page id          *)
+    | FALSE                     :
+      BookWinHandle             : HWND;      (* Notebook window handle   *)
+      PageIdCur                 : LONGCARD;  (* Previous top page id     *)
+      PageIdNew                 : LONGCARD;  (* New top Page id          *)
+    END;                        END;
+  PPAGESELECTNOTIFY           = POINTER TO PAGESELECTNOTIFY;
+
+END WINSTDBOOK.

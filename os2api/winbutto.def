@@ -1,0 +1,93 @@
+DEFINITION MODULE WINBUTTONS;
+
+(************************************************************************
+  OS/2 2.0 interface for window button controls.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$A         default alignment for record fields                        *)
+
+FROM   OS2DEF  IMPORT TYPEPREFIX, LHANDLE, HWND, HPS;
+
+CONST (* Button control styles *)
+  BS_PUSHBUTTON       = 0;
+  BS_CHECKBOX         = 1;
+  BS_AUTOCHECKBOX     = 2;
+  BS_RADIOBUTTON      = 3;
+  BS_AUTORADIOBUTTON  = 4;
+  BS_3STATE           = 5;
+  BS_AUTO3STATE       = 6;
+  BS_USERBUTTON       = 7;
+  BS_PRIMARYSTYLES    = 0000000FH;
+  BS_BITMAP           = 00000040H;
+  BS_ICON             = 00000080H;
+  BS_HELP             = 00000100H;
+  BS_SYSCOMMAND       = 00000200H;
+  BS_DEFAULT          = 00000400H;
+  BS_NOPOINTERFOCUS   = 00000800H;
+  BS_NOBORDER         = 00001000H;
+  BS_NOCURSORSELECT   = 00002000H;
+  BS_AUTOSIZE         = 00004000H;
+
+TYPE
+  (* Binary resources may be bound into application executables or *)
+  (* passed as a parameter when creating a window or dialog        *)
+  (* Currently they must be the same for both 16-bit and 32-bit    *)
+  (* so we pack the structures.                                    *)
+  (*                                                               *)
+  (*$A2 WORD alignment for record fields                           *)
+  BTNCDATA            = RECORD
+    CASE                : TYPEPREFIX OF
+    | TRUE              :
+      cb                : CARDINAL;
+      fsCheckState      : CARDINAL;
+      fsHiliteState     : CARDINAL;
+      hImage            : LHANDLE;
+    | FALSE             :
+      Count             : CARDINAL;
+      CheckState        : CARDINAL;
+      HiliteState       : CARDINAL;
+      ImageHandle       : LHANDLE;
+    END;                END;
+  PBTNCDATA           = POINTER TO BTNCDATA;
+  (*$A2 restore default alignment for record fields                *)
+
+TYPE (* User button structure (passed in WM_CONTROL msg) *)
+  USERBUTTON          = RECORD
+    CASE                : TYPEPREFIX OF
+    | TRUE              :
+      hwnd              : HWND;
+      hps               : HPS;
+      fsState           : LONGCARD;
+      fsStateOld        : LONGCARD;
+    | FALSE             :
+      WinHandle         : HWND;
+      PresSpaceHandle   : HPS;
+      State             : LONGCARD;
+      StateOld          : LONGCARD;
+    END;                END;
+  PUSERBUTTON         = POINTER TO USERBUTTON;
+
+CONST (* Button control messages *)
+  BM_CLICK            = 0120H;
+  BM_QUERYCHECKINDEX  = 0121H;
+  BM_QUERYHILITE      = 0122H;
+  BM_SETHILITE        = 0123H;
+  BM_QUERYCHECK       = 0124H;
+  BM_SETCHECK         = 0125H;
+  BM_SETDEFAULT       = 0126H;
+
+CONST (* Button notification codes *)
+  BN_CLICKED          = 1;
+  BN_DBLCLICKED       = 2;
+  BN_PAINT            = 3;
+
+CONST (* BN_PAINT button draw state codes (must be in high byte) *)
+  BDS_HILITED         = 0100H;
+  BDS_DISABLED        = 0200H;
+  BDS_DEFAULT         = 0400H;
+
+END WINBUTTONS.
+

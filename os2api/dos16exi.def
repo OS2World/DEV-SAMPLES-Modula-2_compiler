@@ -1,0 +1,28 @@
+DEFINITION MODULE DOS16EXIT;
+
+(************************************************************************
+  16-bit OS/2 1.x Interface for program exit.
+
+  Copyright (c) 1992, 1995 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL-    Pascal-style procedures                                    *)
+(*$A2        WORD alignment for record fields >= 2 bytes                *)
+
+FROM SYSTEM IMPORT Flat32Model;
+
+(*$IF NOT Flat32Model *)
+
+CONST (* for DosExit ActionCode *)
+  EXIT_THREAD  = 0;
+  EXIT_PROCESS = 1;
+
+FAR PROCEDURE DosExit
+( ActionCode        : CARDINAL;
+  ResultCode        : CARDINAL
+);
+
+(*$ENDIF*)
+
+END DOS16EXIT.

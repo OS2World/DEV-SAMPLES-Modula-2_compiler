@@ -1,0 +1,139 @@
+DEFINITION MODULE DOSMEMMGR;
+
+(************************************************************************
+  OS/2 2.0 interface for memory management.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF IMPORT APIRET, PID;
+
+
+CONST (* Access protection *)
+  PAG_READ        = 00000001H;      (* read access                     *)
+  PAG_WRITE       = 00000002H;      (* write access                    *)
+  PAG_EXECUTE     = 00000004H;      (* execute access                  *)
+  PAG_GUARD       = 00000008H;      (* guard protection                *)
+  PAG_DEFAULT     = 00000400H;      (* default (initial) access        *)
+
+CONST (* Commit *)
+  PAG_COMMIT      = 00000010H;      (* commit storage                  *)
+  PAG_DECOMMIT    = 00000020H;      (* decommit storage                *)
+
+CONST (* Allocation attributes *)
+  OBJ_TILE        = 00000040H;     (* tile object                      *)
+  OBJ_PROTECTED   = 00000080H;     (* protect object                   *)
+                                   (*  NOTE: This flag is NOT          *)
+                                   (*  available at the api level                *)
+  OBJ_GETTABLE    = 00000100H;     (* gettable by other processes      *)
+  OBJ_GIVEABLE    = 00000200H;     (* giveable to other processes      *)
+  fPERM           = (PAG_EXECUTE OR PAG_READ OR PAG_WRITE);
+  fSHARE          = (OBJ_GETTABLE OR OBJ_GIVEABLE);
+
+CONST (* DosAllocMem flags *)
+  fALLOC          = (OBJ_TILE OR PAG_COMMIT OR fPERM);
+
+CONST (* DosAllocSharedMem() flags *)
+  fALLOCSHR       = (OBJ_TILE OR PAG_COMMIT OR fSHARE OR fPERM);
+  fGETNMSHR       = (fPERM);
+
+CONST (* DosGetSharedMem() flags *)
+  fGETSHR         = (fPERM);
+
+CONST (* DosGiveSharedMem() flags *)
+  fGIVESHR        = (fPERM);
+
+CONST (* DosSetMem() flags *)
+  fSET            = (PAG_COMMIT + PAG_DECOMMIT + PAG_DEFAULT + fPERM);
+
+CONST (* Dos32SubSet() flags *)
+  DOSSUB_INIT       = 01H;          (* initialize memory object for     *)
+                                    (* suballocation                    *)
+  DOSSUB_GROW       = 02H;          (* increase size of memory pool     *)
+                                    (* for suballocation                *)
+  DOSSUB_SPARSE_OBJ = 04H;          (* indicator for DosSub to          *)
+                                    (* manage the commitment of         *)
+                                    (* pages spanned by the memory      *)
+                                    (* pool                             *)
+  DOSSUB_SERIALIZE  = 08H;          (* indicates that access to the     *)
+                                    (* memory pool is to be             *)
+                                    (* serialized by DosSub             *)
+
+CONST (* Allocation type returned from DosQueryMem() *)
+  PAG_SHARED        = 00002000H;    (* shared object                    *)
+  PAG_FREE          = 00004000H;    (* pages are free                   *)
+  PAG_BASE          = 00010000H;    (* first page in object             *)
+
+PROCEDURE DosAllocMem
+( VAR BaseAddress        : SYSTEM.ADDRESS;
+  ObjectSize             : LONGCARD;
+  AllocationFlags        : LONGCARD
+)                        : APIRET;
+
+PROCEDURE DosFreeMem
+( BaseAddress            : SYSTEM.ADDRESS
+)                        : APIRET;
+
+PROCEDURE DosSetMem
+( BaseAddress            : SYSTEM.ADDRESS;
+  RegionSize             : LONGCARD;
+  AttributeFlags         : LONGCARD
+)                        : APIRET;
+
+PROCEDURE DosGiveSharedMem
+( BaseAddress            : SYSTEM.ADDRESS;
+  ProcessId              : PID;
+  AttributeFlags         : LONGCARD
+)                        : APIRET;
+
+PROCEDURE DosGetSharedMem
+( BaseAddress            : SYSTEM.ADDRESS;
+  AttributeFlags         : LONGCARD
+)                        : APIRET;
+
+PROCEDURE DosGetNamedSharedMem
+( VAR BaseAddress        : SYSTEM.ADDRESS;
+  SharedMemName          : ARRAY OF CHAR;
+  AttributeFlags         : LONGCARD
+)                        : APIRET;
+
+PROCEDURE DosAllocSharedMem
+( VAR BaseAddress        : SYSTEM.ADDRESS;
+  Name                   : ARRAY OF CHAR;
+  ObjectSize             : LONGCARD;
+  Flags                  : LONGCARD
+)                        : APIRET;
+
+PROCEDURE DosQueryMem
+( BaseAddress            : SYSTEM.ADDRESS;
+  VAR RegionSize         : LONGCARD;
+  VAR AllocationFlags    : LONGCARD
+)                        : APIRET;
+
+PROCEDURE DosSubAllocMem
+( Offset                 : SYSTEM.ADDRESS;
+  VAR BlockOffset        : SYSTEM.ADDRESS;
+  Size                   : LONGCARD
+)                        : APIRET;
+
+PROCEDURE DosSubFreeMem
+( Offset                 : SYSTEM.ADDRESS;
+  BlockOffset            : SYSTEM.ADDRESS;
+  Size                   : LONGCARD
+)                        : APIRET;
+
+PROCEDURE DosSubSetMem
+( Offset                 : SYSTEM.ADDRESS;
+  Flags                  : LONGCARD;
+  Size                   : LONGCARD
+)                        : APIRET;
+
+PROCEDURE DosSubUnsetMem
+( Offset                 : SYSTEM.ADDRESS
+)                        : APIRET;
+
+END DOSMEMMGR.

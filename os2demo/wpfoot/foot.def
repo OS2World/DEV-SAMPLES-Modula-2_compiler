@@ -1,0 +1,108 @@
+(*$DLL       to be implemented as a dynamic link library                *)
+(*$XL+       language extensions: '_' for names, OOP-facilities         *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+
+DEFINITION MODULE FOOT;
+
+(***************************************************************************
+  OS/2 2.x/3.0 Workplace Shell interface for class 'Foot'.
+
+  This is the Modula-2 version of a minimum WPS-class.
+
+  Copyright (c) 1995 by Juergen Neuhoff
+****************************************************************************)
+
+IMPORT SOM;          (* needed for basic SOM features *)
+
+
+
+(***************************************************************************
+  Additional IMPORT-, TYPE-, and CONST-declarations needed for the
+  interfaces of class 'Foot' and its metaclass.
+****************************************************************************)
+
+IMPORT WPABS;        (* this module contains the parent class interface *)
+
+
+
+(***************************************************************************
+  SOM class API for 'Foot', including type-bound procedures
+****************************************************************************)
+
+(* These types are almost always needed for a SOM class description *)
+
+TYPE PSOMClass         = SOM.PSOMClass;
+TYPE INTEGER4          = SOM.INTEGER4;
+TYPE somMToken         = SOM.somMToken;
+TYPE somDToken         = SOM.somDToken;
+TYPE somMethodProc     = SOM.somMethodProc;
+TYPE PFoot             = POINTER TO Foot;    (* instance pointer *)
+TYPE PM_WPAbstract     = WPABS.M_WPAbstract; (* metaclass pointer *)
+
+(* major and minor version numbers for new SOM class 'Foot' *)
+
+CONST
+  Foot_MajorVersion    = 1;
+  Foot_MinorVersion    = 1;
+
+
+(*
+ * Declare the C specific class data structure
+ *)
+TYPE
+  FootCClassDataStructure = RECORD
+    parentMtab              : SOM.somMethodTabs;
+    instanceDataToken       : SOM.somDToken;
+                            END;
+VAR
+  FootCClassData          : FootCClassDataStructure;
+
+
+
+(* Every SOM class has a public <class>ClassData structure,
+   whose fields are tokens needed for method resolution.
+   In this example there are 14 token fields for the 14 methods
+   of the SOM class 'Foot'.
+*)
+TYPE
+  FootClassDataStructure    = RECORD
+    classObject               : PSOMClass;
+                              END;
+
+VAR
+  FootClassData : FootClassDataStructure;
+
+
+(* Class 'Foot' is expressed as an extension of record type 'WPAbstract'
+   inheriting all record fields and type bound procedures.
+   The directive '$SOM+' tells the compiler to treat the new record
+   type 'Foot' as a SOM class, and not as an extended Modula-2 record.
+*)
+TYPE
+  (*$SOM+ *)
+  Foot = RECORD( WPABS.WPAbstract ) END;
+  (*$SOM- *)
+
+
+(* Every SOM class must have <class>NewClass procedure *)
+
+PROCEDURE FootNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+
+(* A SOM class may have type bound procedures (also known as methods).
+   For each of the following type bound procedures a corresponding
+   token field must have been specified in a previous <class>ClassData
+   record variable.
+*)
+
+(* no type bound procedures for this sample class *)
+
+
+
+END FOOT.

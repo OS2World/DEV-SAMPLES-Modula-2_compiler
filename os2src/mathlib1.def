@@ -1,0 +1,27 @@
+DEFINITION MODULE MathLib1;
+
+(**************************************************************************
+   OS/2 2.x  Modula-2 floating point library for supplementary
+             elemetary functions.
+
+             Created May 29, 1995
+
+   Copyright (c) 1995 by Anthony Busigin. Permission is granted for
+   use of this software with the Modula-2 OS/2-compiler by Juergen Neuhoff.
+**************************************************************************)
+
+PROCEDURE log10 (x: REAL) : REAL;
+
+PROCEDURE alog10 (x: REAL) : REAL;
+
+PROCEDURE sinh (x: REAL) : REAL;
+
+PROCEDURE cosh (x: REAL) : REAL;
+
+PROCEDURE tanh (x: REAL) : REAL;
+
+PROCEDURE XtoY(x,y: REAL) : REAL;
+
+PROCEDURE tan (x: REAL) : REAL;
+
+END MathLib1.

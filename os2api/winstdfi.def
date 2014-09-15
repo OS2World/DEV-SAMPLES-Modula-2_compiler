@@ -1,0 +1,247 @@
+DEFINITION MODULE WINSTDFILE;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager
+           CUA standard file dialog.
+           16.02.95 22.54 : Bugs fixed FILEDLG.szFullFile
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM OS2DEF        IMPORT TYPEPREFIX, PSZ, HWND, HMODULE, CCHMAXPATH;
+FROM WINDEF        IMPORT PFNWP, MPARAM, MRESULT;
+FROM WINMESSAGEMGR IMPORT WM_USER;
+FROM WINDIALOGS    IMPORT DID_OK, DID_CANCEL;
+
+(**********************************************************************)
+(*                                                                    *)
+(*                     F I L E    D I A L O G                         *)
+(*                                                                    *)
+(**********************************************************************)
+
+(*--------------------------------------------------------------------*)
+(* File Dialog Invocation Flag Definitions.                           *)
+(*--------------------------------------------------------------------*)
+CONST
+  FDS_CENTER           = 00000001H; (* Center within owner wnd   *)
+  FDS_CUSTOM           = 00000002H; (* Use custom user template  *)
+  FDS_FILTERUNION      = 00000004H; (* Use union of filters      *)
+  FDS_HELPBUTTON       = 00000008H; (* Display Help button       *)
+  FDS_APPLYBUTTON      = 00000010H; (* Display Apply button      *)
+  FDS_PRELOAD_VOLINFO  = 00000020H; (* Preload volume info       *)
+  FDS_MODELESS         = 00000040H; (* Make dialog modeless      *)
+  FDS_INCLUDE_EAS      = 00000080H; (* Always load EA info       *)
+  FDS_OPEN_DIALOG      = 00000100H; (* Select Open dialog        *)
+  FDS_SAVEAS_DIALOG    = 00000200H; (* Select SaveAs dialog      *)
+  FDS_MULTIPLESEL      = 00000400H; (* Enable multiple selection *)
+  FDS_ENABLEFILELB     = 00000800H; (* Enable SaveAs Listbox     *)
+
+(*--------------------------------------------------------------------*)
+(* File Dialog Selection returned attribute                           *)
+(*--------------------------------------------------------------------*)
+CONST
+  FDS_EFSELECTION     = 0;
+  FDS_LBSELECTION     = 1;
+
+(*--------------------------------------------------------------------*)
+(* Error Return Codes from dialog (self defining)                     *)
+(*--------------------------------------------------------------------*)
+CONST
+  FDS_SUCCESSFUL                          = 0;
+  FDS_ERR_DEALLOCATE_MEMORY               = 1;
+  FDS_ERR_FILTER_TRUNC                    = 2;
+  FDS_ERR_INVALID_DIALOG                  = 3;
+  FDS_ERR_INVALID_DRIVE                   = 4;
+  FDS_ERR_INVALID_FILTER                  = 5;
+  FDS_ERR_INVALID_PATHFILE                = 6;
+  FDS_ERR_OUT_OF_MEMORY                   = 7;
+  FDS_ERR_PATH_TOO_LONG                   = 8;
+  FDS_ERR_TOO_MANY_FILE_TYPES             = 9;
+  FDS_ERR_INVALID_VERSION                 = 10;
+  FDS_ERR_INVALID_CUSTOM_HANDLE           = 11;
+  FDS_ERR_DIALOG_LOAD_ERROR               = 12;
+  FDS_ERR_DRIVE_ERROR                     = 13;
+
+(*--------------------------------------------------------------------*)
+(* File Dialog Messages.                                              *)
+(*--------------------------------------------------------------------*)
+CONST
+  FDM_FILTER            = WM_USER+40;  (* mp1 = PSZ pszFileName         *)
+                                       (* mp2 = PSZ EA .TYPE value      *)
+                                       (* mr  = TRUE -> keep file.      *)
+  FDM_VALIDATE          = WM_USER+41;  (* mp1 = PSZ pszPathName         *)
+                                       (* mp2 = USHORT Field name id    *)
+                                       (* mr  = TRUE -> Valid name      *)
+  FDM_ERROR             = WM_USER+42;  (* mp1 = USHORT Error message id *)
+                                       (* mp2 = NULL   reserved         *)
+                                       (* mr  = NULL -> Use default msg *)
+
+(*--------------------------------------------------------------------*)
+(* Define the type that is a pointer to an array of pointers.         *)
+(*     Hence: pointer to an array of Z string pointers.               *)
+(*--------------------------------------------------------------------*)
+TYPE
+  APSZ                  = ARRAY [0..0] OF PSZ;
+  PAPSZ                 = POINTER TO APSZ;         (* papsz *)
+
+(*--------------------------------------------------------------------*)
+(* File Dialog application data structure.                            *)
+(*--------------------------------------------------------------------*)
+TYPE
+  FILEDLG               = RECORD  (* fildlg *)
+    CASE                  : TYPEPREFIX OF
+    | TRUE                :
+      cbSize              : LONGCARD; (* Size of FILEDLG structure.         *)
+      fl                  : LONGCARD; (* FDS_ flags. Alter behavior of dlg. *)
+      ulUser              : LONGCARD; (* User defined field.                *)
+      lReturn             : LONGINT;  (* Result code from dialog dismissal. *)
+      lSRC                : LONGINT;  (* System return code.                *)
+      pszTitle            : PSZ;      (* String to display in title bar.    *)
+      pszOKButton         : PSZ;      (* String to display in OK button.    *)
+      pfnDlgProc          : PFNWP;    (* Entry point to custom dialog proc. *)
+      pszIType            : PSZ;      (* Pointer to string containing       *)
+                                      (*   initial EA type filter. Type     *)
+                                      (*   does not have to exist in list.  *)
+      papszITypeList      : PAPSZ;    (* Pointer to table of pointers that  *)
+                                      (*    point to null terminated Type   *)
+                                      (*    strings. End of table is marked *)
+                                      (*    by a NULL pointer.              *)
+      pszIDrive           : PSZ;      (* Pointer to string containing       *)
+                                      (*   initial drive. Drive does not    *)
+                                      (*   have to exist in drive list.     *)
+      papszIDriveList     : PAPSZ;    (* Pointer to table of pointers that  *)
+                                      (*    point to null terminated Drive  *)
+                                      (*    strings. End of table is marked *)
+                                      (*    by a NULL pointer.              *)
+      hMod                : HMODULE;  (* Custom File Dialog template.       *)
+      szFullFile          : ARRAY [0..CCHMAXPATH-1] OF CHAR;
+                                      (* Initial or selected fully          *)
+                                      (*      qualified path and file.      *)
+      papszFQFilename     : PAPSZ;    (* Pointer to table of pointers that  *)
+                                      (*    point to null terminated FQFname*)
+                                      (*    strings. End of table is marked *)
+                                      (*    by a NULL pointer.              *)
+      ulFQFCount          : LONGCARD; (* Number of files selected           *)
+      usDlgId             : CARDINAL; (* Custom dialog id.                  *)
+      x                   : INTEGER;  (* X coordinate of the dialog         *)
+      y                   : INTEGER;  (* Y coordinate of the dialog         *)
+      sEAType             : INTEGER;  (* Selected file's EA Type.           *)
+    | FALSE               :
+      Size                : LONGCARD;
+      Flags               : LONGCARD;
+      User                : LONGCARD;
+      Return              : LONGINT;
+      SRC                 : LONGINT;
+      Title               : PSZ;
+      OKButton            : PSZ;
+      DlgProc             : PFNWP;
+      Type                : PSZ;
+      TypeList            : PAPSZ;
+      Drive               : PSZ;
+      DriveList           : PAPSZ;
+      ModHandle           : HMODULE;
+      FullFile            : ARRAY [0..CCHMAXPATH-1] OF CHAR;
+      FQFilename          : PAPSZ;
+      FQFCount            : LONGCARD;
+      DlgId               : CARDINAL;
+      xPos                : INTEGER;
+      yPos                : INTEGER;
+      EAType              : INTEGER;
+    END;                  END;
+  PFILEDLG              = POINTER TO FILEDLG;
+
+(*--------------------------------------------------------------------*)
+(* File Dialog - Function Prototype                                   *)
+(*--------------------------------------------------------------------*)
+
+PROCEDURE WinFileDlg
+( ParentWinHandle         : HWND;
+  OwnerWinHandle          : HWND;
+  VAR FileDlg             : FILEDLG
+)                         : HWND;
+
+PROCEDURE WinDefFileDlgProc
+( DlgWinHandle            : HWND;
+  MsgId                   : LONGCARD;
+  Param1                  : MPARAM;
+  Param2                  : MPARAM
+)                         : MRESULT;
+
+PROCEDURE WinFreeFileDlgList
+( VAR FQFileName          : APSZ
+)                         : BOOLEAN;
+
+(*--------------------------------------------------------------------*)
+(* File Dialog - dialog and control ids                               *)
+(*--------------------------------------------------------------------*)
+CONST
+  DID_FILE_DIALOG         = 256;
+  DID_FILENAME_TXT        = 257;
+  DID_FILENAME_ED         = 258;
+  DID_DRIVE_TXT           = 259;
+  DID_DRIVE_CB            = 260;
+  DID_FILTER_TXT          = 261;
+  DID_FILTER_CB           = 262;
+  DID_DIRECTORY_TXT       = 263;
+  DID_DIRECTORY_LB        = 264;
+  DID_FILES_TXT           = 265;
+  DID_FILES_LB            = 266;
+  DID_HELP_PB             = 267;
+  DID_APPLY_PB            = 268;
+  DID_OK_PB               = DID_OK;
+  DID_CANCEL_PB           = DID_CANCEL;
+
+CONST
+  IDS_FILE_ALL_FILES_SELECTOR     = 1000;
+  IDS_FILE_BACK_CUR_PATH          = 1001;
+  IDS_FILE_BACK_PREV_PATH         = 1002;
+  IDS_FILE_BACK_SLASH             = 1003;
+  IDS_FILE_BASE_FILTER            = 1004;
+  IDS_FILE_BLANK                  = 1005;
+  IDS_FILE_COLON                  = 1006;
+  IDS_FILE_DOT                    = 1007;
+  IDS_FILE_DRIVE_LETTERS          = 1008;
+  IDS_FILE_FWD_CUR_PATH           = 1009;
+  IDS_FILE_FWD_PREV_PATH          = 1010;
+  IDS_FILE_FORWARD_SLASH          = 1011;
+  IDS_FILE_PARENT_DIR             = 1012;
+  IDS_FILE_Q_MARK                 = 1013;
+  IDS_FILE_SPLAT                  = 1014;
+  IDS_FILE_SPLAT_DOT              = 1015;
+  IDS_FILE_SAVEAS_TITLE           = 1016;
+  IDS_FILE_SAVEAS_FILTER_TXT      = 1017;
+  IDS_FILE_SAVEAS_FILENM_TXT      = 1018;
+  IDS_FILE_DUMMY_FILE_NAME        = 1019;
+  IDS_FILE_DUMMY_FILE_EXT         = 1020;
+  IDS_FILE_DUMMY_DRIVE            = 1021;
+  IDS_FILE_DUMMY_ROOT_DIR         = 1022;
+  IDS_FILE_PATH_PTR               = 1023;
+  IDS_FILE_VOLUME_PREFIX          = 1024;
+  IDS_FILE_VOLUME_SUFFIX          = 1025;
+  IDS_FILE_PATH_PTR2              = 1026;
+  IDS_FILE_INVALID_CHARS          = 1027;
+  IDS_FILE_BAD_DRIVE_NAME         = 1100;
+  IDS_FILE_BAD_DRIVE_OR_PATH_NAME = 1101;
+  IDS_FILE_BAD_FILE_NAME          = 1102;
+  IDS_FILE_BAD_FQF                = 1103;
+  IDS_FILE_BAD_NETWORK_NAME       = 1104;
+  IDS_FILE_BAD_SUB_DIR_NAME       = 1105;
+  IDS_FILE_DRIVE_NOT_AVAILABLE    = 1106;
+  IDS_FILE_FQFNAME_TOO_LONG       = 1107;
+  IDS_FILE_OPEN_DIALOG_NOTE       = 1108;
+  IDS_FILE_PATH_TOO_LONG          = 1109;
+  IDS_FILE_SAVEAS_DIALOG_NOTE     = 1110;
+  IDS_FILE_DRIVE_DISK_CHANGE      = 1120;
+  IDS_FILE_DRIVE_NOT_READY        = 1122;
+  IDS_FILE_DRIVE_LOCKED           = 1123;
+  IDS_FILE_DRIVE_NO_SECTOR        = 1124;
+  IDS_FILE_DRIVE_SOME_ERROR       = 1125;
+  IDS_FILE_DRIVE_INVALID          = 1126;
+  IDS_FILE_INSERT_DISK_NOTE       = 1127;
+  IDS_FILE_OK_WHEN_READY          = 1128;
+
+END WINSTDFILE.

@@ -1,0 +1,311 @@
+DEFINITION MODULE FONTFILEFORMAT;
+
+(************************************************************************
+  OS/2 2.x interface for Presentation Manager
+           type declarations for Fonts.
+
+  Copyright (c) 1992, 1994 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM   OS2DEF  IMPORT TYPEPREFIX, PSZ, PANOSE;
+
+TYPE
+  FOCAMETRICS                  = RECORD (* foca *)
+    CASE                         : TYPEPREFIX OF
+    | TRUE                       :
+      ulIdentity                 : LONGCARD;
+      ulSize                     : LONGCARD;
+      szFamilyname               : ARRAY [0..31] OF CHAR;
+      szFacename                 : ARRAY [0..31] OF CHAR;
+      usRegistryId               : INTEGER;
+      usCodePage                 : INTEGER;
+    | FALSE                      :
+      Identity                   : LONGCARD;
+      Size                       : LONGCARD;
+      FamilyName                 : ARRAY [0..31] OF CHAR;
+      Facename                   : ARRAY [0..31] OF CHAR;
+      RegistryId                 : INTEGER;
+      CodePage                   : INTEGER;
+    END;
+    yEmHeight                    : INTEGER;
+    yXHeight                     : INTEGER;
+    yMaxAscender                 : INTEGER;
+    yMaxDescender                : INTEGER;
+    yLowerCaseAscent             : INTEGER;
+    yLowerCaseDescent            : INTEGER;
+    yInternalLeading             : INTEGER;
+    yExternalLeading             : INTEGER;
+    xAveCharWidth                : INTEGER;
+    xMaxCharInc                  : INTEGER;
+    xEmInc                       : INTEGER;
+    yMaxBaselineExt              : INTEGER;
+    CASE                         : TYPEPREFIX OF
+    | TRUE                       :
+      sCharSlope                 : INTEGER;
+      sInlineDir                 : INTEGER;
+      sCharRot                   : INTEGER;
+      usWeightClass              : CARDINAL;
+      usWidthClass               : CARDINAL;
+    | FALSE                      :
+      CharSlope                  : INTEGER;
+      InlineDir                  : INTEGER;
+      CharRot                    : INTEGER;
+      WeightClass                : CARDINAL;
+      WidthClass                 : CARDINAL;
+    END;
+    xDeviceRes                   : INTEGER;
+    yDeviceRes                   : INTEGER;
+    CASE                         : TYPEPREFIX OF
+    | TRUE                       :
+      usFirstChar                : INTEGER;
+      usLastChar                 : INTEGER;
+      usDefaultChar              : INTEGER;
+      usBreakChar                : INTEGER;
+      usNominalPointSize         : INTEGER;
+      usMinimumPointSize         : INTEGER;
+      usMaximumPointSize         : INTEGER;
+      fsTypeFlags                : INTEGER;
+      fsDefn                     : INTEGER;
+      fsSelectionFlags           : INTEGER;
+      fsCapabilities             : INTEGER;
+    | FALSE                      :
+      FirstChar                  : INTEGER;
+      LastChar                   : INTEGER;
+      DefaultChar                : INTEGER;
+      BreakChar                  : INTEGER;
+      NominalPointSize           : INTEGER;
+      MinimumPointSize           : INTEGER;
+      MaximumPointSize           : INTEGER;
+      TypeFlags                  : INTEGER;
+      Defn                       : INTEGER;
+      SelectionFlags             : INTEGER;
+      Capabilities               : INTEGER;
+    END;
+    ySubscriptXSize              : INTEGER;
+    ySubscriptYSize              : INTEGER;
+    ySubscriptXOffset            : INTEGER;
+    ySubscriptYOffset            : INTEGER;
+    ySuperscriptXSize            : INTEGER;
+    ySuperscriptYSize            : INTEGER;
+    ySuperscriptXOffset          : INTEGER;
+    ySuperscriptYOffset          : INTEGER;
+    yUnderscoreSize              : INTEGER;
+    yUnderscorePosition          : INTEGER;
+    yStrikeoutSize               : INTEGER;
+    yStrikeoutPosition           : INTEGER;
+    CASE                         : TYPEPREFIX OF
+    | TRUE                       :
+      usKerningPairs             : INTEGER;
+      sFamilyClass               : INTEGER;
+      pszDeviceNameOffset        : PSZ;
+    | FALSE                      :
+      KerningPairs               : INTEGER;
+      FamilyClass                : INTEGER;
+      DeviceNameOffset           : PSZ;
+    END;                         END;
+  PFOCAMETRICS                 = POINTER TO FOCAMETRICS;
+
+TYPE
+  FONTFILEMETRICS              = RECORD (* ffm *)
+    CASE                         : TYPEPREFIX OF
+    | TRUE                       :
+      ulIdentity                 : LONGCARD;
+      ulSize                     : LONGCARD;
+      szFamilyname               : ARRAY [0..31] OF CHAR;
+      szFacename                 : ARRAY [0..31] OF CHAR;
+      usRegistryId               : INTEGER;
+      usCodePage                 : INTEGER;
+    | FALSE                      :
+      Identity                   : LONGCARD;
+      Size                       : LONGCARD;
+      Familyname                 : ARRAY [0..31] OF CHAR;
+      Facename                   : ARRAY [0..31] OF CHAR;
+      RegistryId                 : INTEGER;
+      CodePage                   : INTEGER;
+    END;
+    yEmHeight                    : INTEGER;
+    yXHeight                     : INTEGER;
+    yMaxAscender                 : INTEGER;
+    yMaxDescender                : INTEGER;
+    yLowerCaseAscent             : INTEGER;
+    yLowerCaseDescent            : INTEGER;
+    yInternalLeading             : INTEGER;
+    yExternalLeading             : INTEGER;
+    xAveCharWidth                : INTEGER;
+    xMaxCharInc                  : INTEGER;
+    xEmInc                       : INTEGER;
+    yMaxBaselineExt              : INTEGER;
+    CASE                         : TYPEPREFIX OF
+    | TRUE                       :
+      sCharSlope                 : INTEGER;
+      sInlineDir                 : INTEGER;
+      sCharRot                   : INTEGER;
+      usWeightClass              : CARDINAL;
+      usWidthClass               : CARDINAL;
+    | FALSE                      :
+      CharSlope                  : INTEGER;
+      InlineDir                  : INTEGER;
+      CharRot                    : INTEGER;
+      WeightClass                : CARDINAL;
+      WidthClass                 : CARDINAL;
+    END;
+    xDeviceRes                   : INTEGER;
+    yDeviceRes                   : INTEGER;
+    CASE                         : TYPEPREFIX OF
+    | TRUE                       :
+      usFirstChar                : INTEGER;
+      usLastChar                 : INTEGER;
+      usDefaultChar              : INTEGER;
+      usBreakChar                : INTEGER;
+      usNominalPointSize         : INTEGER;
+      usMinimumPointSize         : INTEGER;
+      usMaximumPointSize         : INTEGER;
+      fsTypeFlags                : INTEGER;
+      fsDefn                     : INTEGER;
+      fsSelectionFlags           : INTEGER;
+      fsCapabilities             : INTEGER;
+    | FALSE                      :
+      FirstChar                  : INTEGER;
+      LastChar                   : INTEGER;
+      DefaultChar                : INTEGER;
+      BreakChar                  : INTEGER;
+      NominalPointSize           : INTEGER;
+      MinimumPointSize           : INTEGER;
+      MaximumPointSize           : INTEGER;
+      TypeFlags                  : INTEGER;
+      Defn                       : INTEGER;
+      SelectionFlags             : INTEGER;
+      Capabilities               : INTEGER;
+    END;
+    ySubscriptXSize              : INTEGER;
+    ySubscriptYSize              : INTEGER;
+    ySubscriptXOffset            : INTEGER;
+    ySubscriptYOffset            : INTEGER;
+    ySuperscriptXSize            : INTEGER;
+    ySuperscriptYSize            : INTEGER;
+    ySuperscriptXOffset          : INTEGER;
+    ySuperscriptYOffset          : INTEGER;
+    yUnderscoreSize              : INTEGER;
+    yUnderscorePosition          : INTEGER;
+    yStrikeoutSize               : INTEGER;
+    yStrikeoutPosition           : INTEGER;
+    CASE                         : TYPEPREFIX OF
+    | TRUE                       :
+      usKerningPairs             : INTEGER;
+      sFamilyClass               : INTEGER;
+      ulReserved                 : LONGCARD;
+    | FALSE                      :
+      KerningPairs               : INTEGER;
+      FamilyClass                : INTEGER;
+      Reserved                   : LONGCARD;
+    END;
+    panose                       : PANOSE;
+                                 END;
+  PFONTFILEMETRICS             = POINTER TO FONTFILEMETRICS;
+
+TYPE
+  FONTDEFINITIONHEADER         = RECORD (* fdh *)
+    CASE                         : TYPEPREFIX OF
+    | TRUE                       :
+      ulIdentity                 : LONGCARD;
+      ulSize                     : LONGCARD;
+      fsFontdef                  : INTEGER;
+      fsChardef                  : INTEGER;
+      usCellSize                 : INTEGER;
+    | FALSE                      :
+      Identity                   : LONGCARD;
+      Size                       : LONGCARD;
+      FontdefFlag                : INTEGER;
+      ChardefFlag                : INTEGER;
+      CellSize                   : INTEGER;
+    END;
+    xCellWidth                   : INTEGER;
+    yCellHeight                  : INTEGER;
+    xCellIncrement               : INTEGER;
+    xCellA                       : INTEGER;
+    xCellB                       : INTEGER;
+    xCellC                       : INTEGER;
+    CASE                         : TYPEPREFIX OF
+    | TRUE                       :
+      pCellBaseOffset            : INTEGER;
+    | FALSE                      :
+      CellBaseOffset             : INTEGER;
+    END;                         END;
+  PFONTDEFINITIONHEADER        = POINTER TO FONTDEFINITIONHEADER;
+
+CONST
+  FONTDEFFONT1    = 0047H;  (* set width, height, inc. & base offset *)
+  FONTDEFFONT2    = 0042H;  (* set height & base offset              *)
+  FONTDEFFONT3    = 0042H;  (* set height & base offset              *)
+  FONTDEFCHAR1    = 0081H;  (* set char offset and width             *)
+  FONTDEFCHAR2    = 0081H;  (* set char offset and width             *)
+  FONTDEFCHAR3    = 00B8H;  (* set char offset, A, B, and C space    *)
+  SPACE_UNDEF     = 8000H;  (* space undefined = take default        *)
+
+TYPE
+  FONTSIGNATURE                = RECORD (* fs *)
+    CASE                         : TYPEPREFIX OF
+    | TRUE                       :
+      ulIdentity                 : LONGCARD;
+      ulSize                     : LONGCARD;
+      achSignature               : ARRAY [0..11] OF CHAR;
+    | FALSE                      :
+      Identity                   : LONGCARD;
+      Size                       : LONGCARD;
+      Signature                  : ARRAY [0..11] OF CHAR;
+    END;                         END;
+  PFONTSIGNATURE               = POINTER TO FONTSIGNATURE;
+
+TYPE
+  ADDITIONALMETRICS            = RECORD (* am *)
+    CASE                         : TYPEPREFIX OF
+    | TRUE                       :
+      ulIdentity                 : LONGCARD;
+      ulSize                     : LONGCARD;
+    | FALSE                      :
+      Identity                   : LONGCARD;
+      Size                       : LONGCARD;
+    END;
+    panose                       : PANOSE;
+                                 END;
+  PADDITIONALMETRICS           = POINTER TO ADDITIONALMETRICS;
+
+TYPE
+  FOCAFONT                     = RECORD (* ff *)
+    CASE                         : TYPEPREFIX OF
+    | TRUE                       :
+      fsSignature                : FONTSIGNATURE;
+      fmMetrics                  : FOCAMETRICS;
+      fdDefinitions              : FONTDEFINITIONHEADER;
+    | FALSE                      :
+      Signature                  : FONTSIGNATURE;
+      Metrics                    : FOCAMETRICS;
+      Definitions                : FONTDEFINITIONHEADER;
+    END;                         END;
+  PFOCAFONT                    = POINTER TO FOCAFONT;
+
+CONST
+  FONT_SIGNATURE          = 0FFFFFFFEH; (* Identity header start       *)
+  FONT_METRICS            = 000000001H; (* Identity metrics            *)
+  FONT_DEFINITION         = 000000002H; (* Identity definition         *)
+  FONT_KERNPAIRS          = 000000003H; (* Identity Kern Pairs         *)
+  FONT_ADDITIONALMETRICS  = 000000004H; (* Identity Additional Metrics *)
+  FONT_ENDRECORD          = 0FFFFFFFFH; (* Identity record end         *)
+
+CONST (* Options for QueryFonts *)
+  QUERY_PUBLIC_FONTS      = 0001H;
+  QUERY_PRIVATE_FONTS     = 0002H;
+
+CONST
+  CDEF_GENERIC            = 0001H;
+  CDEF_BOLD               = 0002H;
+  CDEF_ITALIC             = 0004H;
+  CDEF_UNDERSCORE         = 0008H;
+  CDEF_STRIKEOUT          = 0010H;
+  CDEF_OUTLINE            = 0020H;
+
+END FONTFILEFORMAT.

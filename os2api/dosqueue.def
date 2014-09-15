@@ -1,0 +1,98 @@
+DEFINITION MODULE DOSQUEUES;
+
+(************************************************************************
+  OS/2 2.0 interface for pipe and queue support.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF  IMPORT TYPEPREFIX, APIRET, LHANDLE, HFILE, PID, HEV;
+
+TYPE
+  HQUEUE       = LHANDLE;
+  PHQUEUE      = POINTER TO HQUEUE;
+  REQUESTDATA  = RECORD
+    CASE         : TYPEPREFIX OF
+    | TRUE       :
+      pid        : PID;
+      ulData     : LONGCARD;
+    | FALSE      :
+      PId        : PID;
+      Data       : LONGCARD;
+    END;         END;
+  PREQUESTDATA = POINTER TO REQUESTDATA;
+
+CONST (* for DosCreateQueue() QueueFlags *)
+  QUE_FIFO              = 0;
+  QUE_LIFO              = 1;
+  QUE_PRIORITY          = 2;
+  QUE_NOCONVERT_ADDRESS = 0;
+  QUE_CONVERT_ADDRESS   = 4;
+
+PROCEDURE DosCreatePipe
+( VAR ReadHandle        : HFILE;
+  VAR WriteHandle       : HFILE;
+  PipeSize              : LONGCARD
+)                       : APIRET;
+
+PROCEDURE DosCloseQueue
+( QueueHandle           : HQUEUE
+)                       : APIRET;
+
+PROCEDURE DosCreateQueue
+( VAR RWHandle          : HQUEUE;
+  QueueFlags            : LONGCARD;
+  QueueName             : ARRAY OF CHAR
+)                       : APIRET;
+
+PROCEDURE DosOpenQueue
+( VAR OwnerPId          : PID;
+  VAR QueueHandle       : HQUEUE;
+  QueueName             : ARRAY OF CHAR
+)                       : APIRET;
+
+PROCEDURE DosPeekQueue
+( QueueHandle           : HQUEUE;
+  VAR Request           : REQUESTDATA;
+  VAR DataLength        : LONGCARD;
+  VAR DataAddress       : SYSTEM.ADDRESS;
+  VAR ElementCode       : LONGCARD;
+  NoWait                : BOOLEAN;
+  VAR ElemPriority      : SHORTCARD;
+  SemHandle             : HEV
+)                       : APIRET;
+
+PROCEDURE DosPurgeQueue
+( QueueHandle           : HQUEUE
+)                       : APIRET;
+
+PROCEDURE DosQueryQueue
+( QueueHandle           : HQUEUE;
+  VAR NumberElements    : LONGCARD
+)                       : APIRET;
+
+PROCEDURE DosReadQueue
+( QueueHandle           : HQUEUE;
+  VAR Request           : REQUESTDATA;
+  VAR DataLength        : LONGCARD;
+  VAR DataAddress       : SYSTEM.ADDRESS;
+  ElementCode           : LONGCARD;
+  NoWait                : BOOLEAN;
+  VAR ElemPriority      : SHORTCARD;
+  SemHandle             : HEV
+)                       : APIRET;
+
+PROCEDURE DosWriteQueue
+( QueueHandle           : HQUEUE;
+  Request               : LONGCARD;
+  DataLength            : LONGCARD;
+  VAR DataBuffer        : ARRAY OF SYSTEM.BYTE;
+  ElemPriority          : LONGCARD
+)                       : APIRET;
+
+END DOSQUEUES.

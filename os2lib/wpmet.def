@@ -1,0 +1,6 @@
+LIBRARY PMWP
+EXPORTS
+  WPMetClassData         @0x005F
+  WPMetNewClass          @0x0060
+  M_WPMetClassData       @0x0197
+  M_WPMetNewClass        @0x0198

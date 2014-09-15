@@ -1,0 +1,23 @@
+LIBRARY PMGPI
+EXPORTS
+  GpiQuerySegmentTransformMatrix  @485
+  GpiSetSegmentTransformMatrix    @549
+  GpiConvert                      @364
+  GpiConvertWithMatrix            @618
+  GpiQueryModelTransformMatrix    @468
+  GpiSetModelTransformMatrix      @538
+  GpiCallSegmentMatrix            @357
+  GpiQueryDefaultViewMatrix       @443
+  GpiSetDefaultViewMatrix         @520
+  GpiQueryPageViewport            @472
+  GpiSetPageViewport              @540
+  GpiQueryViewingTransformMatrix  @491
+  GpiSetViewingTransformMatrix    @553
+  GpiTranslate                    @564
+  GpiScale                        @565
+  GpiRotate                       @566
+  GpiSetGraphicsField             @526
+  GpiQueryGraphicsField           @454
+  GpiSetViewingLimits             @552
+  GpiQueryViewingLimits           @490
+

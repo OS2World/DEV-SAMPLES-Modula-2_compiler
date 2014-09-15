@@ -1,0 +1,4 @@
+LIBRARY PMWIN
+EXPORTS
+  WinRealizePalette  @941
+

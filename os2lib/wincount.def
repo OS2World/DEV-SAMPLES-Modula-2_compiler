@@ -1,0 +1,13 @@
+LIBRARY PMWIN
+EXPORTS
+  WinQueryCp             @810
+  WinSetCp               @857
+  WinQueryCpList         @811
+  WinCpTranslateString   @712
+  WinCpTranslateChar     @711
+  WinUpper               @893
+  WinUpperChar           @894
+  WinNextChar            @791
+  WinPrevChar            @795
+  WinCompareStrings      @708
+

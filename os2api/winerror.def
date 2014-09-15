@@ -1,0 +1,140 @@
+DEFINITION MODULE WINERRORS;
+
+(************************************************************************
+  OS/2 2.x interface for Presentation Manager error handling and codes.
+
+  Copyright (c) 1992, 1994 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF  IMPORT TYPEPREFIX, ERRORID, HAB;
+
+CONST (* Window Manager error codes *)
+  PMERR_INVALID_HWND                 = 1001H;
+  PMERR_INVALID_HMQ                  = 1002H;
+  PMERR_PARAMETER_OUT_OF_RANGE       = 1003H;
+  PMERR_WINDOW_LOCK_UNDERFLOW        = 1004H;
+  PMERR_WINDOW_LOCK_OVERFLOW         = 1005H;
+  PMERR_BAD_WINDOW_LOCK_COUNT        = 1006H;
+  PMERR_WINDOW_NOT_LOCKED            = 1007H;
+  PMERR_INVALID_SELECTOR             = 1008H;
+  PMERR_CALL_FROM_WRONG_THREAD       = 1009H;
+  PMERR_RESOURCE_NOT_FOUND           = 100AH;
+  PMERR_INVALID_STRING_PARM          = 100BH;
+  PMERR_INVALID_HHEAP                = 100CH;
+  PMERR_INVALID_HEAP_POINTER         = 100DH;
+  PMERR_INVALID_HEAP_SIZE_PARM       = 100EH;
+  PMERR_INVALID_HEAP_SIZE            = 100FH;
+  PMERR_INVALID_HEAP_SIZE_WORD       = 1010H;
+  PMERR_HEAP_OUT_OF_MEMORY           = 1011H;
+  PMERR_HEAP_MAX_SIZE_REACHED        = 1012H;
+  PMERR_INVALID_HATOMTBL             = 1013H;
+  PMERR_INVALID_ATOM                 = 1014H;
+  PMERR_INVALID_ATOM_NAME            = 1015H;
+  PMERR_INVALID_INTEGER_ATOM         = 1016H;
+  PMERR_ATOM_NAME_NOT_FOUND          = 1017H;
+  PMERR_QUEUE_TOO_LARGE              = 1018H;
+  PMERR_INVALID_FLAG                 = 1019H;
+  PMERR_INVALID_HACCEL               = 101AH;
+  PMERR_INVALID_HPTR                 = 101BH;
+  PMERR_INVALID_HENUM                = 101CH;
+  PMERR_INVALID_SRC_CODEPAGE         = 101DH;
+  PMERR_INVALID_DST_CODEPAGE         = 101EH;
+
+CONST
+  (* These are not real error codes, but just used to access special  *)
+  (* error message strings used by WinGetErrorInfo to format an error *)
+  (* message.                                                         *)
+  (* 1022H - 1033H, 1035H, 104BH - 104CH are used elsewhere           *)
+  PMERR_UNKNOWN_COMPONENT_ID         = 101FH;
+  PMERR_UNKNOWN_ERROR_CODE           = 1020H;
+  PMERR_SEVERITY_LEVELS              = 1021H;
+  PMERR_INVALID_RESOURCE_FORMAT      = 1034H;
+  PMERR_WINDOW_UNLOCK_WAIT           = 1035H;
+  PMERR_NO_MSG_QUEUE                 = 1036H;
+  PMERR_WIN_DEBUGMSG                 = 1037H;
+  PMERR_QUEUE_FULL                   = 1038H;
+  PMERR_LIBRARY_LOAD_FAILED          = 1039H;
+  PMERR_PROCEDURE_LOAD_FAILED        = 103AH;
+  PMERR_LIBRARY_DELETE_FAILED        = 103BH;
+  PMERR_PROCEDURE_DELETE_FAILED      = 103CH;
+  PMERR_ARRAY_TOO_LARGE              = 103DH;
+  PMERR_ARRAY_TOO_SMALL              = 103EH;
+  PMERR_DATATYPE_ENTRY_BAD_INDEX     = 103FH;
+  PMERR_DATATYPE_ENTRY_CTL_BAD       = 1040H;
+  PMERR_DATATYPE_ENTRY_CTL_MISS      = 1041H;
+  PMERR_DATATYPE_ENTRY_INVALID       = 1042H;
+  PMERR_DATATYPE_ENTRY_NOT_NUM       = 1043H;
+  PMERR_DATATYPE_ENTRY_NOT_OFF       = 1044H;
+  PMERR_DATATYPE_INVALID             = 1045H;
+  PMERR_DATATYPE_NOT_UNIQUE          = 1046H;
+  PMERR_DATATYPE_TOO_LONG            = 1047H;
+  PMERR_DATATYPE_TOO_SMALL           = 1048H;
+  PMERR_DIRECTION_INVALID            = 1049H;
+  PMERR_INVALID_HAB                  = 104AH;
+  PMERR_INVALID_HSTRUCT              = 104DH;
+  PMERR_LENGTH_TOO_SMALL             = 104EH;
+  PMERR_MSGID_TOO_SMALL              = 104FH;
+  PMERR_NO_HANDLE_ALLOC              = 1050H;
+  PMERR_NOT_IN_A_PM_SESSION          = 1051H;
+  PMERR_MSG_QUEUE_ALREADY_EXISTS     = 1052H;
+  PMERR_OLD_RESOURCE                 = 1055H;
+
+CONST
+  (* Error codes for debugging support                 *)
+  (* 1001H - 1021H, 1034H, 1036H - 1050H are reserved  *)
+  WINDBG_HWND_NOT_DESTROYED      = 1022H;
+  WINDBG_HPTR_NOT_DESTROYED      = 1023H;
+  WINDBG_HACCEL_NOT_DESTROYED    = 1024H;
+  WINDBG_HENUM_NOT_DESTROYED     = 1025H;
+  WINDBG_VISRGN_SEM_BUSY         = 1026H;
+  WINDBG_USER_SEM_BUSY           = 1027H;
+  WINDBG_DC_CACHE_BUSY           = 1028H;
+  WINDBG_HOOK_STILL_INSTALLED    = 1029H;
+  WINDBG_WINDOW_STILL_LOCKED     = 102AH;
+  WINDBG_UPDATEPS_ASSERTION_FAIL = 102BH;
+  WINDBG_SENDMSG_WITHIN_USER_SEM = 102CH;
+  WINDBG_USER_SEM_NOT_ENTERED    = 102DH;
+  WINDBG_PROC_NOT_EXPORTED       = 102EH;
+  WINDBG_BAD_SENDMSG_HWND        = 102FH;
+  WINDBG_ABNORMAL_EXIT           = 1030H;
+  WINDBG_INTERNAL_REVISION       = 1031H;
+  WINDBG_INITSYSTEM_FAILED       = 1032H;
+  WINDBG_HATOMTBL_NOT_DESTROYED  = 1033H;
+  WINDBG_WINDOW_UNLOCK_WAIT      = 1035H;
+
+TYPE (* Get/Set Error Information Interface declarations *)
+  ERRINFO                        = RECORD  (* erri *)
+    CASE                           : TYPEPREFIX OF
+    | TRUE                         :
+      cbFixedErrInfo               : LONGCARD;
+      idError                      : ERRORID;
+      cDetailLevel                 : LONGCARD;
+      offaoffszMsg                 : LONGCARD;
+      offBinaryData                : LONGCARD;
+    | FALSE                        :
+      FixedErrInfoSize             : LONGCARD;
+      ErrorId                      : ERRORID;
+      DetailLevelCount             : LONGCARD;
+      MsgStringsArrayOffset        : LONGCARD;
+      BinaryDataOffset             : LONGCARD;
+    END;                           END;
+  PERRINFO                       = POINTER TO ERRINFO;
+
+PROCEDURE WinGetLastError
+( AnchorBlockHandle        : HAB
+)                          : ERRORID;
+
+PROCEDURE WinGetErrorInfo
+( AnchorBlockHandle        : HAB
+)                          : PERRINFO;
+
+PROCEDURE WinFreeErrorInfo
+( ErrorInfo                : PERRINFO
+)                          : BOOLEAN;
+
+END WINERRORS.

@@ -1,0 +1,28 @@
+LIBRARY PMWIN
+EXPORTS
+  WinSendMsg                @920
+  WinCreateMsgQueue         @716
+  WinDestroyMsgQueue        @726
+  WinQueryQueueInfo         @824
+  WinCancelShutdown         @705
+  WinGetMsg                 @915
+  WinPeekMsg                @918
+  WinDispatchMsg            @912
+  WinPostMsg                @919
+  WinRegisterUserMsg        @846
+  WinRegisterUserDatatype   @845
+  WinSetMsgMode             @862
+  WinSetSynchroMode         @870
+  WinInSendMsg              @761
+  WinBroadcastMsg           @901
+  WinWaitMsg                @897
+  WinQueryQueueStatus       @825
+  WinQueryMsgPos            @818
+  WinQueryMsgTime           @819
+  WinWaitEventSem           @978
+  WinRequestMutexSem        @979
+  WinWaitMuxWaitSem         @980
+  WinPostQueueMsg           @902
+  WinSetMsgInterest         @861
+  WinSetClassMsgInterest    @853
+

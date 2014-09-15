@@ -1,0 +1,20 @@
+DEFINITION MODULE WINPALETTE;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager Palette API.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+
+FROM   OS2DEF  IMPORT HWND, HPS;
+
+PROCEDURE WinRealizePalette
+( WinHandle            : HWND;
+  PresSpaceHandle      : HPS;
+  VAR ColorCount       : LONGCARD
+)                      : LONGINT;
+
+END WINPALETTE.

@@ -1,0 +1,126 @@
+DEFINITION MODULE WPDISK;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPDisk;
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPABS;
+IMPORT OS2DEF;
+IMPORT WPROOTF;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPDisk                = POINTER TO WPDisk;
+TYPE PM_WPDisk              = POINTER TO M_WPDisk;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPDisk
+*************************************************************************)
+
+TYPE HWND                   = OS2DEF.HWND;
+TYPE PWPRootFolder          = WPROOTF.PWPRootFolder;
+
+CONST OPEN_AUTO             = 120;
+
+
+(*************************************************************************
+  SOM class API for WPDisk, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPDisk_MajorVersion     = 1;
+  WPDisk_MinorVersion     = 2;
+
+TYPE 
+  WPDiskClassDataStructure   = RECORD
+    classObject                : PSOMClass;
+    wpAddDiskDetailsPage       : somMToken;
+    wpSetCorrectDiskIcon       : somMToken;
+    wpQueryLogicalDrive        : somMToken;
+    wpSetLogicalDrive          : somMToken;
+    wpQueryRootFolder          : somMToken;
+    wpSetDiskInfo              : somMToken;
+    wpTouchDisk                : somMToken;
+    wpQueryDiskInfo            : somMToken;
+    wpQueryDriveLockStatus     : somMToken;
+    wpEjectDisk                : somMToken;
+    wpLockDrive                : somMToken;
+                               END;
+
+VAR
+  WPDiskClassData : WPDiskClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPDisk = RECORD( WPABS.WPAbstract ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPDiskNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+PROCEDURE( Self : PWPDisk ) wpAddDiskDetailsPage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPDisk ) wpQueryDriveLockStatus
+(
+  VAR ulLockStatus : LONGCARD;
+  VAR ulLockCount  : LONGCARD
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPDisk ) wpEjectDisk( ) : LONGCARD;
+
+PROCEDURE( Self : PWPDisk ) wpLockDrive
+(
+  fLock         : BOOLEAN
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPDisk ) wpQueryLogicalDrive( ) : LONGCARD;
+
+PROCEDURE( Self : PWPDisk ) wpQueryRootFolder( ) : PWPRootFolder;
+
+
+(*************************************************************************
+  SOM class API for M_WPDisk, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPDisk_MajorVersion   = 1;
+  M_WPDisk_MinorVersion   = 2;
+
+TYPE 
+  M_WPDiskClassDataStructure   = RECORD
+    classObject                  : PSOMClass;
+                                 END;
+
+VAR
+  M_WPDiskClassData : M_WPDiskClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPDisk = RECORD( WPABS.M_WPAbstract ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPDiskNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+END WPDISK.

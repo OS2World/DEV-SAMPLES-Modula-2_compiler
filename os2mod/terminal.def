@@ -1,0 +1,73 @@
+(*$DLL      Terminal may be implemented as dynamic link library *)
+(*$PREFIX   Public DLL symbols are to be prefixed by 'Terminal' *)
+
+DEFINITION MODULE Terminal;
+
+(**************************************************************************
+   OS/2 2.x  Modula-2 standard utility for terminal input/output.
+
+   Copyright (c) 1993, 1994 by Juergen Neuhoff
+**************************************************************************)
+
+PROCEDURE Read( VAR ch: CHAR );
+(*
+   Waits for key to be typed and returns a character.
+   If it is a function key then return 0C.
+   If it is a valid character and echo flag is on
+   then echo the character on the video screen.
+*)
+
+PROCEDURE BusyRead( VAR ch: CHAR );
+(*
+   Returns a character immediately from the keyboard.
+   If no key has been typed or if it is a function key
+   then return 0C. Character read is not echoed.
+*)
+
+PROCEDURE ReadAgain();
+(*
+   Pushes last character read back into the input queue.
+*)
+
+PROCEDURE ScanCode():SHORTCARD;
+(*
+   Returns the scan scode of the last character read.
+   If the last character read is 0C and if the
+   scan code returned is greater then 0 then it is a
+   function key.
+*)
+
+PROCEDURE SetEcho( Flag: BOOLEAN );
+(*
+   Set Echo flag for 'Read' procedure.
+   TRUE = Echo on, FALSE = Echo off.
+*)
+
+PROCEDURE GetEcho( VAR Flag: BOOLEAN );
+(*
+   Get Echo flag. TRUE = Echo on, FALSE = Echo off.
+*)
+
+PROCEDURE Write( ch: CHAR );
+(*
+   Writes a character on the screen.
+   'Carriage return' causes the text cursor to be
+   moved to the beginning of the current line.
+   'Line feed' causes the text cursor to be moved
+   to the next line at the same column.
+*)
+
+PROCEDURE WriteLn();
+(*
+   Writes a 'Carriage return' + 'Line feed' on the
+   screen. This causes the text cursor to be placed
+   at the beginning of the next line.
+*)
+
+PROCEDURE WriteString( s: ARRAY OF CHAR );
+(*
+   Writes a character string on the screen.
+   All ANSI escape sequences are processed as needed.
+*)
+
+END Terminal.

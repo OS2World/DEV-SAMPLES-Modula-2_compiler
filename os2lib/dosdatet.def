@@ -1,0 +1,8 @@
+LIBRARY DOSCALLS
+EXPORTS
+  DosGetDateTime     @230
+  DosSetDateTime     @292
+  DosAsyncTimer      @350
+  DosStartTimer      @351
+  DosStopTimer       @290
+

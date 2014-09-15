@@ -1,0 +1,163 @@
+DEFINITION MODULE WPPGM;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPProgram;
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPABS;
+IMPORT OS2DEF;
+IMPORT WINPROGRAMLIST;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPProgram             = POINTER TO WPProgram;
+TYPE PM_WPProgram           = POINTER TO M_WPProgram;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPProgram
+*************************************************************************)
+
+TYPE HWND                   = OS2DEF.HWND;
+TYPE PROGDETAILS            = WINPROGRAMLIST.PROGDETAILS;
+TYPE PSZ                    = OS2DEF.PSZ;
+
+(*************************************************************************
+  SOM class API for WPProgram, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPProgram_MajorVersion     = 1;
+  WPProgram_MinorVersion     = 2;
+
+TYPE
+  WPProgramClassDataStructure   = RECORD
+    classObject                   : PSOMClass;
+    wpAddProgramPage              : somMToken;
+    wpAddProgramSessionPage       : somMToken;
+    wpQueryProgDetails            : somMToken;
+    wpSetProgDetails              : somMToken;
+    wpSetHPROGRAM                 : somMToken;
+    wpQueryHPROGRAM               : somMToken;
+    wpAddProgramAssociationPage   : somMToken;
+    wpSetProgIcon                 : somMToken;
+    wpQueryAssociationFilter      : somMToken;
+    wpQueryAssociationType        : somMToken;
+    wpSetAssociationFilter        : somMToken;
+    wpSetAssociationType          : somMToken;
+                                  END;
+
+VAR
+  WPProgramClassData : WPProgramClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPProgram = RECORD( WPABS.WPAbstract ) END;
+  (*$SOM- *)
+
+PROCEDURE WPProgramNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+(*
+ *  NOTE: The following methods also support name lookup.
+ *
+ *  Example name lookup for "wpAddProgramAssociationPage":
+ *      ...
+ *    TYPE PROCAddProgramAssociationPage =
+ *         PROCEDURE( PWPProgram, HWND ) : LONGCARD;
+ *      ...
+ *    VAR classObject : SOM.SOMClass;
+ *    VAR methodId    : SOM.somId;
+ *    VAR directFlag  : BOOLEAN;
+ *    VAR method      : SOM.somMethodProc;
+ +    VAR wpProc      : PROCAddProgramAssociationPage;
+ *      ...
+ *    classObject := ProgramObject^.somGetClass();
+ *    methodId := SOM.somIdFromString( "wpAddProgramAssociationPage" );
+ *    directFlag := classObject^.somFindMethodOk( methodId, method );
+ *    proc := PROCAddProgramAssociationPage( method );
+ *      ...
+ *)
+
+PROCEDURE( Self : PWPProgram ) wpAddProgramAssociationPage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPProgram ) wpQueryProgDetails
+(
+  VAR ProgDetails : PROGDETAILS;
+  VAR ulSize      : LONGCARD
+)                 : BOOLEAN;
+
+PROCEDURE( Self : PWPProgram ) wpSetProgDetails
+(
+  VAR ProgDetails : PROGDETAILS
+)                 : BOOLEAN;
+
+PROCEDURE( Self : PWPProgram ) wpAddProgramPage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPProgram ) wpAddProgramSessionPage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPProgram ) wpQueryAssociationFilter( ) : PSZ;
+
+PROCEDURE( Self : PWPProgram ) wpQueryAssociationType( ) : PSZ;
+
+PROCEDURE( Self : PWPProgram ) wpSetAssociationFilter
+(
+  szFilter      : ARRAY OF CHAR
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPProgram ) wpSetAssociationType
+(
+  szType        : ARRAY OF CHAR
+)               : BOOLEAN;
+
+
+(*************************************************************************
+  SOM class API for M_WPProgram, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPProgram_MajorVersion   = 1;
+  M_WPProgram_MinorVersion   = 2;
+
+TYPE
+  M_WPProgramClassDataStructure   = RECORD
+    classObject                     : PSOMClass;
+                                    END;
+
+VAR
+  M_WPProgramClassData : M_WPProgramClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPProgram = RECORD( WPABS.M_WPAbstract ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPProgramNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+END WPPGM.

@@ -1,0 +1,6 @@
+LIBRARY PMWIN
+EXPORTS
+  WinDdeInitiate  @718
+  WinDdeRespond   @720
+  WinDdePostMsg   @719
+

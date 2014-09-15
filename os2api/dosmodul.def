@@ -1,0 +1,58 @@
+DEFINITION MODULE DOSMODULEMGR;
+
+(*************************************************************************
+  OS/2 2.1 interface for Module manager.
+
+  (c) 1992, 1994 by Juergen Neuhoff
+**************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+
+IMPORT SYSTEM;
+IMPORT OS2DEF;
+
+TYPE APIRET  = OS2DEF.APIRET;
+TYPE HMODULE = OS2DEF.HMODULE;
+
+PROCEDURE DosLoadModule
+( VAR ObjNameBuf        : ARRAY OF CHAR;
+  ObjNameBufLen         : LONGCARD;
+  ModName               : ARRAY OF CHAR;
+  VAR ModHandle         : HMODULE
+)                       : APIRET;
+
+PROCEDURE DosFreeModule
+( ModHandle             : HMODULE
+)                       : APIRET;
+
+PROCEDURE DosQueryProcAddr
+( ModHandle             : HMODULE;
+  Ordinal               : LONGCARD;
+  ProcName              : ARRAY OF CHAR;
+  VAR ProcAddr          : SYSTEM.LONGWORD
+)                       : APIRET;
+
+PROCEDURE DosQueryModuleHandle
+( ModName               : ARRAY OF CHAR;
+  VAR ModHandle         : HMODULE
+)                       : APIRET;
+
+PROCEDURE DosQueryModuleName
+( ModHandle             : HMODULE;
+  BufferLength          : LONGCARD;
+  VAR NameBuffer        : ARRAY OF CHAR
+)                       : APIRET;
+
+PROCEDURE DosQueryProcType
+( ModHandle             : HMODULE;
+  Ordinal               : LONGCARD;
+  ProcName              : ARRAY OF CHAR;
+  VAR ProcType          : LONGCARD
+)                       : APIRET;
+
+CONST (* for DosQueryProcType() ProcType *)
+  PT_16BIT = 0;  (* Queried procedure is 16-bit *)
+  PT_32BIT = 1;  (* Queried procedure is 32-bit *)
+
+END DOSMODULEMGR.

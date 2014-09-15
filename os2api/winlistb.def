@@ -1,0 +1,128 @@
+DEFINITION MODULE WINLISTBOXES;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager List box controls.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM   OS2DEF        IMPORT HWND;
+
+CONST (* List box styles *)
+  LS_MULTIPLESEL          = 00000001H;
+  LS_OWNERDRAW            = 00000002H;
+  LS_NOADJUSTPOS          = 00000004H;
+  LS_HORZSCROLL           = 00000008H;
+  LS_EXTENDEDSEL          = 00000010H;
+
+CONST (* List box notification messages *)
+  LN_SELECT               = 1;
+  LN_SETFOCUS             = 2;
+  LN_KILLFOCUS            = 3;
+  LN_SCROLL               = 4;
+  LN_ENTER                = 5;
+
+CONST (* List box messages *)
+  LM_QUERYITEMCOUNT       = 0160H;
+  LM_INSERTITEM           = 0161H;
+  LM_SETTOPINDEX          = 0162H;
+  LM_DELETEITEM           = 0163H;
+  LM_SELECTITEM           = 0164H;
+  LM_QUERYSELECTION       = 0165H;
+  LM_SETITEMTEXT          = 0166H;
+  LM_QUERYITEMTEXTLENGTH  = 0167H;
+  LM_QUERYITEMTEXT        = 0168H;
+  LM_SETITEMHANDLE        = 0169H;
+  LM_QUERYITEMHANDLE      = 016AH;
+  LM_SEARCHSTRING         = 016BH;
+  LM_SETITEMHEIGHT        = 016CH;
+  LM_QUERYTOPINDEX        = 016DH;
+  LM_DELETEALL            = 016EH;
+
+CONST (* List box constants *)
+  LIT_CURSOR              = -4;
+  LIT_ERROR               = -3;
+  LIT_MEMERROR            = -2;
+  LIT_NONE                = -1;
+  LIT_FIRST               = -1;
+
+CONST (* for LM_INSERTITEM msg *)
+  LIT_END                 = -1;
+  LIT_SORTASCENDING       = -2;
+  LIT_SORTDESCENDING      = -3;
+
+CONST (* for LM_SEARCHSTRING msg *)
+  LSS_SUBSTRING           = 0001H;
+  LSS_PREFIX              = 0002H;
+  LSS_CASESENSITIVE       = 0004H;
+
+
+(***************************************************************************
+*    WinDeleteLboxItem() deletes an item index from the listbox,
+*    returning the number of items left.
+***************************************************************************)
+PROCEDURE WinDeleteLboxItem
+( ListBoxWinHandle       : HWND;
+  Index                  : LONGINT
+)                        : LONGINT;
+
+(***************************************************************************
+*    WinInsertLboxItem() inserts psz into a listbox at index.
+*    Index may be an LIT_ constant.
+*    Returns the actual index where it was inserted.
+***************************************************************************)
+PROCEDURE WinInsertLboxItem
+( ListBoxWinHandle       : HWND;
+  Index                  : LONGINT;
+  Text                   : ARRAY OF CHAR
+)                        : LONGINT;
+
+(***************************************************************************
+*    WinQueryLboxCount() returns the number of items in the listbox.
+***************************************************************************)
+PROCEDURE WinQueryLboxCount
+( ListBoxWinHandle       : HWND
+)                        : LONGINT;
+
+(***************************************************************************
+*    WinQueryLboxItemText() fills 'Text' with the text if item index and
+*    returns the text length copied.
+***************************************************************************)
+PROCEDURE WinQueryLboxItemText
+( ListBoxWinHandle       : HWND;
+  Index                  : LONGINT;
+  VAR Text               : ARRAY OF CHAR;
+  TextMax                : LONGINT
+)                        : LONGINT;
+
+(***************************************************************************
+*    WinQueryLboxItemTextLength() returns the length of item index.
+***************************************************************************)
+PROCEDURE WinQueryLboxItemTextLength
+( ListBoxWinHandle       : HWND;
+  Index                  : LONGINT
+)                        : INTEGER;
+
+(***************************************************************************
+*    WinSetLboxItemText() sets the text of item index to psz.
+*    returns fSuccess.
+***************************************************************************)
+PROCEDURE WinSetLboxItemText
+( ListBoxWinHandle       : HWND;
+  Index                  : LONGINT;
+  Text                   : ARRAY OF CHAR
+)                        : BOOLEAN;
+
+(***************************************************************************
+*    WinQueryLboxSelectedItem() returns the item index selected.
+*    (for single selection only)
+***************************************************************************)
+PROCEDURE WinQueryLboxSelectedItem
+( ListBoxWinHandle       : HWND
+)                        : LONGINT;
+
+END WINLISTBOXES.

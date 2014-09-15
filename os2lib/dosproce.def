@@ -1,0 +1,20 @@
+LIBRARY DOSCALLS
+EXPORTS
+  DosBeep             @286
+  DosExit             @234
+  DosCreateThread     @311
+  DosResumeThread     @237
+  DosSuspendThread    @238
+  DosGetInfoBlocks    @312
+  DosKillThread       @111
+  DosWaitChild        @280
+  DosWaitThread       @349
+  DosSleep            @229
+  DosDebug            @317
+  DosEnterCritSec     @232
+  DosExitCritSec      @233
+  DosExitList         @296
+  DosExecPgm          @283
+  DosSetPriority      @236
+  DosKillProcess      @235
+

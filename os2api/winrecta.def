@@ -1,0 +1,98 @@
+DEFINITION MODULE WINRECTANGLES;
+
+(************************************************************************
+  OS/2 2.0 interface for Prsentation Manager rectangle routines.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM   OS2DEF  IMPORT HAB, RECTL, POINTL, WPOINT;
+
+PROCEDURE WinCopyRect
+( AnchorBlockHandle         : HAB;
+  VAR DestRect              : RECTL;
+  VAR SourceRect            : RECTL
+)                           : BOOLEAN;
+
+PROCEDURE WinSetRect
+( AnchorBlockHandle         : HAB;
+  VAR Rect                  : RECTL;
+  xLeft                     : LONGINT;
+  yBottom                   : LONGINT;
+  xRight                    : LONGINT;
+  yTop                      : LONGINT
+)                           : BOOLEAN;
+
+PROCEDURE WinIsRectEmpty
+( AnchorBlockHandle         : HAB;
+  VAR Rect                  : RECTL
+)                           : BOOLEAN;
+
+PROCEDURE WinEqualRect
+( AnchorBlockHandle         : HAB;
+  VAR Rect1                 : RECTL;
+  VAR Rect2                 : RECTL
+)                           : BOOLEAN;
+
+PROCEDURE WinSetRectEmpty
+( AnchorBlockHandle         : HAB;
+  VAR Rect                  : RECTL
+)                           : BOOLEAN;
+
+PROCEDURE WinOffsetRect
+( AnchorBlockHandle         : HAB;
+  VAR Rect                  : RECTL;
+  xOffset                   : LONGINT;
+  yOffset                   : LONGINT
+)                           : BOOLEAN;
+
+PROCEDURE WinInflateRect
+( AnchorBlockHandle         : HAB;
+  VAR Rect                  : RECTL;
+  xExpansion                : LONGINT;
+  yExpansion                : LONGINT
+)                           : BOOLEAN;
+
+PROCEDURE WinPtInRect
+( AnchorBlockHandle         : HAB;
+  VAR Rect                  : RECTL;
+  VAR Point                 : POINTL
+)                           : BOOLEAN;
+
+PROCEDURE WinIntersectRect
+( AnchorBlockHandle         : HAB;
+  VAR DestRect              : RECTL;
+  VAR SoourceRect1          : RECTL;
+  VAR SourceRect2           : RECTL
+)                           : BOOLEAN;
+
+PROCEDURE WinUnionRect
+( AnchorBlockHandle         : HAB;
+  VAR DestRect              : RECTL;
+  VAR SoourceRect1          : RECTL;
+  VAR SourceRect2           : RECTL
+)                           : BOOLEAN;
+
+PROCEDURE WinSubtractRect
+( AnchorBlockHandle         : HAB;
+  VAR DestRect              : RECTL;
+  VAR SoourceRect1          : RECTL;
+  VAR SourceRect2           : RECTL
+)                           : BOOLEAN;
+
+PROCEDURE WinMakeRect
+( AnchorBlockHandle         : HAB;
+  VAR Rect                  : RECTL
+)                           : BOOLEAN;
+
+PROCEDURE WinMakePoints
+( AnchorBlockHandle         : HAB;
+  VAR Points                : WPOINT;
+  PointsCount               : LONGCARD
+)                           : BOOLEAN;
+
+END WINRECTANGLES.

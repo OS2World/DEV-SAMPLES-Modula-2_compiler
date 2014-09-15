@@ -1,0 +1,5 @@
+LIBRARY PMCTLS
+EXPORTS
+  WinFontDlg           @2
+  WinDefFontDlgProc    @3
+

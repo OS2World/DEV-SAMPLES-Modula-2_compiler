@@ -1,0 +1,109 @@
+DEFINITION MODULE WPMINWIN;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPMinWindow
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPTRANS;
+IMPORT OS2DEF;
+IMPORT WPOBJECT;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPMinWindow           = POINTER TO WPMinWindow;
+TYPE PM_WPMinWindow         = POINTER TO M_WPMinWindow;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPMinWindow
+*************************************************************************)
+
+TYPE HWND                   = OS2DEF.HWND;
+TYPE PWPObject              = WPOBJECT.PWPObject;
+
+(*************************************************************************
+  SOM class API for WPMinWindow, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPMinWindow_MajorVersion     = 1;
+  WPMinWindow_MinorVersion     = 2;
+
+TYPE
+  WPMinWindowClassDataStructure     = RECORD
+    classObject                       : PSOMClass;
+    wpQueryWindowHandle               : somMToken;
+    wpSetWindowHandle                 : somMToken;
+    wpQueryWindowObject               : somMToken;
+    wpSetWindowObject                 : somMToken;
+                                      END;
+
+VAR
+  WPMinWindowClassData : WPMinWindowClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPMinWindow = RECORD( WPTRANS.WPTransient ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPMinWindowNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+PROCEDURE( Self : PWPMinWindow ) wpQueryWindowHandle( ) : HWND;
+
+PROCEDURE( Self : PWPMinWindow ) wpSetWindowHandle
+(
+  hwndFrame     : HWND
+);
+
+PROCEDURE( Self : PWPMinWindow ) wpQueryWindowObject( ) : PWPObject;
+
+PROCEDURE( Self : PWPMinWindow ) wpSetWindowObject
+(
+  Object        : PWPObject
+);
+
+
+(*************************************************************************
+  SOM class API for M_WPMinWindow, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPMinWindow_MajorVersion   = 1;
+  M_WPMinWindow_MinorVersion   = 2;
+
+TYPE
+  M_WPMinWindowClassDataStructure   = RECORD
+    classObject                       : PSOMClass;
+                                      END;
+
+VAR
+  M_WPMinWindowClassData : M_WPMinWindowClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPMinWindow = RECORD( WPTRANS.M_WPTransient ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPMinWindowNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+
+END WPMINWIN.

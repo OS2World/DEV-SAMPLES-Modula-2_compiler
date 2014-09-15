@@ -1,0 +1,6 @@
+LIBRARY PMWP
+EXPORTS
+  WPNetgrpClassData         @0x01A6
+  WPNetgrpNewClass          @0x01A7
+  M_WPNetgrpClassData       @0x0188
+  M_WPNetgrpNewClass        @0x0189

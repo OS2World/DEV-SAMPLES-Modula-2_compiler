@@ -1,0 +1,6 @@
+LIBRARY PMWP
+EXPORTS
+  WPFolderClassData         @0x000E
+  WPFolderNewClass          @0x000F
+  M_WPFolderClassData       @0x013A
+  M_WPFolderNewClass        @0x013B

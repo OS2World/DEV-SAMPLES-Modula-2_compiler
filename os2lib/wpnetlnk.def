@@ -1,0 +1,6 @@
+LIBRARY PMWP
+EXPORTS
+  WPNetLinkClassData         @0x01A3
+  WPNetLinkNewClass          @0x01A4
+  M_WPNetLinkClassData       @0x0191
+  M_WPNetLinkNewClass        @0x0192

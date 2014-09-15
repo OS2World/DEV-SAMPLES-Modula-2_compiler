@@ -1,0 +1,86 @@
+DEFINITION MODULE WPPDRV;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPPrinterDriver
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPTRANS;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPPrinterDriver       = POINTER TO WPPrinterDriver;
+TYPE PM_WPPrinterDriver     = POINTER TO M_WPPrinterDriver;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPPrinterDriver
+*************************************************************************)
+
+(*************************************************************************
+  SOM class API for WPPrinterDriver, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPPrinterDriver_MajorVersion     = 1;
+  WPPrinterDriver_MinorVersion     = 1;
+
+TYPE
+  WPPrinterDriverClassDataStructure     = RECORD
+    classObject                           : PSOMClass;
+                                          END;
+
+VAR
+  WPPrinterDriverClassData : WPPrinterDriverClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPPrinterDriver = RECORD( WPTRANS.WPTransient ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPPrinterDriverNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+
+(*************************************************************************
+  SOM class API for M_WPPrinterDriver, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPPrinterDriver_MajorVersion   = 1;
+  M_WPPrinterDriver_MinorVersion   = 1;
+
+TYPE
+  M_WPPrinterDriverClassDataStructure   = RECORD
+    classObject                           : PSOMClass;
+                                          END;
+
+VAR
+  M_WPPrinterDriverClassData : M_WPPrinterDriverClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPPrinterDriver = RECORD( WPTRANS.M_WPTransient ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPPrinterDriverNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+
+END WPPDRV.

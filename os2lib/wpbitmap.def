@@ -1,0 +1,6 @@
+LIBRARY PMWP
+EXPORTS
+  WPBitmapClassData         @0x0044
+  WPBitmapNewClass          @0x0045
+  M_WPBitmapClassData       @0x0170
+  M_WPBitmapNewClass        @0x0171

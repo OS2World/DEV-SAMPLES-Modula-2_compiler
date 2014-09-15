@@ -1,0 +1,6 @@
+LIBRARY WPCONFIG
+EXPORTS
+  WPKeyboardClassData         @0x0017
+  WPKeyboardNewClass          @0x0018
+  M_WPKeyboardClassData       @0x007B
+  M_WPKeyboardNewClass        @0x007C

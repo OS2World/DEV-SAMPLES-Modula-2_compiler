@@ -1,0 +1,84 @@
+DEFINITION MODULE GPIPATHS;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager
+           GPI Paths and Clipping with Paths.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM   OS2DEF  IMPORT HPS, HRGN;
+
+CONST (* modes for GpiModifyPath *)
+  MPATH_STROKE              = 6;
+
+CONST (* modes for GpiFillPath *)
+  FPATH_ALTERNATE           = 0;
+  FPATH_WINDING             = 2;
+  FPATH_EXCL                = 0;
+  FPATH_INCL                = 8;
+
+CONST (* modes for GpiSetClipPath *)
+  SCP_ALTERNATE             = 0;
+  SCP_WINDING               = 2;
+  SCP_AND                   = 4;
+  SCP_RESET                 = 0;
+  SCP_EXCL                  = 0;
+  SCP_INCL                  = 8;
+
+(*** Path and Clip Path functions *)
+
+PROCEDURE GpiBeginPath
+( PresSpaceHandle           : HPS;
+  Path                      : LONGINT
+)                           : BOOLEAN;
+
+PROCEDURE GpiEndPath
+( PresSpaceHandle           : HPS
+)                           : BOOLEAN;
+
+PROCEDURE GpiCloseFigure
+( PresSpaceHandle           : HPS
+)                           : BOOLEAN;
+
+PROCEDURE GpiModifyPath
+( PresSpaceHandle           : HPS;
+  Path                      : LONGINT;
+  Mode                      : LONGINT
+)                           : BOOLEAN;
+
+PROCEDURE GpiFillPath
+( PresSpaceHandle           : HPS;
+  Path                      : LONGINT;
+  Options                   : LONGINT
+)                           : LONGINT;
+
+PROCEDURE GpiSetClipPath
+( PresSpaceHandle           : HPS;
+  Path                      : LONGINT;
+  Options                   : LONGINT
+)                           : BOOLEAN;
+
+PROCEDURE GpiOutlinePath
+( PresSpaceHandle           : HPS;
+  Path                      : LONGINT;
+  Options                   : LONGINT
+)                           : LONGINT;
+
+PROCEDURE GpiPathToRegion
+( PresSpaceHandle           : HPS;
+  Path                      : LONGINT;
+  Options                   : LONGINT
+)                           : HRGN;
+
+PROCEDURE GpiStrokePath
+( PresSpaceHandle           : HPS;
+  Path                      : LONGINT;
+  Options                   : LONGCARD
+)                           : LONGINT;
+
+END GPIPATHS.

@@ -1,0 +1,5 @@
+LIBRARY DOSCALLS
+EXPORTS
+  DosQueryCp         @291
+  DosSetProcessCp    @289
+

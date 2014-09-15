@@ -1,0 +1,169 @@
+DEFINITION MODULE WPFILTER;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPFilter
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPTRANS;
+IMPORT WPOBJECT;
+IMPORT OS2DEF;
+IMPORT SYSTEM;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPFilter              = POINTER TO WPFilter;
+TYPE PM_WPFilter            = POINTER TO M_WPFilter;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPFilter
+*************************************************************************)
+
+TYPE PCLASS                 = WPOBJECT.PCLASS;
+TYPE PSZ                    = OS2DEF.PSZ;
+TYPE PWPFolder              = WPOBJECT.PWPObject;
+TYPE HWND                   = OS2DEF.HWND;
+TYPE PWPObject              = WPOBJECT.PWPObject;
+TYPE CLASSCRITERIA          = WPOBJECT.CLASSCRITERIA;
+TYPE BYTE                   = SYSTEM.BYTE;
+
+(*************************************************************************
+  SOM class API for WPFilter, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPFilter_MajorVersion     = 1;
+  WPFilter_MinorVersion     = 2;
+
+TYPE
+  WPFilterClassDataStructure     = RECORD
+    classObject                    : PSOMClass;
+    wpMatchesFilter                : somMToken;
+    wpAddFilterSettingsPage        : somMToken;
+    wpSetClassList                 : somMToken;
+    wpQueryClassList               : somMToken;
+    wpSetNameFilter                : somMToken;
+    wpQueryNameFilter              : somMToken;
+    wpSetFolderToFilter            : somMToken;
+    wpQueryFolderToFilter          : somMToken;
+    wpFilterFolderView             : somMToken;
+    wpConvertDataToCriteria        : somMToken;
+    wpConvertCriteriaToData        : somMToken;
+    wpOnlyHasDefaultCriteria       : somMToken;
+    wpAddFilterCriteriaPage        : somMToken;
+                                   END;
+
+VAR
+  WPFilterClassData : WPFilterClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPFilter = RECORD( WPTRANS.WPTransient ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPFilterNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+PROCEDURE( Self : PWPFilter ) wpSetClassList
+(
+  pClassList    : PCLASS
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPFilter ) wpQueryClassList( ) : PCLASS;
+
+PROCEDURE( Self : PWPFilter ) wpSetNameFilter
+(
+  szNameFilter  : ARRAY OF CHAR
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPFilter ) wpQueryNameFilter( ) : PSZ;
+
+PROCEDURE( Self : PWPFilter ) wpSetFolderToFilter
+(
+  Folder        : PWPFolder
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPFilter ) wpQueryFolderToFilter( ) : PWPFolder;
+
+PROCEDURE( Self : PWPFilter ) wpFilterFolderView
+(
+  hwndCnr       : HWND;
+  fInvalidate   : BOOLEAN
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPFilter ) wpMatchesFilter
+(
+  Object        : PWPObject
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPFilter ) wpAddFilterSettingsPage
+(
+  hwndNotebook  : HWND;
+  fActionDialog : BOOLEAN
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPFilter ) wpAddFilterCriteriaPage
+(
+  hwndNotebook      : HWND;
+  fActionDialog     : BOOLEAN;
+  VAR ClassCriteria : CLASSCRITERIA
+)                   : LONGCARD;
+
+PROCEDURE( Self : PWPFilter ) wpConvertDataToCriteria
+(
+  VAR CriteriaData : ARRAY OF BYTE;
+  cbCriteriaData   : LONGCARD
+)                  : BOOLEAN;
+
+PROCEDURE( Self : PWPFilter ) wpConvertCriteriaToData
+(
+  VAR CriteriaData   : ARRAY OF BYTE;
+  VAR cbCriteriaData : LONGCARD
+)                    : BOOLEAN;
+
+PROCEDURE( Self : PWPFilter ) wpOnlyHasDefaultCriteria( ) : BOOLEAN;
+
+
+(*************************************************************************
+  SOM class API for M_WPFilter, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPFilter_MajorVersion   = 1;
+  M_WPFilter_MinorVersion   = 2;
+
+TYPE
+  M_WPFilterClassDataStructure   = RECORD
+    classObject                    : PSOMClass;
+                                   END;
+
+VAR
+  M_WPFilterClassData : M_WPFilterClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPFilter = RECORD( WPTRANS.M_WPTransient ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPFilterNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+
+END WPFILTER.

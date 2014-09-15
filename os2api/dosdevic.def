@@ -1,0 +1,54 @@
+DEFINITION MODULE DOSDEVICES;
+
+(************************************************************************
+  OS/2 2.0 Interface for device specific, ring 2 support
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF IMPORT APIRET, HFILE;
+
+CONST (* for DosDevConfig() DeviceType *)
+  DEVINFO_PRINTER       = 0;      (* Number of printers attached *)
+  DEVINFO_RS232         = 1;      (* Number of RS232 ports *)
+  DEVINFO_FLOPPY        = 2;      (* Number of diskette drives *)
+  DEVINFO_COPROCESSOR   = 3;      (* Presence of math coprocessor *)
+  DEVINFO_SUBMODEL      = 4;      (* PC Submodel Type *)
+  DEVINFO_MODEL         = 5;      (* PC Model Type *)
+  DEVINFO_ADAPTER       = 6;      (* Primary display adapter type *)
+
+PROCEDURE DosDevConfig
+( VAR DeviceInfo      : SHORTCARD;
+  DeviceType          : LONGCARD
+)                     : APIRET;
+
+PROCEDURE DosDevIOCtl
+( DevHandle           : HFILE;
+  Category            : LONGCARD;
+  Function            : LONGCARD;
+  ParmList            : SYSTEM.ADDRESS;
+  ParmLengthMax       : LONGCARD;
+  VAR ParmLengthInOut : LONGCARD;
+  DataArea            : SYSTEM.ADDRESS;
+  DataLengthMax       : LONGCARD;
+  VAR DataLengthInOut : LONGCARD
+)                     : APIRET;
+
+CONST (* for DosPhysicalDisk() Function *)
+  INFO_COUNT_PARTITIONABLE_DISKS  = 1;       (* # of partitionable disks *)
+  INFO_GETIOCTLHANDLE             = 2;       (* Obtain handle            *)
+  INFO_FREEIOCTLHANDLE            = 3;       (* Release handle           *)
+
+PROCEDURE DosPhysicalDisk
+( Function            : LONGCARD;
+  DataPtr             : SYSTEM.ADDRESS;
+  DataLen             : LONGCARD;
+  ParmPtr             : SYSTEM.ADDRESS;
+  ParmLen             : LONGCARD
+)                     : APIRET;
+
+END DOSDEVICES.

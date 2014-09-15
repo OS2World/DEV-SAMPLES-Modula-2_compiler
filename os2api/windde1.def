@@ -1,0 +1,138 @@
+DEFINITION MODULE WINDDE1;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager Dynamic Data Exchange.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM   OS2DEF  IMPORT TYPEPREFIX, HWND, PSZ;
+FROM   WINDEF  IMPORT MRESULT;
+
+CONST (* DDE standard system topic and item strings *)
+  SZDDESYS_TOPIC               = "System";
+  SZDDESYS_ITEM_TOPICS         = "Topics";
+  SZDDESYS_ITEM_SYSITEMS       = "SysItems";
+  SZDDESYS_ITEM_RTNMSG         = "ReturnMessage";
+  SZDDESYS_ITEM_STATUS         = "Status";
+  SZDDESYS_ITEM_FORMATS        = "Formats";
+  SZDDESYS_ITEM_SECURITY       = "Security";
+  SZDDESYS_ITEM_ITEMFORMATS    = "ItemFormats";
+  SZDDESYS_ITEM_HELP           = "Help";
+  SZDDESYS_ITEM_PROTOCOLS      = "Protocols";
+  SZDDESYS_ITEM_RESTART        = "Restart";
+
+CONST
+  DDECTXT_CASESENSITIVE        = 0001H;
+
+TYPE (* Dynamic Data Exchange (DDE) Structure Declarations *)
+  CONVCONTEXT                  = RECORD          (* cctxt *)
+    CASE                         : TYPEPREFIX OF
+    | TRUE                       :
+      cb                         : LONGCARD;     (* TSIZE(CONVCONTEXT) *)
+      fsContext                  : LONGCARD;
+      idCountry                  : LONGCARD;
+      usCodepage                 : LONGCARD;
+      usLangID                   : LONGCARD;
+      usSubLangID                : LONGCARD;
+    | FALSE                      :
+      Size                       : LONGCARD;     (* TSIZE(CONVCONTEXT) *)
+      ContextFlags               : LONGCARD;
+      Country                    : LONGCARD;
+      CodePage                   : LONGCARD;
+      LangId                     : LONGCARD;
+      SubLangId                  : LONGCARD;
+    END;                         END;
+  PCONVCONTEXT                 = POINTER TO CONVCONTEXT;
+  DDEINIT                      = RECORD          (* ddei *)
+    CASE                         : TYPEPREFIX OF
+    | TRUE                       :
+      cb                         : LONGCARD;     (* TSIZE(DDEINIT) *)
+      pszAppName                 : PSZ;
+      pszTopic                   : PSZ;
+      offConvContext             : LONGCARD;
+    | FALSE                      :
+      Size                       : LONGCARD;     (* TSIZE(DDEINIT) *)
+      AppName                    : PSZ;
+      Topic                      : PSZ;
+      ConvContextOffset          : LONGCARD;
+    END;                         END;
+  PDDEINIT                     = POINTER TO DDEINIT;
+  (*$A2 WORD alignment for record fields >= 2 bytes     *)
+  DDESTRUCT                    = RECORD          (* dde *)
+    CASE                         : TYPEPREFIX OF
+    | TRUE                       :
+      cbData                     : LONGCARD;
+      fsStatus                   : CARDINAL;
+      usFormat                   : CARDINAL;
+      offszItemName              : CARDINAL;
+      offabData                  : CARDINAL;
+    | FALSE                      :
+      DataSize                   : LONGCARD;
+      Status                     : CARDINAL;
+      Format                     : CARDINAL;
+      ItemNameOffset             : CARDINAL;
+      DataBytesOffset            : CARDINAL;
+    END;                         END;
+  PDDESTRUCT                   = POINTER TO DDESTRUCT;
+  (*$A restore default alignment for record fields      *)
+
+CONST (* DDE constants for wStatus field *)
+  DDE_FACK                     = 0001H;
+  DDE_FBUSY                    = 0002H;
+  DDE_FNODATA                  = 0004H;
+  DDE_FACKREQ                  = 0008H;
+  DDE_FRESPONSE                = 0010H;
+  DDE_NOTPROCESSED             = 0020H;
+  DDE_FRESERVED                = 00C0H;
+  DDE_FAPPSTATUS               = 0FF00H;
+
+CONST (* old DDE public formats - new ones are CF_ constants *)
+  DDEFMT_TEXT                  = 0001H;
+
+PROCEDURE WinDdeInitiate
+( ClientWinHandle              : HWND;
+  AppName                      : ARRAY OF CHAR;
+  TopicName                    : ARRAY OF CHAR;
+  VAR Context                  : CONVCONTEXT
+)                              : BOOLEAN;
+
+PROCEDURE WinDdeRespond
+( ClientWinHandle              : HWND;
+  ServerWinHandle              : HWND;
+  AppName                      : ARRAY OF CHAR;
+  TopicName                    : ARRAY OF CHAR;
+  VAR Context                  : CONVCONTEXT
+)                              : MRESULT;
+
+PROCEDURE WinDdePostMsg
+( ToWinHandle                  : HWND;
+  FromWinHandle                : HWND;
+  MsgId                        : LONGCARD;
+  VAR Data                     : DDESTRUCT;
+  Options                      : LONGCARD
+)                              : BOOLEAN;
+
+CONST
+  DDEPM_RETRY                  = 00000001H;
+  DDEPM_NOFREE                 = 00000002H;
+
+CONST (* Dynamic Data Exchange (DDE) Messages *)
+  WM_DDE_FIRST                 = 00A0H;
+  WM_DDE_INITIATE              = 00A0H;
+  WM_DDE_REQUEST               = 00A1H;
+  WM_DDE_ACK                   = 00A2H;
+  WM_DDE_DATA                  = 00A3H;
+  WM_DDE_ADVISE                = 00A4H;
+  WM_DDE_UNADVISE              = 00A5H;
+  WM_DDE_POKE                  = 00A6H;
+  WM_DDE_EXECUTE               = 00A7H;
+  WM_DDE_TERMINATE             = 00A8H;
+  WM_DDE_INITIATEACK           = 00A9H;
+  WM_DDE_LAST                  = 00AFH;
+
+END WINDDE1.

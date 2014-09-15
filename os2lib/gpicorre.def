@@ -1,0 +1,14 @@
+LIBRARY PMGPI
+EXPORTS
+  GpiCorrelateChain              @366
+  GpiQueryTag                    @488
+  GpiSetTag                      @551
+  GpiQueryPickApertureSize       @478
+  GpiSetPickApertureSize         @589
+  GpiQueryPickAperturePosition   @477
+  GpiSetPickAperturePosition     @545
+  GpiQueryBoundaryData           @428
+  GpiResetBoundaryData           @497
+  GpiCorrelateFrom               @367
+  GpiCorrelateSegment            @582
+

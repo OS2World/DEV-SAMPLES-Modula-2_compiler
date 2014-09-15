@@ -1,0 +1,115 @@
+DEFINITION MODULE WPCTRY;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPCountry;
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPABS;
+IMPORT OS2DEF;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPCountry             = POINTER TO WPCountry;
+TYPE PM_WPCountry           = POINTER TO M_WPCountry;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPCountry
+*************************************************************************)
+
+TYPE HWND                   = OS2DEF.HWND;
+
+
+(*************************************************************************
+  SOM class API for WPCountry, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPCountry_MajorVersion     = 1;
+  WPCountry_MinorVersion     = 2;
+
+TYPE 
+  WPCountryClassDataStructure   = RECORD
+    classObject                   : PSOMClass;
+    wpAddCountryTimePage          : somMToken;
+    wpAddCountryDatePage          : somMToken;
+    withdrawn                     : somMToken;
+    wpAddCountryPage              : somMToken;
+    wpAddCountryNumbersPage       : somMToken;
+                                  END;
+
+VAR
+  WPCountryClassData : WPCountryClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPCountry = RECORD( WPABS.WPAbstract ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPCountryNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+PROCEDURE( Self : PWPCountry ) wpAddCountryTimePage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPCountry ) wpAddCountryDatePage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPCountry ) wpAddCountryNumbersPage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPCountry ) wpAddCountryPage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+
+
+(*************************************************************************
+  SOM class API for M_WPCountry, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPCountry_MajorVersion   = 1;
+  M_WPCountry_MinorVersion   = 2;
+
+TYPE 
+  M_WPCountryClassDataStructure   = RECORD
+    classObject                     : PSOMClass;
+                                    END;
+
+VAR
+  M_WPCountryClassData : M_WPCountryClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPCountry = RECORD( WPABS.M_WPAbstract ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPCountryNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+END WPCTRY.

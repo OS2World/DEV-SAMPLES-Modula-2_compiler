@@ -1,0 +1,167 @@
+DEFINITION MODULE WINMENUS;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager menu controls.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF  IMPORT TYPEPREFIX, HWND, HMODULE, HPS, RECTL;
+
+CONST (* Menu control styles *)
+  MS_ACTIONBAR             = 00000001H;
+  MS_TITLEBUTTON           = 00000002H;
+  MS_VERTICALFLIP          = 00000004H;
+  MS_CONDITIONALCASCADE    = 00000040H;
+
+PROCEDURE WinLoadMenu
+( OwnerWinHandle           : HWND;
+  Resource                 : HMODULE;
+  MenuId                   : LONGCARD
+)                          : HWND;
+
+CONST (* Menu control messages *)
+  MM_INSERTITEM            = 0180H;
+  MM_DELETEITEM            = 0181H;
+  MM_QUERYITEM             = 0182H;
+  MM_SETITEM               = 0183H;
+  MM_QUERYITEMCOUNT        = 0184H;
+  MM_STARTMENUMODE         = 0185H;
+  MM_ENDMENUMODE           = 0186H;
+  MM_REMOVEITEM            = 0188H;
+  MM_SELECTITEM            = 0189H;
+  MM_QUERYSELITEMID        = 018AH;
+  MM_QUERYITEMTEXT         = 018BH;
+  MM_QUERYITEMTEXTLENGTH   = 018CH;
+  MM_SETITEMHANDLE         = 018DH;
+  MM_SETITEMTEXT           = 018EH;
+  MM_ITEMPOSITIONFROMID    = 018FH;
+  MM_ITEMIDFROMPOSITION    = 0190H;
+  MM_QUERYITEMATTR         = 0191H;
+  MM_SETITEMATTR           = 0192H;
+  MM_ISITEMVALID           = 0193H;
+  MM_QUERYITEMRECT         = 0194H;
+  MM_QUERYDEFAULTITEMID    = 0431H;
+  MM_SETDEFAULTITEMID      = 0432H;
+
+PROCEDURE WinCreateMenu
+( OwnerWinHandle           : HWND;
+  VAR MenuTemplate         : ARRAY OF SYSTEM.BYTE
+)                          : HWND;
+
+TYPE (* Owner Item Structure (Also used for listboxes) *)
+  OWNERITEM              = RECORD     (* oi *)
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      hwnd                 : HWND;
+      hps                  : HPS;
+      fsState              : LONGCARD;
+      fsAttribute          : LONGCARD;
+      fsStateOld           : LONGCARD;
+      fsAttributeOld       : LONGCARD;
+      rclItem              : RECTL;
+      idItem               : LONGINT; (* idItem for menus, iItem for lb. *)
+      hItem                : LONGCARD;
+    | FALSE                :
+      WinHandle            : HWND;
+      PresSpaceHandle      : HPS;
+      State                : LONGCARD;
+      Attribute            : LONGCARD;
+      StateOld             : LONGCARD;
+      AttributeOld         : LONGCARD;
+      ItemRectl            : RECTL;
+      ItemIdent            : LONGINT;
+      ItemHandle           : LONGCARD;
+    END;                   END;
+  POWNERITEM             = POINTER TO OWNERITEM;
+
+TYPE (* Menu item *)
+  (* Binary resources may be bound into application executables or *)
+  (* passed as a parameter when creating a window or dialog        *)
+  (* Currently they must be the same for both 16-bit and 32-bit    *)
+  (* so we pack the structures.                                    *)
+  (*$A2 WORD alignment for record fields >= 2 bytes                *)
+  MENUITEM               = RECORD             (* mi *)
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      iPosition            : INTEGER;
+      afStyle              : CARDINAL;
+      afAttribute          : CARDINAL;
+      id                   : CARDINAL;
+      hwndSubMenu          : HWND;
+      hItem                : LONGCARD;
+    | FALSE                :
+      Position             : INTEGER;
+      Style                : CARDINAL;
+      Attribute            : CARDINAL;
+      Id                   : CARDINAL;
+      SubMenuWinHandle     : HWND;
+      ItemHandle           : LONGCARD;
+    END;                   END;
+  PMENUITEM              = POINTER TO MENUITEM;
+  (*$A default alignment for record fields *)
+
+CONST
+  MIT_END                = -1;
+  MIT_NONE               = -1;
+  MIT_MEMERROR           = -1;
+  MIT_ERROR              = -1;
+  MIT_FIRST              = -2;
+  MIT_LAST               = -3;
+  MID_NONE               = MIT_NONE;
+  MID_ERROR              = -1;
+
+CONST
+  (* Menu item styles & attributes:                                        *)
+  (* In multiple choice submenus a style of 'single' denotes the item is a *)
+  (* radiobutton.  Absence of this style defaults the item to a checkbox.  *)
+  MIS_TEXT               = 0001H;
+  MIS_BITMAP             = 0002H;
+  MIS_SEPARATOR          = 0004H;
+  MIS_OWNERDRAW          = 0008H;
+  MIS_SUBMENU            = 0010H;
+  MIS_MULTMENU           = 0020H;    (* multiple choice submenu     *)
+  MIS_SYSCOMMAND         = 0040H;
+  MIS_HELP               = 0080H;
+  MIS_STATIC             = 0100H;
+  MIS_BUTTONSEPARATOR    = 0200H;
+  MIS_BREAK              = 0400H;
+  MIS_BREAKSEPARATOR     = 0800H;
+  MIS_GROUP              = 1000H;    (* multiple choice group start *)
+  MIS_SINGLE             = 2000H;
+  MIA_NODISMISS          = 0020H;
+  MIA_FRAMED             = 1000H;
+  MIA_CHECKED            = 2000H;
+  MIA_DISABLED           = 4000H;
+  MIA_HILITED            = 8000H;
+
+PROCEDURE WinPopupMenu
+( ParentWinHandle        : HWND;
+  OwnerWinHandle         : HWND;
+  MenuWinHandle          : HWND;
+  x                      : LONGINT;
+  y                      : LONGINT;
+  ItemId                 : LONGINT;
+  Options                : LONGCARD
+)                        : BOOLEAN;
+
+CONST (* Values of fs in WinPopupMenu call *)
+  PU_POSITIONONITEM      = 0001H; (* Need idItem parameter *)
+  PU_HCONSTRAIN          = 0002H; (* Keep menu on left and right edge *)
+  PU_VCONSTRAIN          = 0004H; (* Keep menu on top and bottom edge *)
+  PU_NONE                = 0000H; (* If invoked by keyboard *)
+  PU_MOUSEBUTTON1DOWN    = 0008H; (* If invoked by button 1 *)
+  PU_MOUSEBUTTON2DOWN    = 0010H; (* If invoked by button 2 *)
+  PU_MOUSEBUTTON3DOWN    = 0018H; (* If invoked by button 3 *)
+  PU_SELECTITEM          = 0020H; (* Set selected item (use with kbd) *)
+  PU_MOUSEBUTTON1        = 0040H; (* If button1 use allowed *)
+  PU_MOUSEBUTTON2        = 0080H; (* If button2 use allowed *)
+  PU_MOUSEBUTTON3        = 0100H; (* If button3 use allowed *)
+  PU_KEYBOARD            = 0200H; (* If keyboard use allowed *)
+
+END WINMENUS.

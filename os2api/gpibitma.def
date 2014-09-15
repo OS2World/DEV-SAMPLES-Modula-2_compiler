@@ -1,0 +1,481 @@
+DEFINITION MODULE GPIBITMAPS;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager
+           GPI Bitmaps and Pel Operations.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF   IMPORT HPS, HBITMAP, HMODULE, POINTL, TYPEPREFIX;
+FROM   GPIDEF   IMPORT SIZEL;
+
+
+CONST (* raster operations defined for GpiBitBlt *)
+  ROP_SRCCOPY                        = 00CCH;
+  ROP_SRCPAINT                       = 00EEH;
+  ROP_SRCAND                         = 0088H;
+  ROP_SRCINVERT                      = 0066H;
+  ROP_SRCERASE                       = 0044H;
+  ROP_NOTSRCCOPY                     = 0033H;
+  ROP_NOTSRCERASE                    = 0011H;
+  ROP_MERGECOPY                      = 00C0H;
+  ROP_MERGEPAINT                     = 00BBH;
+  ROP_PATCOPY                        = 00F0H;
+  ROP_PATPAINT                       = 00FBH;
+  ROP_PATINVERT                      = 005AH;
+  ROP_DSTINVERT                      = 0055H;
+  ROP_ZERO                           = 0000H;
+  ROP_ONE                            = 00FFH;
+
+CONST (* Blt options for GpiBitBlt *)
+  BBO_OR                             = 0;
+  BBO_AND                            = 1;
+  BBO_IGNORE                         = 2;
+  BBO_PAL_COLORS                     = 4;
+  BBO_NO_COLOR_INFO                  = 8;
+
+CONST (* Fill options for GpiFloodFill *)
+  FF_BOUNDARY                        = 0;
+  FF_SURFACE                         = 1;
+
+CONST (* error return for GpiSetBitmap *)
+  HBM_ERROR                          = HBITMAP( -1 );
+
+
+(*** bitmap and pel functions *)
+
+PROCEDURE GpiBitBlt
+( TargetPresSpaceHandle              : HPS;
+  SourcePresSpaceHandle              : HPS;
+  Count                              : LONGINT;
+  VAR Points                         : ARRAY OF POINTL;
+  Rop                                : LONGINT;
+  Options                            : LONGCARD
+)                                    : LONGINT;
+
+PROCEDURE GpiDeleteBitmap
+( BitMapHandle                       : HBITMAP
+)                                    : BOOLEAN;
+
+PROCEDURE GpiLoadBitmap
+( PresSpaceHandle                    : HPS;
+  ResourceHandle                     : HMODULE;
+  BitMapId                           : LONGCARD;
+  Width                              : LONGINT;
+  Height                             : LONGINT
+)                                    : HBITMAP;
+
+PROCEDURE GpiSetBitmap
+( PresSpaceHandle                    : HPS;
+  BitMapHandle                       : HBITMAP
+)                                    : HBITMAP;
+
+PROCEDURE GpiWCBitBlt
+( TargetPresSpaceHandle              : HPS;
+  SourceBitMapHandle                 : HBITMAP;
+  Count                              : LONGINT;
+  VAR Points                         : ARRAY OF POINTL;
+  Rop                                : LONGINT;
+  Options                            : LONGCARD
+)                                    : LONGINT;
+
+
+(*
+ *  This is the file format structure for Bit Maps, Pointers and Icons
+ *  as stored in the resource file of a PM application.
+ *
+ *  Notes on file format:
+ *
+ *  Each BITMAPFILEHEADER entry is immediately followed by the color table
+ *  for the bit map bits it references.
+ *  Icons and Pointers contain two BITMAPFILEHEADERs for each ARRAYHEADER
+ *  item.  The first one is for the ANDXOR mask, the second is for the
+ *  COLOR mask.  All offsets are absolute based on the start of the FILE.
+ *
+ *  For OS/2 Version 2.0 and later BITMAPFILEHEADER2 and the other '2'
+ *  versions of each structure are recommended. Use the non-2 versions
+ *  of each structure if compatibility with OS/2 Version 1.X is required.
+ *)
+
+TYPE (* bitmap parameterization used by GpiCreateBitmap and others *)
+  BITMAPINFOHEADER  = RECORD  (* bmp *)
+    CASE              : TYPEPREFIX OF
+    | TRUE            :
+      cbFix           : LONGCARD;
+      cx              : CARDINAL;
+      cy              : CARDINAL;
+      cPlanes         : CARDINAL;
+      cBitCount       : CARDINAL;
+    | FALSE           :
+      FixSize         : LONGCARD;
+      xSize           : CARDINAL;
+      ySize           : CARDINAL;
+      Planes          : CARDINAL;
+      BitCount        : CARDINAL;
+    END;              END;
+  PBITMAPINFOHEADER = POINTER TO BITMAPINFOHEADER;
+
+TYPE (* RGB data for _BITMAPINFO struct *)
+  RGB               = RECORD   (* rgb *)
+    CASE              : TYPEPREFIX OF
+    | TRUE            :
+      bBlue           : SHORTCARD;
+      bGreen          : SHORTCARD;
+      bRed            : SHORTCARD;
+    | FALSE           :
+      Blue            : SHORTCARD;
+      Green           : SHORTCARD;
+      Red             : SHORTCARD;
+    END;              END;
+  PRGB              = POINTER TO RGB;
+
+TYPE (* bitmap data used by GpiSetBitmapBits and others *)
+  BITMAPINFO        = RECORD    (* bmi *)
+    CASE              : TYPEPREFIX OF
+    | TRUE            :
+      cbFix           : LONGCARD;
+      cx              : CARDINAL;
+      cy              : CARDINAL;
+      cPlanes         : CARDINAL;
+      cBitCount       : CARDINAL;
+      argbColor       : ARRAY [0..0] OF RGB;
+    | FALSE           :
+      FixSize         : LONGCARD;
+      xSize           : CARDINAL;
+      ySize           : CARDINAL;
+      Planes          : CARDINAL;
+      BitCount        : CARDINAL;
+      Color           : ARRAY [0..0] OF RGB;
+    END;              END;
+  PBITMAPINFO       = POINTER TO BITMAPINFO;
+
+CONST (* Constants for compression/decompression command *)
+  CBD_COMPRESSION   = 1;
+  CBD_DECOMPRESSION = 2;
+  CBD_BITS          = 0;
+
+CONST (* Flags for compression/decompression option *)
+  CBD_COLOR_CONVERSION         = 00000001H;
+
+CONST (* Compression scheme in the ulCompression field of the bitmapinfo structure *)
+  BCA_UNCOMP        = 0;
+  BCA_HUFFMAN1D     = 3;
+  BCA_RLE4          = 2;
+  BCA_RLE8          = 1;
+  BCA_RLE24         = 4;
+  BRU_METRIC        = 0;
+  BRA_BOTTOMUP      = 0;
+  BRH_NOTHALFTONED  = 0;
+  BRH_ERRORDIFFUSION= 1;
+  BRH_PANDA         = 2;
+  BRH_SUPERCIRCLE   = 3;
+  BCE_PALETTE       = -1;
+  BCE_RGB           = 0;
+
+TYPE
+  BITMAPINFOHEADER2 = RECORD      (* bmp2  *)
+    CASE              : TYPEPREFIX OF
+    | TRUE            :
+      cbFix           : LONGCARD; (* Length of structure                  *)
+      cx              : LONGCARD; (* Bit-map width in pels                *)
+      cy              : LONGCARD; (* Bit-map height in pels               *)
+      cPlanes         : CARDINAL; (* Number of bit planes                 *)
+      cBitCount       : CARDINAL; (* Number of bits per pel within a plane*)
+      ulCompression   : LONGCARD; (* Compression scheme used to store the bitmap *)
+      cbImage         : LONGCARD; (* Length of bit-map storage data in bytes*)
+      cxResolution    : LONGCARD; (* x resolution of target device        *)
+      cyResolution    : LONGCARD; (* y resolution of target device        *)
+      cclrUsed        : LONGCARD; (* Number of color indices used         *)
+      cclrImportant   : LONGCARD; (* Number of important color indices    *)
+      usUnits         : CARDINAL; (* Units of measure                     *)
+      usReserved      : CARDINAL; (* Reserved                             *)
+      usRecording     : CARDINAL; (* Recording algorithm                  *)
+      usRendering     : CARDINAL; (* Halftoning algorithm                 *)
+      cSize1          : LONGCARD; (* Size value 1                         *)
+      cSize2          : LONGCARD; (* Size value 2                         *)
+      ulColorEncoding : LONGCARD; (* Color encoding                       *)
+      ulIdentifier    : LONGCARD; (* Reserved for application use         *)
+    | FALSE           :
+      FixSize         : LONGCARD; (* Length of structure                  *)
+      xSize           : LONGCARD; (* Bit-map width in pels                *)
+      ySize           : LONGCARD; (* Bit-map height in pels               *)
+      Planes          : CARDINAL; (* Number of bit planes                 *)
+      BitCount        : CARDINAL; (* Number of bits per pel within a plane*)
+      Compression     : LONGCARD; (* Compression scheme used to store the bitmap *)
+      ImageSize       : LONGCARD; (* Length of bit-map storage data in bytes*)
+      xResolution     : LONGCARD; (* x resolution of target device        *)
+      yResolution     : LONGCARD; (* y resolution of target device        *)
+      UsedColors      : LONGCARD; (* Number of color indices used         *)
+      ImportantColors : LONGCARD; (* Number of important color indices    *)
+      Units           : CARDINAL; (* Units of measure                     *)
+      Reserved        : CARDINAL; (* Reserved                             *)
+      Recording       : CARDINAL; (* Recording algorithm                  *)
+      Rendering       : CARDINAL; (* Halftoning algorithm                 *)
+      Size1           : LONGCARD; (* Size value 1                         *)
+      Size2           : LONGCARD; (* Size value 2                         *)
+      ColorEncoding   : LONGCARD; (* Color encoding                       *)
+      Identifier      : LONGCARD; (* Reserved for application use         *)
+    END;              END;
+  PBITMAPINFOHEADER2 = POINTER TO BITMAPINFOHEADER2;
+
+TYPE
+  RGB2              = RECORD       (* rgb2 *)
+    CASE              : TYPEPREFIX OF
+    | TRUE            :
+      bBlue           : SHORTCARD; (* Blue component of the color def. *)
+      bGreen          : SHORTCARD; (* Green component of the color def.*)
+      bRed            : SHORTCARD; (* Red component of the color def.  *)
+      fcOptions       : SHORTCARD; (* Reserved, must be zero           *)
+    | FALSE           :
+      Blue            : SHORTCARD; (* Blue component of the color def. *)
+      Green           : SHORTCARD; (* Green component of the color def.*)
+      Red             : SHORTCARD; (* Red component of the color def.  *)
+      Options         : SHORTCARD; (* Reserved, must be zero           *)
+    END;              END;
+  PRGB2             = POINTER TO RGB2;
+
+TYPE
+  BITMAPINFO2       = RECORD   (* bmi2 *)
+    CASE              : TYPEPREFIX OF
+    | TRUE            :
+      cbFix           : LONGCARD; (* Length of fixed portion of structure  *)
+      cx              : LONGCARD; (* Bit-map width in pels                 *)
+      cy              : LONGCARD; (* Bit-map height in pels                *)
+      cPlanes         : CARDINAL; (* Number of bit planes                  *)
+      cBitCount       : CARDINAL; (* Number of bits per pel within a plane *)
+      ulCompression   : LONGCARD; (* Compr.scheme used to store the bitmap *)
+      cbImage         : LONGCARD; (* Length of bit-map storage data in bytes*)
+      cxResolution    : LONGCARD; (* x resolution of target device         *)
+      cyResolution    : LONGCARD; (* y resolution of target device         *)
+      cclrUsed        : LONGCARD; (* Number of color indices used          *)
+      cclrImportant   : LONGCARD; (* Number of important color indices     *)
+      usUnits         : CARDINAL; (* Units of measure                      *)
+      usReserved      : CARDINAL; (* Reserved                              *)
+      usRecording     : CARDINAL; (* Recording algorithm                   *)
+      usRendering     : CARDINAL; (* Halftoning algorithm                  *)
+      cSize1          : LONGCARD; (* Size value 1                          *)
+      cSize2          : LONGCARD; (* Size value 2                          *)
+      ulColorEncoding : LONGCARD; (* Color encoding                        *)
+      ulIdentifier    : LONGCARD; (* Reserved for application use          *)
+      argbColor       : ARRAY [0..0] OF RGB2; (* Color definition record   *)
+    | FALSE           :
+      FixSize         : LONGCARD; (* Length of fixed portion of structure  *)
+      xSize           : LONGCARD; (* Bit-map width in pels                 *)
+      ySize           : LONGCARD; (* Bit-map height in pels                *)
+      Planes          : CARDINAL; (* Number of bit planes                  *)
+      BitCount        : CARDINAL; (* Number of bits per pel within a plane *)
+      Compression     : LONGCARD; (* Compr.scheme used to store the bitmap *)
+      ImageSize       : LONGCARD; (* Length of bit-map storage data in bytes*)
+      xResolution     : LONGCARD; (* x resolution of target device         *)
+      yResolution     : LONGCARD; (* y resolution of target device         *)
+      UsedColors      : LONGCARD; (* Number of color indices used          *)
+      ImportantColors : LONGCARD; (* Number of important color indices     *)
+      Units           : CARDINAL; (* Units of measure                      *)
+      Reserved        : CARDINAL; (* Reserved                              *)
+      Recording       : CARDINAL; (* Recording algorithm                   *)
+      Rendering       : CARDINAL; (* Halftoning algorithm                  *)
+      Size1           : LONGCARD; (* Size value 1                          *)
+      Size2           : LONGCARD; (* Size value 2                          *)
+      ColorEncoding   : LONGCARD; (* Color encoding                        *)
+      Identifier      : LONGCARD; (* Reserved for application use          *)
+      Color           : ARRAY [0..0] OF RGB2; (* Color definition record   *)
+    END;              END;
+  PBITMAPINFO2      = POINTER TO BITMAPINFO2;
+
+TYPE
+  BITMAPFILEHEADER  = RECORD   (* bfh *)
+    CASE              : TYPEPREFIX OF
+    | TRUE            :
+      usType          : CARDINAL;
+      cbSize          : LONGCARD;
+      xHotspot        : CARDINAL;
+      yHotspot        : CARDINAL;
+      offBits         : LONGCARD;
+      bmp             : BITMAPINFOHEADER;
+    | FALSE           :
+      Type            : CARDINAL;
+      Size            : LONGCARD;
+      xHotSpot        : CARDINAL;
+      yHotSpot        : CARDINAL;
+      BitsOffset      : LONGCARD;
+      BitMapInfoHdr   : BITMAPINFOHEADER;
+    END;              END;
+  PBITMAPFILEHEADER = POINTER TO BITMAPFILEHEADER;
+
+TYPE
+  BITMAPARRAYFILEHEADER  = RECORD  (* bafh *)
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      usType               : CARDINAL;
+      cbSize               : LONGCARD;
+      offNext              : LONGCARD;
+      cxDisplay            : CARDINAL;
+      cyDisplay            : CARDINAL;
+      bfh                  : BITMAPFILEHEADER;
+    | FALSE                :
+      Type                 : CARDINAL;
+      Size                 : LONGCARD;
+      NextOffset           : LONGCARD;
+      xDisplaySize         : CARDINAL;
+      yDisplaySize         : CARDINAL;
+      BitMapFileHdr        : BITMAPFILEHEADER;
+    END;                   END;
+  PBITMAPARRAYFILEHEADER = POINTER TO BITMAPARRAYFILEHEADER;
+
+TYPE
+  BITMAPFILEHEADER2      = RECORD   (* bfh2 *)
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      usType               : CARDINAL;
+      cbSize               : LONGCARD;
+      xHotspot             : CARDINAL;
+      yHotspot             : CARDINAL;
+      offBits              : LONGCARD;
+      bmp2                 : BITMAPINFOHEADER2;
+    | FALSE                :
+      Type                 : CARDINAL;
+      Size                 : LONGCARD;
+      xHotSpot             : CARDINAL;
+      yHotSpot             : CARDINAL;
+      BitsOffset           : LONGCARD;
+      BitMapInfoHdr2       : BITMAPINFOHEADER2;
+    END;                   END;
+  PBITMAPFILEHEADER2     = POINTER TO BITMAPFILEHEADER2;
+
+TYPE
+  BITMAPARRAYFILEHEADER2  = RECORD    (* bafh2 *)
+    CASE                    : TYPEPREFIX OF
+    | TRUE                  :
+      usType                : CARDINAL;
+      cbSize                : LONGCARD;
+      offNext               : LONGCARD;
+      cxDisplay             : CARDINAL;
+      cyDisplay             : CARDINAL;
+      bfh2                  : BITMAPFILEHEADER2;
+    | FALSE                 :
+      Type                  : CARDINAL;
+      Size                  : LONGCARD;
+      NextOffset            : LONGCARD;
+      xDisplaySize          : CARDINAL;
+      yDisplaySize          : CARDINAL;
+      BitMapFileHdr2        : BITMAPFILEHEADER2;
+    END;                    END;
+  PBITMAPARRAYFILEHEADER2 = POINTER TO BITMAPARRAYFILEHEADER2;
+
+CONST
+  (*************************************************************************
+  * These are the identifying values that go in the usType field of the
+  * BITMAPFILEHEADER(2) and BITMAPARRAYFILEHEADER(2).
+  * (BFT_ => Bit map File Type)
+  *************************************************************************)
+  BFT_ICON           = 4349H; (* 'IC' *)
+  BFT_BMAP           = 4D42H; (* 'BM' *)
+  BFT_POINTER        = 5450H; (* 'PT' *)
+  BFT_COLORICON      = 4943H; (* 'CI' *)
+  BFT_COLORPOINTER   = 5043H; (* 'CP' *)
+  BFT_BITMAPARRAY    = 4142H; (* 'BA' *)
+
+
+CONST (* usage flags for GpiCreateBitmap *)
+  CBM_INIT                           = 0004H;
+
+CONST (* error return code for GpiSet/QueryBitmapBits *)
+  BMB_ERROR                          = 1;
+
+
+(*** bitmap and pel functions *)
+
+PROCEDURE GpiCreateBitmap
+( PresSpaceHandle                    : HPS;
+  VAR NewBitMapInfoHeader            : BITMAPINFOHEADER2;
+  Options                            : LONGCARD;
+  Data                               : SYSTEM.ADDRESS;
+  BitMapInfoTable                    : PBITMAPINFO2
+)                                    : HBITMAP;
+
+PROCEDURE GpiSetBitmapBits
+( PresSpaceHandle                    : HPS;
+  ScanStart                          : LONGINT;
+  Scans                              : LONGINT;
+  VAR Buffer                         : ARRAY OF SYSTEM.BYTE;
+  VAR BitMapInfoTable                : BITMAPINFO2
+)                                    : LONGINT;
+
+PROCEDURE GpiSetBitmapDimension
+( BitMapHandle                       : HBITMAP;
+  VAR BitMapDimension                : SIZEL
+)                                    : BOOLEAN;
+
+PROCEDURE GpiSetBitmapId
+( PresSpaceHandle                    : HPS;
+  BitMapHandle                       : HBITMAP;
+  LocalId                            : LONGINT
+)                                    : BOOLEAN;
+
+PROCEDURE GpiQueryBitmapBits
+( PresSpaceHandle                    : HPS;
+  ScanStart                          : LONGINT;
+  Scans                              : LONGINT;
+  VAR Buffer                         : ARRAY OF SYSTEM.BYTE;
+  VAR BitMapInfoTable                : BITMAPINFO2
+)                                    : LONGINT;
+
+PROCEDURE GpiQueryBitmapDimension
+( BitMapHandle                       : HBITMAP;
+  VAR BitMapDimension                : SIZEL
+)                                    : BOOLEAN;
+
+PROCEDURE GpiQueryBitmapHandle
+( PresSpaceHandle                    : HPS;
+  LocalId                            : LONGINT
+)                                    : HBITMAP;
+
+PROCEDURE GpiQueryBitmapParameters
+( BitMapHandle                       : HBITMAP;
+  VAR Data                           : BITMAPINFOHEADER
+)                                    : BOOLEAN;
+
+PROCEDURE GpiQueryBitmapInfoHeader
+( BitMapHandle                       : HBITMAP;
+  VAR Data                           : BITMAPINFOHEADER2
+)                                    : BOOLEAN;
+
+PROCEDURE GpiQueryDeviceBitmapFormats
+( PresSpaceHandle                    : HPS;
+  Count                              : LONGINT;
+  VAR DataArray                      : ARRAY OF LONGINT
+)                                    : BOOLEAN;
+
+PROCEDURE GpiSetPel
+( PresSpaceHandle                    : HPS;
+  VAR Point                          : POINTL
+)                                    : LONGINT;
+
+PROCEDURE GpiQueryPel
+( PresSpaceHandle                    : HPS;
+  VAR Point                          : POINTL
+)                                    : LONGINT;
+
+PROCEDURE GpiFloodFill
+( PresSpaceHandle                    : HPS;
+  Options                            : LONGINT;
+  Color                              : LONGINT
+)                                    : LONGINT;
+
+PROCEDURE GpiDrawBits
+( PresSpaceHandle                    : HPS;
+  VAR Bits                           : ARRAY OF SYSTEM.BYTE;
+  VAR BitMapInfoTable                : BITMAPINFO2;
+  Count                              : LONGINT;
+  VAR Points                         : ARRAY OF POINTL;
+  Rop                                : LONGINT;
+  Options                            : LONGCARD
+)                                    : LONGINT;
+
+END GPIBITMAPS.

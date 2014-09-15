@@ -1,0 +1,64 @@
+DEFINITION MODULE GPIDEF;
+
+(************************************************************************
+  OS/2 2.0 interface for GPI general types, constants and functions.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF  IMPORT TYPEPREFIX;
+
+CONST (* General GPI return values *)
+  GPI_ERROR      = 0;
+  GPI_OK         = 1;
+  GPI_ALTERROR   = -1;
+
+TYPE
+  (* fixed point number types:                                      *)
+  (*                                                                *)
+  (* name:     description:                                         *)
+  (*                                                                *)
+  (* FIXED     implicit binary point between 2 and 3 hex digits.    *)
+  (* FIXED88   implicit binary point between 1st and 2nd hex digits *)
+  (* FIXED114  implicit binary point between bits 14 and 13.        *)
+  (*           Bit 15 is the sign bit.                              *)
+  (*           Thus 1.0 is represented by 16384 (0x4000)            *)
+  (*           and -1.0 is represented by -16384 (0xc000)           *)
+  (*                                                                *)
+  FIXED          = LONGINT;             (* fx *)
+  PFIXED         = POINTER TO FIXED;
+  FIXED88        = CARDINAL;            (* fx88 *)
+  FIXED114       = CARDINAL;            (* fx114 *)
+
+
+(* make FIXED number from SHORT integer part and USHORT fractional part *)
+PROCEDURE MAKEFIXED( intpart,fractpart:SYSTEM.WORD ):FIXED;
+
+(* extract fractional part from a fixed quantity *)
+PROCEDURE FIXEDFRAC( fx:SYSTEM.LONGWORD ):CARDINAL;
+
+(* extract integer part from a fixed quantity *)
+PROCEDURE FIXEDINT( fx:SYSTEM.LONGWORD ):INTEGER;
+
+TYPE (* structure for size parameters e.g. for GpiCreatePS *)
+  SIZEL            = RECORD  (* sizl *)
+    CASE             : TYPEPREFIX OF
+    | TRUE           :
+      cx             : LONGINT;
+      cy             : LONGINT;
+    | FALSE          :
+      xSize          : LONGINT;
+      ySize          : LONGINT;
+    END;             END;
+  PSIZEL           = POINTER TO SIZEL;
+
+CONST
+  (* return code on GpiQueryLogColorTable,GpiQueryRealColors,GpiQueryPel *)
+  CLR_NOINDEX      = LONGINT(-254);
+
+END GPIDEF.

@@ -1,0 +1,1166 @@
+DEFINITION MODULE ORDERS;
+
+(************************************************************************
+  OS/2 2.x interface for Presentation Manager:
+
+           This include file defines all the structures and constants
+           that can be used to build or interpret GOCA orders for the GPI
+
+           The orders fall into 4 categories :
+
+           1) 1-byte orders
+           2) 2-byte orders
+              - second byte contains the value
+           3) Long orders
+              - second byte gives the order length, subsequent bytes
+                contain the values (up to 256 bytes long)
+           4) Very long orders
+              - third and fourth bytes gives the order length,
+                subsequent bytes contain the values (up to 64K long)
+
+
+  Copyright (c) 1992, 1994 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A1        BYTE alignment for record fields                           *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF     IMPORT TYPEPREFIX, POINTS, POINTL, HBITMAP, RECTL;
+FROM   GPIDEF     IMPORT SIZEL, FIXED88, FIXED;
+FROM   GPIBITMAPS IMPORT PBITMAPINFO2;
+
+(***************************************************************************\
+*
+* Miscellaneous structures used in this file
+*
+\***************************************************************************)
+
+TYPE (* form of OS2DEF.RECTL with shorts instead of longs *)
+  RECT1S                    = RECORD   (* rcs *)
+    xLeft                     : INTEGER;
+    yBottom                   : INTEGER;
+    xRight                    : INTEGER;
+    yTop                      : INTEGER;
+                              END;
+
+TYPE (* form of OS2DEF.POINTL with 1 byte offsets instead of longs *)
+  ODPOINT                   = RECORD   (* odpt *)
+    dx                        : SHORTINT;
+    dy                        : SHORTINT;
+                              END;
+
+TYPE (* form of OS2DEF.SIZEL with shorts instead of longs *)
+  SIZES                     = RECORD  (* sizs *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      cx                      : INTEGER;
+      cy                      : INTEGER;
+    | FALSE                   :
+      xSize                   : INTEGER;
+      ySize                   : INTEGER;
+    END;                      END;
+
+
+TYPE (* unsigned two-byte swapped integer *)
+  SWPUSHORT                 = RECORD  (* swpus *)
+    HiByte                    : SHORTCARD;
+    LoByte                    : SHORTCARD;
+                              END;
+
+(***************************************************************************\
+*
+* 1-byte orders
+*
+\***************************************************************************)
+
+(* function to tell whether this is a 1-byte order *)
+PROCEDURE BYTE_ORDER( oc:SYSTEM.BYTE ):BOOLEAN;
+
+CONST (* 1-byte order codes *)
+  OCODE_GNOP1               = 000H;     (* No-operation                *)
+  OCODE_GESD                = 0FFH;     (* End symbol definition       *)
+
+(***************************************************************************\
+*
+* 2-byte orders
+*
+\***************************************************************************)
+
+CONST (* definitions to determine whether an order code is a 2-byte order *)
+  OCODE2_1                  = 80H;
+  OCODE2_2                  = 88H;
+
+PROCEDURE SHORT_ORDER( oc:SYSTEM.BYTE ):BOOLEAN;
+
+TYPE (* General 2-byte order structure *)
+  ORDER                     = RECORD   (* ord *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      idCode                  : SHORTCARD;
+      uchData                 : SHORTCARD;
+    | FALSE                   :
+      CodeId                  : SHORTCARD;
+      Data                    : SHORTCARD;
+    END;                      END;
+
+CONST (* 2-byte order codes *)
+  OCODE_GBAR                = 68H;  (* Begin area                  *)
+  OCODE_GCFIG               = 7DH;  (* Close figure                *)
+  OCODE_GEEL                = 49H;  (* End element                 *)
+  OCODE_GEPTH               = 7FH;  (* End path                    *)
+  OCODE_GEPROL              = 3EH;  (* End prologue                *)
+  OCODE_GPOP                = 3FH;  (* Pop                         *)
+  OCODE_GSBMX               = 0DH;  (* Set background mix          *)
+  OCODE_GPSBMX              = 4DH;  (* Push & set b/g mix          *)
+  OCODE_GSCD                = 3AH;  (* Set char direction          *)
+  OCODE_GPSCD               = 7AH;  (* Push & set char direction   *)
+  OCODE_GSCR                = 39H;  (* Set char precision          *)
+  OCODE_GPSCR               = 79H;  (* Push & set char precision   *)
+  OCODE_GSCS                = 38H;  (* Set char set                *)
+  OCODE_GPSCS               = 78H;  (* Push & set char set         *)
+  OCODE_GSCOL               = 0AH;  (* Set color                   *)
+  OCODE_GPSCOL              = 4AH;  (* Push & set color            *)
+  OCODE_GSLE                = 1AH;  (* Set line end                *)
+  OCODE_GPSLE               = 5AH;  (* Push & set line end         *)
+  OCODE_GSLJ                = 1BH;  (* Set line join               *)
+  OCODE_GPSLJ               = 5BH;  (* Push & set line join        *)
+  OCODE_GSLT                = 18H;  (* Set line type               *)
+  OCODE_GPSLT               = 58H;  (* Push & set line type        *)
+  OCODE_GSLW                = 19H;  (* Set line width              *)
+  OCODE_GPSLW               = 59H;  (* Push & set line width       *)
+  OCODE_GSMP                = 3BH;  (* Set marker precision        *)
+  OCODE_GPSMP               = 7BH;  (* Push & set marker precision *)
+  OCODE_GSMS                = 3CH;  (* Set marker set              *)
+  OCODE_GPSMS               = 7CH;  (* Push & set marker set       *)
+  OCODE_GSMT                = 29H;  (* Set marker symbol           *)
+  OCODE_GPSMT               = 69H;  (* Push & set marker symbol    *)
+  OCODE_GSMX                = 0CH;  (* Set mix                     *)
+  OCODE_GPSMX               = 4CH;  (* Push & set mix              *)
+  OCODE_GSPS                = 08H;  (* Set pattern set             *)
+  OCODE_GPSPS               = 48H;  (* Push & set pattern set      *)
+  OCODE_GSPT                = 28H;  (* Set pattern symbol          *)
+  OCODE_GPSPT               = 09H;  (* Push & set pattern symbol   *)
+
+CONST (* constants for 2-byte orders: Begin area *)
+  GBAR_RESERVED             = 080H;
+  GBAR_BOUNDARY             = 0C0H;
+  GBAR_NOBOUNDARY           = 080H;
+  GBAR_WINDING              = 0A0H;
+  GBAR_ALTERNATE            = 080H;
+
+CONST (* constants for 2-byte orders: Set Character Precision *)
+  GSCR_PRECISION            = 0FH;
+
+(***************************************************************************\
+*
+* Long orders
+*
+\***************************************************************************)
+
+(* function to help determine whether an order code is a long order *)
+
+CONST
+  OCODE_VLONG               = 0FEH;
+
+PROCEDURE LONG_ORDER( oc:SYSTEM.BYTE ):BOOLEAN;
+
+CONST
+  LORDER_ML                 = 253;
+
+TYPE (* long order structure *)
+  LORDER                    = RECORD (* lord *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      idCode                  : SHORTCARD;
+      uchLength               : SHORTCARD;
+      uchData                 : ARRAY [0..LORDER_ML-1] OF SHORTCARD;
+    | FALSE                   :
+      CodeId                  : SHORTCARD;
+      Length                  : SHORTCARD;
+      Data                    : ARRAY [0..LORDER_ML-1] OF SHORTCARD;
+    END;                      END;
+
+CONST (* Long orders for which the length of data is normally zero  *)
+  OCODE_GEAR                = 60H;   (* End Area                    *)
+  OCODE_GEIMG               = 93H;   (* End Image                   *)
+
+
+(* Long orders for which the data is contained in a type already defined *)
+
+CONST (* Character String *)
+  OCODE_GCCHST              = 83H;   (* char string at curr posn    *)
+  GCCHST_MC                 = 255;   (* Max len of string in bytes  *)
+  OCODE_GCHST               = 0C3H;  (* char string at given pos    *)
+  GCHST_SMC                 = 251;   (* Max len of string (S)       *)
+  GCHST_LMC                 = 247;   (* Max len of string (L)       *)
+
+CONST (* Character String Move *)
+  OCODE_GCCHSTM             = 0B1H;  (* char string move at c.p.    *)
+  GCCHSTM_MC                = 255;   (* Max len of string in byte   *)
+  OCODE_GCHSTM              = 0F1H;  (* char string move at g.p.    *)
+  GCHSTM_SMC                = 251;   (* Max len of string (S)       *)
+  GCHSTM_LMC                = 247;   (* Max len of string (L)       *)
+
+CONST (* Comment *)
+  OCODE_GCOMT               = 01H;   (* Comment                     *)
+  GCOMT_ML                  = 255;   (* Maximum len of comment data *)
+
+CONST (* Image *)
+  OCODE_GIMD                = 92H;   (* Image data                  *)
+  GIMD_ML                   = 255;   (* Maximum len of image data   *)
+
+CONST (* Full Arc *)
+  OCODE_GCFARC              = 087H;  (* full arc at current posn    *)
+  OCODE_GFARC               = 0C7H;  (* full arc at given posn      *)
+
+CONST (* Label *)
+  OCODE_GLABL               = 0D3H;  (* Label                       *)
+
+CONST (* Set Current Position *)
+  OCODE_GSCP                = 21H;   (* Set current position        *)
+  OCODE_GPSCP               = 61H;   (* Push and set curr posn      *)
+
+CONST (* Bezier spline *)
+  OCODE_GCBEZ               = 0A5H;  (* Bezier spline at curr pos   *)
+  GCBEZ_SMB                 = 21;    (* Max number of splines (S)   *)
+  GCBEZ_LMB                 = 10;    (* Max number of splines (L)   *)
+  OCODE_GBEZ                = 0E5H;  (* Bezier spline at given pos  *)
+  GBEZ_SMB                  = 20;    (* Max number of splines (S)   *)
+  GBEZ_LMB                  = 10;    (* Max number of splines (L)   *)
+
+CONST (* Fillet *)
+  OCODE_GCFLT               = 85H;   (* fillet at current posn      *)
+  GCFLT_SMP                 = 63;    (* Max number of points (S)    *)
+  GCFLT_LMP                 = 31;    (* Max number of points (L)    *)
+  OCODE_GFLT                = 0C5H;  (* fillet at given position    *)
+  GFLT_SMP                  = 62;    (* Max number of points (S)    *)
+  GFLT_LMP                  = 30;    (* Max number of points (L)    *)
+
+CONST (* Polyline *)
+  OCODE_GCLINE              = 81H;   (* polyline at current posn    *)
+  GCLINE_SMP                = 63;    (* Max number of points (S)    *)
+  GCLINE_LMP                = 31;    (* Max number of points (L)    *)
+  OCODE_GLINE               = 0C1H;  (* polyline at given posn      *)
+  GLINE_SMP                 = 62;    (* Max number of points (S)    *)
+  GLINE_LMP                 = 30;    (* Max number of points (L)    *)
+
+CONST (* Polymarker *)
+  OCODE_GCMRK               = 82H;   (* marker at current posn      *)
+  GCMRK_SMP                 = 63;    (* Max number of points (S)    *)
+  GCMRK_LMP                 = 31;    (* Max number of points (L)    *)
+  OCODE_GMRK                = 0C2H;  (* marker at given posn        *)
+  GMRK_SMP                  = 62;    (* Max number of points (S)    *)
+  GMRK_LMP                  = 30;    (* Max number of points (L)    *)
+
+CONST (* Relative Line *)
+  OCODE_GCRLINE             = 0A1H;  (* Relative line at curr pos   *)
+  GCRLINE_MP                = 127;   (* Max number of points        *)
+  OCODE_GRLINE              = 0E1H;  (* Relative line at givn pos   *)
+  GRLINE_SMP                = 125;   (* Max number of points (S)    *)
+  GRLINE_LMP                = 123;   (* Max number of points (L)    *)
+
+CONST (* Set Background Color *)
+  OCODE_GSBCOL              = 25H;   (* Set background color        *)
+  OCODE_GPSBCOL             = 65H;   (* Push and set b/g color      *)
+
+CONST (* Set Extended Color *)
+  OCODE_GSECOL              = 26H;   (* Set extended color          *)
+  OCODE_GPSECOL             = 66H;   (* Push and set ext color      *)
+
+CONST (* Extended Color values *)
+  SECOL_DEFAULT0            = 00000H;
+  SECOL_DEFAULT1            = 0FF00H;
+  SECOL_NEUTRAL             = 0FF07H;
+  SECOL_RESET               = 0FF08H;
+
+CONST (* Set Character Angle *)
+  OCODE_GSCA                = 34H;   (* Set character angle         *)
+  OCODE_GPSCA               = 74H;   (* Push and set char angle     *)
+
+CONST (* Set Character Shear *)
+  OCODE_GSCH                = 35H;   (* Set character shear         *)
+  OCODE_GPSCH               = 75H;   (* Push and set char shear     *)
+
+CONST (* Set Fractional Line Width *)
+  OCODE_GSFLW               = 11H;   (* Set fractional line width   *)
+  OCODE_GPSFLW              = 51H;   (* Push and set frac l width   *)
+
+CONST (* Set Pick Identifier *)
+  OCODE_GSPIK               = 43H;   (* Set pick identifier         *)
+  OCODE_GPSPIK              = 23H;   (* Push and set pick id        *)
+
+
+(* Long Orders for which a structure can be defined for the data *)
+
+CONST (* Arc *)
+  OCODE_GCARC               = 086H;  (* Arc at Current Position     *)
+  OCODE_GARC                = 0C6H;  (* Arc at Given Position       *)
+
+TYPE
+  ORDERS_GCARC              = RECORD (* osgcarc *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      ptInter                 : POINTS;
+      ptEnd                   : POINTS;
+    | FALSE                   :
+      InterPoint              : POINTS;
+      EndPoint                : POINTS;
+    END;                      END;
+
+TYPE
+  ORDERL_GCARC              = RECORD  (* olgcarc *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      ptInter                 : POINTL;
+      ptEnd                   : POINTL;
+    | FALSE                   :
+      InterPoint              : POINTL;
+      EndPoint                : POINTL;
+    END;                      END;
+
+CONST (* Begin Element *)
+  OCODE_GBEL                = 0D2H;  (* Begin Element               *)
+  GBEL_DL                   = 251;
+
+TYPE (* Begin Element *)
+  ORDER_GBEL                = RECORD (* ogbel *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      lElementType            : LONGINT;
+      achDesc                 : ARRAY [0..GBEL_DL] OF SHORTCARD;
+    | FALSE                   :
+      ElementType             : LONGINT;
+      Desc                    : ARRAY [0..GBEL_DL] OF SHORTCARD;
+    END;                      END;
+
+CONST (* Begin Image *)
+  OCODE_GCBIMG              = 091H;  (* Begin Image at curr posn    *)
+  OCODE_GBIMG               = 0D1H;  (* Begin Image at given posn   *)
+
+TYPE (* Begin Image *)
+  ORDER_GCBIMG              = RECORD (* ogbimg *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      uchFormat               : SHORTCARD;
+      uchReserved             : SHORTCARD;
+      cx                      : SWPUSHORT;
+      cy                      : SWPUSHORT;
+    | FALSE                   :
+      Format                  : SHORTCARD;
+      Reserved                : SHORTCARD;
+      xSize                   : SWPUSHORT;
+      ySize                   : SWPUSHORT;
+    END;                      END;
+
+CONST (* Begin Path *)
+  OCODE_GBPTH               = 0D0H;  (* Begin Path                  *)
+
+TYPE (* Begin Path *)
+  ORDER_GBPTH               = RECORD (* ogbpth *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      usReserved              : CARDINAL;
+      idPath                  : LONGINT;
+    | FALSE                   :
+      Reserved                : CARDINAL;
+      PathId                  : LONGINT;
+    END;                      END;
+
+CONST (* Box *)
+  OCODE_GCBOX               = 080H;  (* Box at current position     *)
+  OCODE_GBOX                = 0C0H;  (* Box at given position       *)
+
+TYPE  (* Box *)
+  ORDERS_GCBOX              = RECORD (* osgcbox *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      fbFlags                 : SHORTCARD;
+      uchReserved             : SHORTCARD;
+      ptCorner                : POINTS;
+      hAxis                   : INTEGER;
+      vAxis                   : INTEGER;
+    | FALSE                   :
+      Flags                   : SHORTCARD;
+      Reserved                : SHORTCARD;
+      CornerPoint             : POINTS;
+      HorizonatlAxis          : INTEGER;
+      VerticalAxis            : INTEGER;
+    END;                      END;
+  ORDERL_GCBOX              = RECORD (* olgcbox *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      fbFlags                 : SHORTCARD;
+      uchReserved             : SHORTCARD;
+      ptCorner                : POINTL;
+      hAxis                   : LONGINT;
+      vAxis                   : LONGINT;
+    | FALSE                   :
+      Flags                   : SHORTCARD;
+      Reserved                : SHORTCARD;
+      CornerPoint             : POINTL;
+      HorizontalAxis          : LONGINT;
+      VerticalAxis            : LONGINT;
+    END;                      END;
+
+CONST (* Box *)
+  GCBOX_FILL                = 40H;
+  GCBOX_BOUNDARY            = 20H;
+
+CONST (* Call Segment *)
+  OCODE_GCALLS              = 07H;   (* call segment                *)
+
+TYPE  (* Call Segment *)
+  ORDER_GCALLS              = RECORD (* ogcalls *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      sReserved               : CARDINAL;
+      idSegment               : LONGINT;
+    | FALSE                   :
+      Reserved                : CARDINAL;
+      SegmentId               : LONGINT;
+    END;                      END;
+
+CONST (* Fill Path *)
+  OCODE_GFPTH               = 0D7H;  (* Fill path                   *)
+
+TYPE  (* Fill Path *)
+  ORDER_GFPTH               = RECORD (* ogfpth *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      fbFlags                 : SHORTCARD;
+      uchReserved             : SHORTCARD;
+      idPath                  : LONGINT;
+    | FALSE                   :
+      Flags                   : SHORTCARD;
+      Reserved                : SHORTCARD;
+      PathId                  : LONGINT;
+    END;                      END;
+
+CONST (* Fill Path *)
+  GFPTH_ALTERNATE           = 00H;
+  GFPTH_WINDING             = 40H;
+  GFPTH_MODIFY              = 20H;
+
+CONST (* Outline Path *)
+  OCODE_GOPTH               = 0D4H;  (* Outline Path                *)
+
+TYPE  (* Outline Path *)
+  ORDER_GOPTH               = RECORD (* ogopth *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      fbFlags                 : SHORTCARD;
+      uchReserved             : SHORTCARD;
+      idPath                  : LONGINT;
+    | FALSE                   :
+      Flags                   : SHORTCARD;
+      Reserved                : SHORTCARD;
+      PathId                  : LONGINT;
+    END;                      END;
+
+CONST (* Modify Path *)
+  OCODE_GMPTH               = 0D8H;  (* modify path                 *)
+
+TYPE  (* Modify Path *)
+  ORDER_GMPTH               = RECORD (* ogmpth *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      uchMode                 : SHORTCARD;
+      uchReserved             : SHORTCARD;
+      idPath                  : LONGINT;
+    | FALSE                   :
+      Mode                    : SHORTCARD;
+      Reserved                : SHORTCARD;
+      PathId                  : LONGINT;
+    END;                      END;
+
+CONST (* Modify Path *)
+  GMPTH_STROKE              = 06H;
+
+CONST (* Partial Arc *)
+  OCODE_GCPARC              = 0A3H;  (* Partial arc at curr posn    *)
+  OCODE_GPARC               = 0E3H;  (* Partial arc at given posn   *)
+
+TYPE  (* Partial Arc *)
+  ORDERS_GCPARC             = RECORD (* osgcparc *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      ptCenter                : POINTS;
+      ufx88Multiplier         : FIXED88;
+      usStartAngle            : LONGINT;
+      usSweepAngle            : LONGINT;
+    | FALSE                   :
+      CenterPoint             : POINTS;
+      Multiplier              : FIXED88;
+      StartAngle              : LONGINT;
+      SweepAngle              : LONGINT;
+    END;                      END;
+  ORDERL_GCPARC             = RECORD (* olgcparc *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      ptCenter                : POINTL;
+      ufxMultiplier           : FIXED;
+      usStartAngle            : LONGINT;
+      usSweepAngle            : LONGINT;
+    | FALSE                   :
+      CenterPoint             : POINTL;
+      Multiplier              : FIXED;
+      StartAngle              : LONGINT;
+      SweepAngle              : LONGINT;
+    END;                      END;
+
+CONST (* Set Clip Path *)
+  OCODE_GSCPTH              = 0B4H;  (* Set clip path               *)
+
+TYPE  (* Set Clip Path *)
+  ORDER_GSCPTH              = RECORD (* ogscpth *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      fbFlags                 : SHORTCARD;
+      uchReserved             : SHORTCARD;
+      idPath                  : LONGINT;
+    | FALSE                   :
+      Flags                   : SHORTCARD;
+      Reserved                : SHORTCARD;
+      PathId                  : LONGINT;
+    END;                      END;
+
+CONST (* Set Clip Path *)
+  GSCPTH_ALTERNATE          = 00H;
+  GSCPTH_WINDING            = 40H;
+  GSCPTH_RESET              = 00H;
+  GSCPTH_INTERSECT          = 20H;
+
+CONST (* Set Arc Parameters *)
+  OCODE_GSAP                = 22H;   (* Set arc parameters          *)
+  OCODE_GPSAP               = 62H;   (* Push and set arc params     *)
+
+TYPE  (* Set Arc Parameters *)
+  ORDERS_GSAP               = RECORD (* osgsap *)
+    p                         : INTEGER;
+    q                         : INTEGER;
+    r                         : INTEGER;
+    s                         : INTEGER;
+                              END;
+  ORDERL_GSAP               = RECORD (* olgsap *)
+    p                         : LONGINT;
+    q                         : LONGINT;
+    r                         : LONGINT;
+    s                         : LONGINT;
+                              END;
+
+CONST (* Set Background Indexed Color *)
+  OCODE_GSBICOL             = 0A7H;  (* Set b/g indexed color       *)
+  OCODE_GPSBICOL            = 0E7H;  (* Push and set b/g ind color  *)
+  OCODE_GSICOL              = 0A6H;  (* Set indexed color           *)
+  OCODE_GPSICOL             = 0E6H;  (* Push and set indexd color   *)
+
+TYPE  (* Set Background Indexed Color *)
+  ORDER_GSBICOL             = RECORD (* ogbicol *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      fbFlags                 : SHORTCARD;
+      auchColor               : ARRAY [0..2] OF SHORTCARD;
+    | FALSE                   :
+      Flags                   : SHORTCARD;
+      Color                   : ARRAY [0..2] OF SHORTCARD;
+    END;                      END;
+
+CONST (* Set Background Indexed Color *)
+  SICOL_SPECIFY             = 00H;
+  SICOL_SPECIAL             = 40H;
+  SICOL_DEFAULT             = 80H;
+  SICOL_BLACK               = 1;
+  SICOL_WHITE               = 2;
+  SICOL_ONES                = 4;
+  SICOL_ZEROES              = 5;
+
+CONST (* Set Character Cell *)
+  OCODE_GSCC                = 33H;   (* Set character cell          *)
+  OCODE_GPSCC               = 03H;   (* Push and set char cell      *)
+
+TYPE  (* Set Character Cell *)
+  ORDERS_GSCC               = RECORD (* osgscc *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      cxInt                   : INTEGER;
+      cyInt                   : INTEGER;
+      cxFract                 : CARDINAL;
+      cyFract                 : CARDINAL;
+      fbFlags                 : SHORTCARD;
+      uchReserved             : SHORTCARD;
+    | FALSE                   :
+      xIntSize                : INTEGER;
+      yIntSize                : INTEGER;
+      xFractSize              : CARDINAL;
+      yFractSize              : CARDINAL;
+      Flags                   : SHORTCARD;
+      Reserved                : SHORTCARD;
+    END;                      END;
+  ORDERL_GSCC               = RECORD (* olgscc *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      cxInt                   : LONGINT;
+      cyInt                   : LONGINT;
+      cxFract                 : CARDINAL;
+      cyFract                 : CARDINAL;
+      fbFlags                 : SHORTCARD;
+      uchReserved             : SHORTCARD;
+    | FALSE                   :
+      xIntSize                : LONGINT;
+      yIntSize                : LONGINT;
+      xFractSize              : CARDINAL;
+      yFractSize              : CARDINAL;
+      Flags                   : SHORTCARD;
+      Reserved                : SHORTCARD;
+    END;                      END;
+
+CONST (* Set Character Cell *)
+  GSCC_ZERODEF              = 00H;
+  GSCC_ZEROZERO             = 80H;
+
+CONST (* Set Marker Cell *)
+  OCODE_GSMC                = 37H;   (* Set marker cell             *)
+  OCODE_GPSMC               = 77H;   (* Push and set marker cell    *)
+
+TYPE  (* Set Marker Cell *)
+  ORDERS_GSMC               = RECORD (* osgsmc *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      cx                      : INTEGER;
+      cy                      : INTEGER;
+      fbFlags                 : SHORTCARD;
+      uchReserved             : SHORTCARD;
+    | FALSE                   :
+      xSize                   : INTEGER;
+      ySize                   : INTEGER;
+      Flags                   : SHORTCARD;
+      Reserved                : SHORTCARD;
+    END;                      END;
+  ORDERL_GSMC               = RECORD (* olgsmc *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      cx                      : LONGINT;
+      cy                      : LONGINT;
+      fbFlags                 : SHORTCARD;
+      uchReserved             : SHORTCARD;
+    | FALSE                   :
+      xSize                   : LONGINT;
+      ySize                   : LONGINT;
+      Flags                   : SHORTCARD;
+      Reserved                : SHORTCARD;
+    END;                      END;
+
+CONST (* Set Marker Cell *)
+  GSMC_ZERODEF              = 00H;
+  GSMC_ZEROZERO             = 80H;
+
+CONST (* Set Pattern Reference Point *)
+  OCODE_GSPRP               = 0A0H;  (* Set pattern ref point       *)
+  OCODE_GPSPRP              = 0E0H;  (* Push and set patt ref pt    *)
+
+TYPE  (* Set Pattern Reference Point *)
+  ORDERS_GSPRP              = RECORD (* osgsprp *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      fbFlags                 : SHORTCARD;
+      uchReserved             : SHORTCARD;
+      ptPos                   : POINTS;
+    | FALSE                   :
+      Flags                   : SHORTCARD;
+      Reserved                : SHORTCARD;
+      Pos                     : POINTS;
+    END;                      END;
+  ORDERL_GSPRP              = RECORD (* olgsprp *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      fbFlags                 : SHORTCARD;
+      uchReserved             : SHORTCARD;
+      ptPos                   : POINTL;
+    | FALSE                   :
+      Flags                   : SHORTCARD;
+      Reserved                : SHORTCARD;
+      Pos                     : POINTL;
+    END;                      END;
+
+CONST (* Set Pattern Reference Point *)
+  GSPRP_DEFAULT             = 80H;
+  GSPRP_SPECIFY             = 00H;
+
+CONST (* Set Individual Attribute *)
+  OCODE_GSIA                = 14H;   (* Set individual attribute    *)
+  OCODE_GPSIA               = 54H;   (* Push and set ind attr       *)
+  GSIA_VL                   = 3;
+
+TYPE  (* Set Individual Attribute *)
+  ORDER_GSIA                = RECORD (* ogsia *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      uchAttrType             : SHORTCARD;
+      uchPrimType             : SHORTCARD;
+      fbFlags                 : SHORTCARD;
+      auchValue               : ARRAY [0..GSIA_VL-1] OF SHORTCARD;
+    | FALSE                   :
+      AttrType                : SHORTCARD;
+      PrimType                : SHORTCARD;
+      Flags                   : SHORTCARD;
+      Value                   : ARRAY [0..GSIA_VL-1] OF SHORTCARD;
+    END;                      END;
+
+CONST (* Set Individual Attribute *)
+  GSIA_COLOR                = 01H;
+  GSIA_BCOLOR               = 02H;
+  GSIA_MIX                  = 03H;
+  GSIA_BMIX                 = 04H;
+  GSIA_LINE                 = 01H;
+  GSIA_CHAR                 = 02H;
+  GSIA_MARKER               = 03H;
+  GSIA_PATTERN              = 04H;
+  GSIA_IMAGE                = 05H;
+  GSIA_SPECIFY              = 00H;
+  GSIA_SPECIAL              = 40H;
+  GSIA_DEFAULT              = 80H;
+  GSIA_BLACK                = 1;
+  GSIA_WHITE                = 2;
+  GSIA_ONES                 = 4;
+  GSIA_ZEROES               = 5;
+
+CONST (* Set Model /Viewing Transform *)
+  OCODE_GSTM                = 24H;   (* Set model transform         *)
+  OCODE_GPSTM               = 64H;   (* Push and set model tfm      *)
+  OCODE_GSTV                = 31H;   (* Set Viewing Transform       *)
+  GSTM_ML                   = 16;
+
+TYPE (* Set Model /Viewing Transform *)
+  ORDERS_GSTM               = RECORD (* osgstm *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      uchReserved             : SHORTCARD;
+      fbFlags                 : SHORTCARD;
+      fsMask                  : CARDINAL;
+      asMatrix                : ARRAY [0..GSTM_ML-1] OF INTEGER;
+    | FALSE                   :
+      Reserved                : SHORTCARD;
+      Flags                   : SHORTCARD;
+      Mask                    : CARDINAL;
+      Matrix                  : ARRAY [0..GSTM_ML-1] OF INTEGER;
+    END;                      END;
+  ORDERL_GSTM               = RECORD (* olgstm *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      uchReserved             : SHORTCARD;
+      fbFlags                 : SHORTCARD;
+      fsMask                  : SHORTCARD;
+      alMatrix                : ARRAY [0..GSTM_ML-1] OF LONGINT;
+    | FALSE                   :
+      Reserved                : SHORTCARD;
+      Flags                   : SHORTCARD;
+      Mask                    : SHORTCARD;
+      Matrix                  : ARRAY [0..GSTM_ML-1] OF LONGINT;
+    END;                      END;
+
+CONST (* Set Model /Viewing Transform *)
+  GSTM_M11                  = 8000H;
+  GSTM_M12                  = 4000H;
+  GSTM_M13                  = 2000H;
+  GSTM_M14                  = 1000H;
+  GSTM_M21                  = 0800H;
+  GSTM_M22                  = 0400H;
+  GSTM_M23                  = 0200H;
+  GSTM_M24                  = 0100H;
+  GSTM_M31                  = 0080H;
+  GSTM_M32                  = 0040H;
+  GSTM_M33                  = 0020H;
+  GSTM_M34                  = 0010H;
+  GSTM_M41                  = 0008H;
+  GSTM_M42                  = 0004H;
+  GSTM_M43                  = 0002H;
+  GSTM_M44                  = 0001H;
+  GSTM_UNITY                = 00H;
+  GSTM_AFTER                = 01H;
+  GSTM_BEFORE               = 02H;
+  GSTM_OVERWRITE            = 03H;
+  GSTV_OVERWRITE            = 00H;
+  GSTV_AFTER                = 04H;
+
+CONST (* Set Segment Boundary, Viewing Window *)
+  OCODE_GSSB                = 32H;   (* Set segment boundary        *)
+  OCODE_GSVW                = 27H;   (* Set viewing window          *)
+  OCODE_GPSVW               = 67H;   (* Push and set view window    *)
+  GSSB_ML                   = 4;
+
+TYPE  (* Set Segment Boundary, Viewing Window *)
+  ORDERS_GSSB               = RECORD (* osgssb *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      fbFlags                 : SHORTCARD;
+      fbMask                  : SHORTCARD;
+      alMatrix                : ARRAY [0..GSSB_ML-1] OF INTEGER;
+    | FALSE                   :
+      Flags                   : SHORTCARD;
+      Mask                    : SHORTCARD;
+      Matrix                  : ARRAY [0..GSSB_ML-1] OF INTEGER;
+    END;                      END;
+  ORDERL_GSSB               = RECORD (* olgssb *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      fbFLags                 : SHORTCARD;
+      fbMask                  : SHORTCARD;
+      alMatrix                : ARRAY [0..GSSB_ML-1] OF LONGINT;
+    | FALSE                   :
+      FLags                   : SHORTCARD;
+      Mask                    : SHORTCARD;
+      Matrix                  : ARRAY [0..GSSB_ML-1] OF LONGINT;
+    END;                      END;
+
+CONST (* Set Segment Boundary, Viewing Window *)
+  GSSB_XLEFT                = 20H;
+  GSSB_XRIGHT               = 10H;
+  GSSB_YBOTTOM              = 08H;
+  GSSB_YTOP                 = 04H;
+  GSVW_INTERSECT            = 00H;
+  GSVW_REPLACE              = 80H;
+
+CONST (* Set Segment Characteristics *)
+  OCODE_GSGCH               = 04H;   (* Set segment characteristics *)
+  GSGCH_ML                  = 254;
+
+TYPE  (* Set Segment Characteristics *)
+  ORDER_GSGCH               = RECORD (* ogsgch *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+       uchIdent               : SHORTCARD;
+       auchData               : ARRAY [0..GSGCH_ML-1] OF SHORTCARD;
+    | FALSE                   :
+       Ident                  : SHORTCARD;
+       Data                   : ARRAY [0..GSGCH_ML-1] OF SHORTCARD;
+    END;                      END;
+
+CONST (* Set Stroke Line Width *)
+  OCODE_GSSLW               = 15H;   (* Set stroke line width       *)
+  OCODE_GPSSLW              = 55H;   (* Push and set strk l width   *)
+
+TYPE  (* Set Stroke Line Width *)
+  ORDERS_GSSLW              = RECORD (* osgsslw *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      fbFlags                 : SHORTCARD;
+      uchReserved             : SHORTCARD;
+    | FALSE                   :
+      Flags                   : SHORTCARD;
+      Reserved                : SHORTCARD;
+    END;
+    LineWidth                 : INTEGER;
+                              END;
+  ORDERL_GSSLW              = RECORD (* olgsslw *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      fbFlags                 : SHORTCARD;
+      uchReserved             : SHORTCARD;
+    | FALSE                   :
+      Flags                   : SHORTCARD;
+      Reserved                : SHORTCARD;
+    END;
+    LineWidth                 : LONGINT;
+                              END;
+
+CONST (* Set Stroke Line Width *)
+  GSSLW_DEFAULT             = 80H;
+  GSSLW_SPECIFY             = 00H;
+
+CONST (* Sharp Fillet at Current Position *)
+  OCODE_GCSFLT              = 0A4H;  (* Sharp fillet at curr pos    *)
+  OCODE_GSFLT               = 0E4H;  (* Sharp fillet at given pos   *)
+  GCSFLT_SMF                = 21;
+  GSFLT_SMF                 = 20;
+
+TYPE  (* Sharp Fillet at Current Position *)
+  ORDERS_GCSFLT             = RECORD (* osgcsflt *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      apt                     : ARRAY [0..2*GCSFLT_SMF-1] OF POINTS;
+      afxSharpness            : ARRAY [0..GCSFLT_SMF-1] OF FIXED;
+    | FALSE                   :
+      Point                   : ARRAY [0..2*GCSFLT_SMF-1] OF POINTS;
+      Sharpness               : ARRAY [0..GCSFLT_SMF-1] OF FIXED;
+    END;                      END;
+
+CONST (* Sharp Fillet at Current Position *)
+  GCSFLT_LMF                = 12;
+  GSFLT_LMF                 = 12;
+
+TYPE  (* Sharp Fillet at Current Position *)
+  ORDERL_GCSFLT             = RECORD (* olgcsflt *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      apt                     : ARRAY [0..2*GCSFLT_SMF-1] OF POINTL;
+      afxSharpness            : ARRAY [0..GCSFLT_SMF-1] OF FIXED;
+    | FALSE                   :
+      Point                   : ARRAY [0..2*GCSFLT_SMF-1] OF POINTL;
+      Sharpness               : ARRAY [0..GCSFLT_SMF-1] OF FIXED;
+    END;                      END;
+
+CONST (* Bitblt *)
+  OCODE_GBBLT               = 0D6H;  (* Bitblt                      *)
+
+TYPE  (* Bitblt *)
+  ORDERS_GBBLT              = RECORD (* osgbblt *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      fsFlags                 : CARDINAL;
+      usMix                   : CARDINAL;
+      hbmSrc                  : HBITMAP;
+      lOptions                : LONGINT;
+      rcsTargetRect           : RECT1S;
+      rclSourceRect           : RECTL;
+    | FALSE                   :
+      Flags                   : CARDINAL;
+      Mix                     : CARDINAL;
+      SourceBitMapHandle      : HBITMAP;
+      Options                 : LONGINT;
+      TargetRect              : RECT1S;
+      SourceRect              : RECTL;
+    END;                      END;
+  ORDERL_GBBLT              = RECORD (* olgbblt *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      fsFlags                 : CARDINAL;
+      usMix                   : CARDINAL;
+      hbmSrc                  : HBITMAP;
+      lOptions                : LONGINT;
+      rclTargetRect           : RECTL;
+      rclSourceRect           : RECTL;
+    | FALSE                   :
+      Flags                   : CARDINAL;
+      Mix                     : CARDINAL;
+      SourceBitMapHandle      : HBITMAP;
+      Options                 : LONGINT;
+      TargetRect              : RECTL;
+      SourceRect              : RECTL;
+    END;                      END;
+
+CONST (* Char & break extra *)
+  OCODE_GSCE                = 17H;   (* Set char extra                *)
+  OCODE_GPSCE               = 57H;   (* Push and set char extra       *)
+  OCODE_GSCBE               = 05H;   (* Set char break extra          *)
+  OCODE_GPSCBE              = 45H;   (* Push and set char break extra *)
+
+TYPE  (* Char & break extra *)
+  ORDER_GSCBE               = RECORD (* osgsce *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      fbFlags                 : SHORTCARD;
+      uchReserved             : SHORTCARD;
+      ufxextra                : FIXED;
+    | FALSE                   :
+      Flags                   : SHORTCARD;
+      Reserved                : SHORTCARD;
+      Extra                   : FIXED;
+    END;                      END;
+  ORDER_GSCE                = ORDER_GSCBE;
+  ORDER_GPSCE               = ORDER_GSCBE;
+  ORDER_GPSCBE              = ORDER_GSCBE;
+
+CONST (* Escape *)
+  OCODE_GESCP               = 0D5H;  (* Escape                      *)
+  GESCP_ML                  = 253;
+
+TYPE
+  (* type describes type of escape order, identifier gives the escape *)
+  (* order if the type is registered                                  *)
+  ORDER_GESCP               = RECORD (* ogescp *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      uchType                 : SHORTCARD;
+      uchIdent                : SHORTCARD;
+      auchData                : ARRAY [0..GESCP_ML-1] OF SHORTCARD;
+    | FALSE                   :
+      Type                    : SHORTCARD;
+      Ident                   : SHORTCARD;
+      Data                    : ARRAY [0..GESCP_ML-1] OF SHORTCARD;
+    END;                      END;
+
+CONST (* Escape *)
+  GESCP_REG                 = 80H;   (* identifier is registered    *)
+
+CONST (* Escape (Bitblt) *)
+  GEBB_REGID                = 02H;   (* uchIdent - Bitblt           *)
+  ETYPE_GEBB                = 800200D5H;
+  GEBB_LMP                  = 29;
+
+TYPE  (* Escape (Bitblt) *)
+  ORDERL_GEBB               = RECORD (* olgebb *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      fbFlags                 : SHORTCARD;
+      usMix                   : CARDINAL;
+      cPoints                 : SHORTCARD;
+      hbmSrc                  : HBITMAP;
+      lReserved               : LONGINT;
+      lOptions                : LONGINT;
+      aptPoints               : ARRAY [0..GEBB_LMP-1] OF POINTL;
+    | FALSE                   :
+      Flags                   : SHORTCARD;
+      Mix                     : CARDINAL;
+      PointCount              : SHORTCARD;
+      SourceBitMapHandle      : HBITMAP;
+      Reserved                : LONGINT;
+      Options                 : LONGINT;
+      Points                  : ARRAY [0..GEBB_LMP-1] OF POINTL;
+    END;                      END;
+
+CONST (* Escape (Set Pel) *)
+  GEPEL_REGID               = 01H;   (* uchIdent - Set Pel          *)
+  ETYPE_GEPEL               = 800100D5H;
+
+CONST (* Escape (DrawBits) *)
+  GEDB_REGID                = 04H;   (* uchIdent - DrawBits *)
+  ETYPE_GEDB                = 800400D5H;
+
+TYPE  (* Escape (DrawBits) *)
+  ORDERL_GEDB               = RECORD (* olgedb *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      fsFlags                 : CARDINAL;
+      usMix                   : CARDINAL;
+      pBits                   : SYSTEM.ADDRESS;
+      pbmi                    : PBITMAPINFO2;
+      lOptions                : LONGINT;
+      rclTargetRect           : RECTL;
+      rclSourceRect           : RECTL;
+    | FALSE                   :
+      Flags                   : CARDINAL;
+      Mix                     : CARDINAL;
+      Bits                    : SYSTEM.ADDRESS;
+      BitMapInfo              : PBITMAPINFO2;
+      Options                 : LONGINT;
+      TargetRect              : RECTL;
+      SourceRect              : RECTL;
+    END;                      END;
+
+CONST (* Escape (FloodFill) *)
+  GEFF_REGID                = 03H;   (* uchIdent - FloodFill *)
+  ETYPE_GEFF                = 800300D5H;
+
+TYPE  (* Escape (FloodFill) *)
+  ORDERL_GEFF               = RECORD (* olgeff *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      fsFlags                 : SHORTCARD;
+      auchColor               : ARRAY [0..2] OF SHORTCARD;
+    | FALSE                   :
+      Flags                   : SHORTCARD;
+      Color                   : ARRAY [0..2] OF SHORTCARD;
+    END;                      END;
+
+CONST (* Element Types for attribute bundles *)
+  ETYPE_LINEBUNDLE          = 0000FD01H;
+  ETYPE_CHARBUNDLE          = 0000FD02H;
+  ETYPE_MARKERBUNDLE        = 0000FD03H;
+  ETYPE_AREABUNDLE          = 0000FD04H;
+  ETYPE_IMAGEBUNDLE         = 0000FD05H;
+
+
+(***************************************************************************\
+*
+* Very long orders
+*
+\***************************************************************************)
+
+(* function to tell whether this is a very long order *)
+PROCEDURE VLONG_ORDER( oc:SYSTEM.BYTE ):BOOLEAN;
+
+CONST (* Very long order structure *)
+  VORDER_ML                 = 65531;
+
+TYPE  (* Very long order structure *)
+  VORDER                    = RECORD (* vord *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      idCode                  : SHORTCARD;
+      uchQualifier            : SHORTCARD;
+      uchLength               : SWPUSHORT;
+      uchData                 : ARRAY [0..VORDER_ML-1] OF SHORTCARD;
+    | FALSE                   :
+      CodeId                  : SHORTCARD;
+      Qualifier               : SHORTCARD;
+      Length                  : SWPUSHORT;
+      Data                    : ARRAY [0..VORDER_ML-1] OF SHORTCARD;
+    END;                      END;
+
+CONST (* Character String Extended *)
+  OCODEQ_GCCHSTE            = 0B0H;  (* Qualifier - current posn    *)
+  OCODEQ_GCHSTE             = 0F0H;  (* Qualifier - given position  *)
+  ETYPE_GCCHSTE             = 0000FEB0H;
+  ETYPE_GCHSTE              = 0000FEF0H;
+
+TYPE  (* Character String Extended *)
+  ORDERS_GCCHSTE            = RECORD (* osgcchste *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      fbFlags                 : SHORTCARD;
+      uchReserved             : SHORTCARD;
+      ptRect                  : ARRAY [0..1] OF POINTS;
+      cchString               : SWPUSHORT;
+      achString               : ARRAY [0..0] OF CHAR;
+      adx                     : ARRAY [0..0] OF INTEGER;
+    | FALSE                   :
+      Flags                   : SHORTCARD;
+      Reserved                : SHORTCARD;
+      Rect                    : ARRAY [0..1] OF POINTS;
+      StringSize              : SWPUSHORT;
+      String                  : ARRAY [0..0] OF CHAR;
+      dx                      : ARRAY [0..0] OF INTEGER;
+    END;                      END;
+  ORDERL_GCCHSTE            = RECORD (* olgcchste *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      fbFlags                 : SHORTCARD;
+      uchReserved             : SHORTCARD;
+      ptRect                  : ARRAY [0..1] OF POINTL;
+      cchString               : SWPUSHORT;
+      achString               : ARRAY [0..0] OF CHAR;
+      adx                     : ARRAY [0..0] OF LONGINT;
+    | FALSE                   :
+      Flags                   : SHORTCARD;
+      Reserved                : SHORTCARD;
+      Rect                    : ARRAY [0..1] OF POINTL;
+      StringSize              : SWPUSHORT;
+      String                  : ARRAY [0..0] OF CHAR;
+      dx                      : ARRAY [0..0] OF LONGINT;
+    END;                      END;
+
+CONST (* Character String Extended *)
+  GCCHSTE_DRAWRECT          = 80H;
+  GCCHSTE_NORECT            = 00H;
+  GCCHSTE_CLIP              = 40H;
+  GCCHSTE_NOCLIP            = 00H;
+  GCCHSTE_DEEMPHASIZE       = 20H;   (* Reserved *)
+  GCCHSTE_NODEEMPHASIZE     = 00H;
+  GCCHSTE_LEAVEPOS          = 10H;
+  GCCHSTE_MOVEPOS           = 00H;
+  GCCHSTE_UNDERSCORE        = 08H;
+  GCCHSTE_NOUNDERSCORE      = 00H;
+  GCCHSTE_STRIKEOUT         = 04H;
+  GCCHSTE_NOSTRIKEOUT       = 00H;
+
+CONST (* Extended Escape *)
+  OCODEQ_GEESCP             = 0D5H;  (* Qualifier - extended escape *)
+  GEESCP_ML                 = 65533;
+
+TYPE  (* Extended Escape *)
+  ORDER_GEESCP              = RECORD (* ogeescp *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      uchType                 : SHORTCARD;
+      uchIdent                : SHORTCARD;
+      auchData                : ARRAY [0..GEESCP_ML-1] OF SHORTCARD;
+    | FALSE                   :
+      Type                    : SHORTCARD;
+      Ident                   : SHORTCARD;
+      Data                    : ARRAY [0..GEESCP_ML-1] OF SHORTCARD;
+    END;                      END;
+
+
+END ORDERS.

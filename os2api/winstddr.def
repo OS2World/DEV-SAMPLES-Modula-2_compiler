@@ -1,0 +1,448 @@
+DEFINITION MODULE WINSTDDRAG;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager
+           CUA standard drag dll.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF      IMPORT TYPEPREFIX, HWND, LHANDLE, HPS, PSZ;
+FROM   WINDEF      IMPORT MPARAM, MRESULT;
+FROM   GPIDEF      IMPORT SIZEL;
+FROM   WINPOINTERS IMPORT HPOINTER;
+
+CONST
+  PMERR_NOT_DRAGGING       = 1F00H;
+  PMERR_ALREADY_DRAGGING   = 1F01H;
+
+CONST
+  MSGF_DRAG                = 0010H;    (* message filter identifier *)
+
+CONST
+  WM_DRAGFIRST             = 0310H;
+  WM_DRAGLAST              = 032FH;
+
+CONST
+  DM_DROP                  = 032FH;
+  DM_DRAGOVER              = 032EH;
+  DM_DRAGLEAVE             = 032DH;
+  DM_DROPHELP              = 032CH;
+  DM_ENDCONVERSATION       = 032BH;
+  DM_PRINT                 = 032AH;
+  DM_RENDER                = 0329H;
+  DM_RENDERCOMPLETE        = 0328H;
+  DM_RENDERPREPARE         = 0327H;
+  DM_DRAGFILECOMPLETE      = 0326H;
+  DM_EMPHASIZETARGET       = 0325H;
+  DM_DRAGERROR             = 0324H;
+  DM_FILERENDERED          = 0323H;
+  DM_RENDERFILE            = 0322H;
+  DM_DRAGOVERNOTIFY        = 0321H;
+  DM_PRINTOBJECT           = 0320H;
+  DM_DISCARDOBJECT         = 031FH;
+
+CONST (* drag type constants  *)
+  DRT_ASM                  = "Assembler Code";
+  DRT_BASIC                = "BASIC Code";
+  DRT_BINDATA              = "Binary Data";
+  DRT_BITMAP               = "Bitmap";
+  DRT_C                    = "C Code";
+  DRT_COBOL                = "COBOL Code";
+  DRT_DLL                  = "Dynamic Link Library";
+  DRT_DOSCMD               = "DOS Command File";
+  DRT_EXE                  = "Executable";
+  DRT_FORTRAN              = "FORTRAN Code";
+  DRT_ICON                 = "Icon";
+  DRT_LIB                  = "Library";
+  DRT_METAFILE             = "Metafile";
+  DRT_OS2CMD               = "OS/2 Command File";
+  DRT_PASCAL               = "Pascal Code";
+  DRT_RESOURCE             = "Resource File";
+  DRT_TEXT                 = "Plain Text";
+  DRT_UNKNOWN              = "Unknown";
+
+CONST (* DM_DRAGOVER response codes *)
+  DOR_NODROP               = 0000H;
+  DOR_DROP                 = 0001H;
+  DOR_NODROPOP             = 0002H;
+  DOR_NEVERDROP            = 0003H;
+
+CONST (* supported operation flags  *)
+  DO_COPYABLE              = 0001H;
+  DO_MOVEABLE              = 0002H;
+  DO_LINKABLE              = 0004H;
+
+CONST (* source control flags *)
+  DC_OPEN                  = 0001H;
+  DC_REF                   = 0002H;
+  DC_GROUP                 = 0004H;
+  DC_CONTAINER             = 0008H;
+  DC_PREPARE               = 0010H;
+  DC_REMOVEABLEMEDIA       = 0020H;
+
+CONST
+  DO_DEFAULT               = 0BFFEH; (* Default operation          *)
+  DO_UNKNOWN               = 0BFFFH; (* Unknown operation          *)
+  DO_COPY                  = 00010H;
+  DO_MOVE                  = 00020H;
+  DO_LINK                  = 00018H;
+  DO_CREATE                = 00040H;
+
+CONST (* transfer reply flags *)
+  DMFL_TARGETSUCCESSFUL    = 0001H;
+  DMFL_TARGETFAIL          = 0002H;
+  DMFL_NATIVERENDER        = 0004H;
+  DMFL_RENDERRETRY         = 0008H;
+  DMFL_RENDEROK            = 0010H;
+  DMFL_RENDERFAIL          = 0020H;
+
+CONST (* drag image manipulation  flags *)
+  DRG_ICON                 = 00000001H;
+  DRG_BITMAP               = 00000002H;
+  DRG_POLYGON              = 00000004H;
+  DRG_STRETCH              = 00000008H;
+  DRG_TRANSPARENT          = 00000010H;
+  DRG_CLOSED               = 00000020H;
+
+CONST (* DM_DRAGERROR return values *)
+  DME_IGNOREABORT          = 1;
+  DME_IGNORECONTINUE       = 2;
+  DME_REPLACE              = 3;
+  DME_RETRY                = 4;
+
+CONST (* DM_DRAGFILECOMPLETE flags  *)
+  DF_MOVE                  = 0001H;
+  DF_SOURCE                = 0002H;
+  DF_SUCCESSFUL            = 0004H;
+
+CONST
+  DRR_SOURCE               = 1;
+  DRR_TARGET               = 2;
+  DRR_ABORT                = 3;
+
+CONST (* DM_DRAGERROR operation IDs *)
+  DFF_MOVE                 = 1;
+  DFF_COPY                 = 2;
+  DFF_DELETE               = 3;
+
+TYPE
+  HSTR                     = LHANDLE;    (* hstr *)
+
+TYPE
+  DRAGITEM                 = RECORD      (* ditem *)
+    CASE                     : TYPEPREFIX OF
+    | TRUE                   :
+      hwndItem               : HWND;     (* conversation partner           *)
+      ulItemID               : LONGCARD; (* identifies item being dragged  *)
+      hstrType               : HSTR;     (* type of item                   *)
+      hstrRMF                : HSTR;     (* rendering mechanism and format *)
+      hstrContainerName      : HSTR;     (* name of source container       *)
+      hstrSourceName         : HSTR;     (* name of item at source         *)
+      hstrTargetName         : HSTR;     (* suggested name of item at dest *)
+      cxOffset               : INTEGER;  (* x offset of the origin of the  *)
+                                         (*   image from the mouse hotspot *)
+      cyOffset               : INTEGER;  (* y offset of the origin of the  *)
+                                         (*   image from the mouse hotspot *)
+      fsControl              : CARDINAL; (* source item control flags      *)
+      fsSupportedOps         : CARDINAL; (* ops supported by source        *)
+    | FALSE                  :
+      ItemWinHandle          : HWND;     (* conversation partner           *)
+      IdemtID                : LONGCARD; (* identifies item being dragged  *)
+      TypeStrHandle          : HSTR;     (* type of item                   *)
+      RMFStrHandle           : HSTR;     (* rendering mechanism and format *)
+      ContainerNameStrHandle : HSTR;     (* name of source container       *)
+      SourceNameStrHandle    : HSTR;     (* name of item at source         *)
+      TargetNameStrHandle    : HSTR;     (* suggested name of item at dest *)
+      xOffset                : INTEGER;  (* x offset of the origin of the  *)
+                                         (*   image from the mouse hotspot *)
+      yOffset                : INTEGER;  (* y offset of the origin of the  *)
+                                         (*   image from the mouse hotspot *)
+      ControlFlags           : CARDINAL; (* source item control flags      *)
+      SupportedOps           : CARDINAL; (* ops supported by source        *)
+    END;                     END;
+  PDRAGITEM                = POINTER TO DRAGITEM;
+
+TYPE
+  DRAGINFO                 = RECORD      (* dinfo *)
+    CASE                     : TYPEPREFIX OF
+    | TRUE                   :
+      cbDraginfo             : LONGCARD; (* Size of DRAGINFO and DRAGITEMs *)
+      cbDragitem             : CARDINAL; (* size of DRAGITEM               *)
+      usOperation            : CARDINAL; (* current drag operation         *)
+      hwndSource             : HWND;     (* window handle of source        *)
+    | FALSE                  :
+      DraginfoSize           : LONGCARD; (* Size of DRAGINFO and DRAGITEMs *)
+      DragitemSize           : CARDINAL; (* size of DRAGITEM               *)
+      Operation              : CARDINAL; (* current drag operation         *)
+      SourceWinHandle        : HWND;     (* window handle of source        *)
+    END;
+    xDrop                    : INTEGER;  (* x coordinate of drop position  *)
+    yDrop                    : INTEGER;  (* y coordinate of drop position  *)
+    CASE                     : TYPEPREFIX OF
+    | TRUE                   :
+      cditem                 : CARDINAL; (* count of DRAGITEMs             *)
+      usReserved             : CARDINAL; (* reserved for future use        *)
+    | FALSE                  :
+      ItemCount              : CARDINAL; (* count of DRAGITEMs             *)
+      Reserved               : CARDINAL; (* reserved for future use        *)
+    END;                     END;
+  PDRAGINFO                = POINTER TO DRAGINFO;
+
+TYPE
+  DRAGIMAGE                = RECORD      (* dimg *)
+    CASE                     : TYPEPREFIX OF
+    | TRUE                   :
+      cb                     : CARDINAL; (* size control block             *)
+      cptl                   : CARDINAL; (* count of pts, if DRG_POLYGON   *)
+      hImage                 : LHANDLE;  (* image handle passed to DrgDrag *)
+      sizlStretch            : SIZEL;    (* size to strecth ico or bmp to  *)
+      fl                     : LONGCARD; (* flags passed to DrgDrag        *)
+      cxOffset               : INTEGER;  (* x offset of the origin of the  *)
+                                         (*   image from the mouse hotspot *)
+      cyOffset               : INTEGER;  (* y offset of the origin of the  *)
+                                         (*   image from the mouse hotspot *)
+    | FALSE                  :
+      Size                   : CARDINAL; (* size control block             *)
+      PointCount             : CARDINAL; (* count of pts, if DRG_POLYGON   *)
+      ImageHandle            : LHANDLE;  (* image handle passed to DrgDrag *)
+      StretchSize            : SIZEL;    (* size to strecth ico or bmp to  *)
+      Flags                  : LONGCARD; (* flags passed to DrgDrag        *)
+      xOffset                : INTEGER;  (* x offset of the origin of the  *)
+                                         (*   image from the mouse hotspot *)
+      yOffset                : INTEGER;  (* y offset of the origin of the  *)
+                                         (*   image from the mouse hotspot *)
+    END;                     END;
+  PDRAGIMAGE               = POINTER TO DRAGIMAGE;
+
+TYPE
+  DRAGTRANSFER             = RECORD      (* dxfer *)
+    CASE                     : TYPEPREFIX OF
+    | TRUE                   :
+      cb                     : LONGCARD; (* size of control block          *)
+      hwndClient             : HWND;     (* handle of target               *)
+      pditem                 : PDRAGITEM;(* DRAGITEM being transferred     *)
+      hstrSelectedRMF        : HSTR;     (* rendering mech & fmt of choice *)
+      hstrRenderToName       : HSTR;     (* name source will use           *)
+      ulTargetInfo           : LONGCARD; (* reserved for target's use      *)
+      usOperation            : CARDINAL; (* operation being performed      *)
+      fsReply                : CARDINAL; (* reply flags                    *)
+    | FALSE                  :
+      Size                   : LONGCARD; (* size of control block          *)
+      ClientWinHandle        : HWND;     (* handle of target               *)
+      DragItem               : PDRAGITEM;(* DRAGITEM being transferred     *)
+      SelectedRMFStrHandle   : HSTR;     (* rendering mech & fmt of choice *)
+      RenderToNameStrHandle  : HSTR;     (* name source will use           *)
+      TargetInfo             : LONGCARD; (* reserved for target's use      *)
+      Operation              : CARDINAL; (* operation being performed      *)
+      ReplyFlags             : CARDINAL; (* reply flags                    *)
+    END;                     END;
+  PDRAGTRANSFER            = POINTER TO DRAGTRANSFER;
+
+TYPE
+  RENDERFILE               = RECORD      (* rndf *)
+    CASE                     : TYPEPREFIX OF
+    | TRUE                   :
+      hwndDragFiles          : HWND;     (* conversation window            *)
+      hstrSource             : HSTR;     (* handle to source file name     *)
+      hstrTarget             : HSTR;     (* handle to target file name     *)
+      fMove                  : CARDINAL; (* TRUE - move, FALSE - copy      *)
+      usRsvd                 : CARDINAL; (* reserved                       *)
+    | FALSE                  :
+      DragFilesWinHandle     : HWND;     (* conversation window            *)
+      SourceStrHandle        : HSTR;     (* handle to source file name     *)
+      TargetStrHandle        : HSTR;     (* handle to target file name     *)
+      MoveFlag               : CARDINAL; (* TRUE - move, FALSE - copy      *)
+      Reserved               : CARDINAL; (* reserved                       *)
+    END;                     END;
+  PRENDERFILE              = POINTER TO RENDERFILE;
+
+PROCEDURE DrgAcceptDroppedFiles
+( WinHandle                : HWND;
+  Path                     : PSZ;
+  Types                    : PSZ;
+  DefaultOp                : LONGCARD;
+  Reserved                 : LONGCARD
+)                          : BOOLEAN;
+
+PROCEDURE DrgAllocDraginfo
+( DragItemCount            : LONGCARD
+)                          : PDRAGINFO;
+
+PROCEDURE DrgAllocDragtransfer
+( DragTransferCount        : LONGCARD
+)                          : PDRAGTRANSFER;
+
+PROCEDURE DrgDrag
+( SourceWinHandle          : HWND;
+  VAR DragInfo             : DRAGINFO;
+  VAR DragImage            : ARRAY OF DRAGIMAGE;
+  DragImageCount           : LONGCARD;
+  TerminateButton          : LONGINT;
+  Reserved                 : SYSTEM.ADDRESS
+)                          : HWND;
+
+PROCEDURE DrgDragFiles
+( WinHandle                : HWND;
+  VAR Files                : ARRAY OF PSZ;
+  VAR Types                : ARRAY OF PSZ;
+  VAR Targets              : ARRAY OF PSZ;
+  FilesCount               : LONGCARD;
+  DragPointerHandle        : HPOINTER;
+  TerminateButton          : LONGCARD;
+  SourceRenderFlag         : BOOLEAN;
+  Reserved                 : LONGCARD
+)                          : BOOLEAN;
+
+PROCEDURE DrgPostTransferMsg
+( WinHandle                : HWND;
+  MsgId                    : LONGCARD;
+  VAR DragTransfer         : DRAGTRANSFER;
+  Flags                    : LONGCARD;
+  Reserved                 : LONGCARD;
+  Retry                    : BOOLEAN
+)                          : BOOLEAN;
+
+PROCEDURE DrgQueryDragitem
+( VAR DragInfo             : DRAGINFO;
+  BufferSize               : LONGCARD;
+  VAR DragItem             : DRAGITEM;
+  ItemIndex                : LONGCARD
+)                          : BOOLEAN;
+
+PROCEDURE DrgQueryDragitemCount
+( VAR DragInfo             : DRAGINFO
+)                          : LONGCARD;
+
+PROCEDURE DrgQueryDragitemPtr
+( VAR DragInfo             : DRAGINFO;
+  Index                    : LONGCARD
+)                          : PDRAGITEM;
+
+PROCEDURE DrgQueryNativeRMF
+( VAR DragItem             : DRAGITEM;
+  BufferSize               : LONGCARD;
+  VAR Buffer               : ARRAY OF CHAR
+)                          : BOOLEAN;
+
+PROCEDURE DrgQueryNativeRMFLen
+( VAR DragItem             : DRAGITEM
+)                          : LONGCARD;
+
+PROCEDURE DrgQueryStrName
+( StrHandle                : HSTR;
+  BufferSize               : LONGCARD;
+  VAR Buffer               : ARRAY OF CHAR
+)                          : LONGCARD;
+
+PROCEDURE DrgQueryStrNameLen
+( StrHandle                : HSTR
+)                          : LONGCARD;
+
+PROCEDURE DrgQueryTrueType
+( VAR DragItem             : DRAGITEM;
+  BufferSize               : LONGCARD;
+  VAR Buffer               : ARRAY OF CHAR
+)                          : BOOLEAN;
+
+PROCEDURE DrgQueryTrueTypeLen
+( VAR DragItem             : DRAGITEM
+)                          : LONGCARD;
+
+PROCEDURE DrgSendTransferMsg
+( WinHandle                : HWND;
+  MsgId                    : LONGCARD;
+  Param1                   : MPARAM;
+  Param2                   : MPARAM
+)                          : MRESULT;
+
+PROCEDURE DrgSetDragitem
+( VAR DragInfo             : DRAGINFO;
+  VAR DragItem             : DRAGITEM;
+  BufferSize               : LONGCARD;
+  DragItemIndex            : LONGCARD
+)                          : BOOLEAN;
+
+PROCEDURE DrgSetDragImage
+( VAR DragInfo             : DRAGINFO;
+  VAR DragImage            : DRAGIMAGE;
+  DragImageSize            : LONGCARD;
+  Reserved                 : SYSTEM.ADDRESS
+)                          : BOOLEAN;
+
+PROCEDURE DrgVerifyTypeSet
+( VAR DragItem             : DRAGITEM;
+  TypeStr                  : ARRAY OF CHAR;
+  BufferSize               : LONGCARD;
+  VAR Buffer               : ARRAY OF CHAR
+)                          : BOOLEAN;
+
+PROCEDURE DrgAccessDraginfo
+( VAR DragInfo             : DRAGINFO
+)                          : BOOLEAN;
+
+PROCEDURE DrgAddStrHandle
+( String                   : ARRAY OF CHAR
+)                          : HSTR;
+
+PROCEDURE DrgDeleteDraginfoStrHandles
+( VAR DragInfo             : DRAGINFO
+)                          : BOOLEAN;
+
+PROCEDURE DrgDeleteStrHandle
+( StrHandle                : HSTR
+)                          : BOOLEAN;
+
+PROCEDURE DrgFreeDraginfo
+( VAR DragInfo             : DRAGINFO
+)                          : BOOLEAN;
+
+PROCEDURE DrgFreeDragtransfer
+( DragTransfer             : PDRAGTRANSFER
+)                          : BOOLEAN;
+
+PROCEDURE DrgGetPS
+( WinHandle                : HWND
+)                          : HPS;
+
+PROCEDURE DrgPushDraginfo
+( VAR DragInfo             : DRAGINFO;
+  DestWinHandle            : HWND
+)                          : BOOLEAN;
+
+PROCEDURE DrgReleasePS
+( PresSpaceHandle          : HPS
+)                          : BOOLEAN;
+
+PROCEDURE DrgSetDragPointer
+( VAR DragInfo             : DRAGINFO;
+  PointerHandle            : HPOINTER
+)                          : BOOLEAN;
+
+PROCEDURE DrgVerifyNativeRMF
+( VAR DragItem             : DRAGITEM;
+  RMFString                : ARRAY OF CHAR
+)                          : BOOLEAN;
+
+PROCEDURE DrgVerifyRMF
+( VAR DragItem             : DRAGITEM;
+  MechStr                  : ARRAY OF CHAR;
+  FormatStr                : ARRAY OF CHAR
+)                          : BOOLEAN;
+
+PROCEDURE DrgVerifyTrueType
+( VAR DragItem             : DRAGITEM;
+  TypeStr                  : ARRAY OF CHAR
+)                          : BOOLEAN;
+
+PROCEDURE DrgVerifyType
+( VAR DragItem             : DRAGITEM;
+  TypeStr                  : ARRAY OF CHAR
+)                          : BOOLEAN;
+
+END WINSTDDRAG.

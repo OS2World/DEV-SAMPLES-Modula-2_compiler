@@ -1,0 +1,20 @@
+LIBRARY PMGPI
+EXPORTS
+  GpiCreatePS           @369
+  GpiDestroyPS          @379
+  GpiAssociate          @351
+  GpiRestorePS          @499
+  GpiSavePS             @501
+  GpiErase              @389
+  GpiQueryDevice        @444
+  GpiResetPS            @498
+  GpiSetPS              @539
+  GpiQueryPS            @471
+  GpiErrorSegmentData   @390
+  GpiQueryDrawControl   @446
+  GpiSetDrawControl     @521
+  GpiQueryDrawingMode   @447
+  GpiSetDrawingMode     @522
+  GpiQueryStopDraw      @487
+  GpiSetStopDraw        @550
+

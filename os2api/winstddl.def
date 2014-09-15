@@ -1,0 +1,21 @@
+DEFINITION MODULE WINSTDDLGS;
+
+(************************************************************************
+  OS/2 2.x/3.0 interface for all components of the Presentation Manager
+               CUA controls and dialogs
+
+  Copyright (c) 1995 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+ language extensions: '_' for identifiers, extended import syntax *)
+
+IMPORT FROM WINSTDBOOK      ;
+IMPORT FROM WINSTDCNR       ;
+IMPORT FROM WINSTDDRAG      ;
+IMPORT FROM WINSTDFILE      ;
+IMPORT FROM WINSTDFONT      ;
+IMPORT FROM WINSTDSLIDER    ;
+IMPORT FROM WINSTDSPIN      ;
+IMPORT FROM WINSTDVALSET    ;
+
+END WINSTDDLGS.

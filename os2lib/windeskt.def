@@ -1,0 +1,5 @@
+LIBRARY PMWIN
+EXPORTS
+  WinSetDesktopBkgnd    @935
+  WinQueryDesktopBkgnd  @936
+

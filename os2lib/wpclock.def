@@ -1,0 +1,6 @@
+LIBRARY WPCONFIG
+EXPORTS
+  WPClockClassData         @0x001D
+  WPClockNewClass          @0x001E
+  M_WPClockClassData       @0x0081
+  M_WPClockNewClass        @0x0082

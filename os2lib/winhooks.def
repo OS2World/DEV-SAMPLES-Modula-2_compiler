@@ -1,0 +1,6 @@
+LIBRARY PMWIN
+EXPORTS
+  WinSetHook        @928
+  WinReleaseHook    @927
+  WinCallMsgFilter  @905
+

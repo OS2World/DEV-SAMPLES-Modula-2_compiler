@@ -1,0 +1,1008 @@
+DEFINITION MODULE DOSDEVIOCTL;
+
+(************************************************************************
+  OS/2 2.1 Structures and constants for use with DosDevIOCtl.
+
+  Copyright (c) 1992,1994 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM   OS2DEF  IMPORT TYPEPREFIX, PFN, PCH, PVOID;
+
+CONST (* Input and Output Control Categories *)
+  IOCTL_ASYNC                    = 0001H;
+  IOCTL_SCR_AND_PTRDRAW          = 0003H;
+  IOCTL_KEYBOARD                 = 0004H;
+  IOCTL_PRINTER                  = 0005H;
+  IOCTL_LIGHTPEN                 = 0006H;
+  IOCTL_POINTINGDEVICE           = 0007H;
+  IOCTL_DISK                     = 0008H;
+  IOCTL_PHYSICALDISK             = 0009H;
+  IOCTL_MONITOR                  = 000AH;
+  IOCTL_GENERAL                  = 000BH;
+  IOCTL_POWERMANAGEMENT          = 000CH;   (* new OS/2 2.1 Category *)
+  IOCTL_CDROM_DRIVE_AND_DISK     = 0080H;   (* new OS/2 2.1 Category *)
+  IOCTL_CDROM_AUDIO              = 0081H;   (* new OS/2 2.1 Category *)
+  IOCTL_CDROM_CHARDEVICE         = 0082H;   (* new OS/2 2.1 Category *)
+
+CONST (* Serial-Device Control *)
+  ASYNC_SETBAUDRATE              = 0041H;
+  ASYNC_SETLINECTRL              = 0042H;
+  ASYNC_TRANSMITIMM              = 0044H;
+  ASYNC_SETBREAKOFF              = 0045H;
+  ASYNC_SETMODEMCTRL             = 0046H;
+  ASYNC_SETBREAKON               = 004BH;
+  ASYNC_STOPTRANSMIT             = 0047H;
+  ASYNC_STARTTRANSMIT            = 0048H;
+  ASYNC_SETDCBINFO               = 0053H;
+  ASYNC_GETBAUDRATE              = 0061H;
+  ASYNC_GETLINECTRL              = 0062H;
+  ASYNC_GETCOMMSTATUS            = 0064H;
+  ASYNC_GETLINESTATUS            = 0065H;
+  ASYNC_GETMODEMOUTPUT           = 0066H;
+  ASYNC_GETMODEMINPUT            = 0067H;
+  ASYNC_GETINQUECOUNT            = 0068H;
+  ASYNC_GETOUTQUECOUNT           = 0069H;
+  ASYNC_GETCOMMERROR             = 006DH;
+  ASYNC_GETCOMMEVENT             = 0072H;
+  ASYNC_GETDCBINFO               = 0073H;
+
+CONST (* Screen/Pointer-Draw Control *)
+  SCR_ALLOCLDT                   = 0070H;
+  SCR_DEALLOCLDT                 = 0071H;
+  PTR_GETPTRDRAWADDRESS          = 0072H;
+  SCR_ALLOCLDTOFF                = 0075H;
+
+CONST (* Keyboard Control *)
+  KBD_SETTRANSTABLE              = 0050H;
+  KBD_SETINPUTMODE               = 0051H;
+  KBD_SETINTERIMFLAG             = 0052H;
+  KBD_SETSHIFTSTATE              = 0053H;
+  KBD_SETTYPAMATICRATE           = 0054H;
+  KBD_SETFGNDSCREENGRP           = 0055H;
+  KBD_SETSESMGRHOTKEY            = 0056H;
+  KBD_SETFOCUS                   = 0057H;
+  KBD_SETKCB                     = 0058H;
+  KBD_SETNLS                     = 005CH;
+  KBD_CREATE                     = 005DH;
+  KBD_DESTROY                    = 005EH;
+  KBD_GETINPUTMODE               = 0071H;
+  KBD_GETINTERIMFLAG             = 0072H;
+  KBD_GETSHIFTSTATE              = 0073H;
+  KBD_READCHAR                   = 0074H;
+  KBD_PEEKCHAR                   = 0075H;
+  KBD_GETSESMGRHOTKEY            = 0076H;
+  KBD_GETKEYBDTYPE               = 0077H;
+  KBD_GETCODEPAGEID              = 0078H;
+  KBD_XLATESCAN                  = 0079H;
+
+CONST (* Printer Control *)
+  PRT_QUERYJOBHANDLE             = 0021H;
+  PRT_SETFRAMECTL                = 0042H;
+  PRT_SETINFINITERETRY           = 0044H;
+  PRT_INITPRINTER                = 0046H;
+  PRT_ACTIVATEFONT               = 0048H;
+  PRT_GETFRAMECTL                = 0062H;
+  PRT_GETINFINITERETRY           = 0064H;
+  PRT_GETPRINTERSTATUS           = 0066H;
+  PRT_QUERYACTIVEFONT            = 0069H;
+  PRT_VERIFYFONT                 = 006AH;
+
+CONST (* Pointing-Device (Mouse) Control *)
+  MOU_ALLOWPTRDRAW               = 0050H;
+  MOU_UPDATEDISPLAYMODE          = 0051H;
+  MOU_SCREENSWITCH               = 0052H;
+  MOU_SETSCALEFACTORS            = 0053H;
+  MOU_SETEVENTMASK               = 0054H;
+  MOU_SETHOTKEYBUTTON            = 0055H;
+  MOU_SETPTRSHAPE                = 0056H;
+  MOU_DRAWPTR                    = 0057H;
+  MOU_REMOVEPTR                  = 0058H;
+  MOU_SETPTRPOS                  = 0059H;
+  MOU_SETPROTDRAWADDRESS         = 005AH;
+  MOU_SETREALDRAWADDRESS         = 005BH;
+  MOU_SETMOUSTATUS               = 005CH;
+  MOU_DISPLAYMODECHANGE          = 005DH;
+  MOU_GETBUTTONCOUNT             = 0060H;
+  MOU_GETMICKEYCOUNT             = 0061H;
+  MOU_GETMOUSTATUS               = 0062H;
+  MOU_READEVENTQUE               = 0063H;
+  MOU_GETQUESTATUS               = 0064H;
+  MOU_GETEVENTMASK               = 0065H;
+  MOU_GETSCALEFACTORS            = 0066H;
+  MOU_GETPTRPOS                  = 0067H;
+  MOU_GETPTRSHAPE                = 0068H;
+  MOU_GETHOTKEYBUTTON            = 0069H;
+  MOU_VER                        = 006AH;
+
+CONST (* Disk/Diskette Control *)
+  DSK_LOCKDRIVE                  = 0000H;
+  DSK_UNLOCKDRIVE                = 0001H;
+  DSK_REDETERMINEMEDIA           = 0002H;
+  DSK_SETLOGICALMAP              = 0003H;
+  DSK_BEGINFORMAT                = 0004H;
+  DSK_BLOCKREMOVABLE             = 0020H;
+  DSK_GETLOGICALMAP              = 0021H;
+  DSK_UNLOCKLOCKEJECT            = 0040H;  (* new OS/2 2.1 Lockable Drive *)
+  DSK_SETDEVICEPARAMS            = 0043H;
+  DSK_WRITETRACK                 = 0044H;
+  DSK_FORMATVERIFY               = 0045H;
+  DSK_DISKETTECONTROL            = 005DH;  (* new OS/2 2.1 Lockable Drive *)
+  DSK_QUERYMEDIASENSE            = 0060H;
+  DSK_GETDEVICEPARAMS            = 0063H;
+  DSK_READTRACK                  = 0064H;
+  DSK_VERIFYTRACK                = 0065H;
+  DSK_QUERYLOCKSTATUS            = 0066H;  (* new OS/2 2.1 Lockable Drive *)
+
+CONST (* Physical-Disk Control *)
+  PDSK_LOCKPHYSDRIVE             = 0000H;
+  PDSK_UNLOCKPHYSDRIVE           = 0001H;
+  PDSK_WRITEPHYSTRACK            = 0044H;
+  PDSK_GETPHYSDEVICEPARAMS       = 0063H;
+  PDSK_READPHYSTRACK             = 0064H;
+  PDSK_VERIFYPHYSTRACK           = 0065H;
+
+CONST (* Character-Monitor Control *)
+  MON_REGISTERMONITOR            = 0040H;
+
+CONST (* General Device Control *)
+  DEV_FLUSHINPUT                 = 0001H;
+  DEV_FLUSHOUTPUT                = 0002H;
+  DEV_QUERYMONSUPPORT            = 0060H;
+
+
+CONST (* ASYNC_GETCOMMERROR, ASYNC_SETBREAKOFF, ASYNC_SETBREAKON, *)
+      (* ASYNC_SETMODEMCTRL                                       *)
+  RX_QUE_OVERRUN                 = 0001H;
+  RX_HARDWARE_OVERRUN            = 0002H;
+  PARITY_ERROR                   = 0004H;
+  FRAMING_ERROR                  = 0008H;
+
+CONST (* ASYNC_GETCOMMEVENT *)
+  CHAR_RECEIVED                  = 0001H;
+  LAST_CHAR_SENT                 = 0004H;
+  CTS_CHANGED                    = 0008H;
+  DSR_CHANGED                    = 0010H;
+  DCD_CHANGED                    = 0020H;
+  BREAK_DETECTED                 = 0040H;
+  ERROR_OCCURRED                 = 0080H;
+  RI_DETECTED                    = 0100H;
+
+CONST (* ASYNC_GETCOMMSTATUS *)
+  TX_WAITING_FOR_CTS             = 0001H;
+  TX_WAITING_FOR_DSR             = 0002H;
+  TX_WAITING_FOR_DCD             = 0004H;
+  TX_WAITING_FOR_XON             = 0008H;
+  TX_WAITING_TO_SEND_XON         = 0010H;
+  TX_WAITING_WHILE_BREAK_ON      = 0020H;
+  TX_WAITING_TO_SEND_IMM         = 0040H;
+  RX_WAITING_FOR_DSR             = 0080H;
+
+CONST (* ASYNC_GETLINESTATUS *)
+  WRITE_REQUEST_QUEUED           = 0001H;
+  DATA_IN_TX_QUE                 = 0002H;
+  HARDWARE_TRANSMITTING          = 0004H;
+  CHAR_READY_TO_SEND_IMM         = 0008H;
+  WAITING_TO_SEND_XON            = 0010H;
+  WAITING_TO_SEND_XOFF           = 0020H;
+
+CONST (* ASYNC_GETMODEMINPUT *)
+  CTS_ON                         = 10H;
+  DSR_ON                         = 20H;
+  RI_ON                          = 40H;
+  DCD_ON                         = 80H;
+
+CONST (* DSK_SETDEVICEPARAMS *)
+  BUILD_BPB_FROM_MEDIUM          = 00H;
+  REPLACE_BPB_FOR_DEVICE         = 01H;
+  REPLACE_BPB_FOR_MEDIUM         = 02H;
+
+CONST (* KBD_GETINPUTMODE, KBD_PEEKCHAR, KBD_SETINPUTMODE*)
+  ASCII_MODE                     = 00H;
+  BINARY_MODE                    = 80H;
+
+CONST (* KBD_GETINTERIMFLAG *)
+  CONVERSION_REQUEST             = 20H;
+  INTERIM_CHAR                   = 80H;
+
+CONST (* KBD_GETSESMGRHOTKEY *)
+  HOTKEY_MAX_COUNT               = 0000H;
+  HOTKEY_CURRENT_COUNT           = 0001H;
+
+CONST (* KBD_PEEKCHAR *)
+  KBD_DATA_RECEIVED              = 0001H;
+  KBD_DATA_BINARY                = 8000H;
+
+CONST (* KBD_READCHAR *)
+  KBD_READ_WAIT                  = 0000H;
+  KBD_READ_NOWAIT                = 8000H;
+
+CONST (* KBD_SETINPUTMODE *)
+  SHIFT_REPORT_MODE              = 01H;
+
+CONST
+  MOUSE_MOTION                   = 0001H;
+  MOUSE_MOTION_WITH_BN1_DOWN     = 0002H;
+  MOUSE_BN1_DOWN                 = 0004H;
+  MOUSE_MOTION_WITH_BN2_DOWN     = 0008H;
+  MOUSE_BN2_DOWN                 = 0010H;
+  MOUSE_MOTION_WITH_BN3_DOWN     = 0020H;
+  MOUSE_BN3_DOWN                 = 0040H;
+
+CONST
+  MHK_BUTTON1                    = 0001H;
+  MHK_BUTTON2                    = 0002H;
+  MHK_BUTTON3                    = 0004H;
+
+CONST
+  MOU_NOWAIT                     = 0000H;
+  MOU_WAIT                       = 0001H;
+
+CONST (* MOU_GETHOTKEYBUTTON, MOU_SETHOTKEYBUTTON *)
+  MHK_NO_HOTKEY                  = 0000H;
+
+CONST (* MOU_GETMOUSTATUS *)
+  MOUSE_QUEUEBUSY                = 0001H;
+  MOUSE_BLOCKREAD                = 0002H;
+  MOUSE_FLUSH                    = 0004H;
+  MOUSE_UNSUPPORTED_MODE         = 0008H;
+  MOUSE_DISABLED                 = 0100H;
+  MOUSE_MICKEYS                  = 0200H;
+
+CONST (* PRT_GETPRINTERSTATUS *)
+  PRINTER_TIMEOUT                = 0001H;
+  PRINTER_IO_ERROR               = 0008H;
+  PRINTER_SELECTED               = 0010H;
+  PRINTER_OUT_OF_PAPER           = 0020H;
+  PRINTER_ACKNOWLEDGED           = 0040H;
+  PRINTER_NOT_BUSY               = 0080H;
+
+CONST (* fbCtlHndShake *)
+  MODE_DTR_CONTROL               = 01H;
+  MODE_DTR_HANDSHAKE             = 02H;
+  MODE_CTS_HANDSHAKE             = 08H;
+  MODE_DSR_HANDSHAKE             = 10H;
+  MODE_DCD_HANDSHAKE             = 20H;
+  MODE_DSR_SENSITIVITY           = 40H;
+
+CONST (* fbFlowReplace *)
+  MODE_AUTO_TRANSMIT             = 01H;
+  MODE_AUTO_RECEIVE              = 02H;
+  MODE_ERROR_CHAR                = 04H;
+  MODE_NULL_STRIPPING            = 08H;
+  MODE_BREAK_CHAR                = 10H;
+  MODE_RTS_CONTROL               = 40H;
+  MODE_RTS_HANDSHAKE             = 80H;
+  MODE_TRANSMIT_TOGGLE           = 0C0H;
+
+CONST (* fbTimeout *)
+  MODE_NO_WRITE_TIMEOUT          = 01H;
+  MODE_READ_TIMEOUT              = 02H;
+  MODE_WAIT_READ_TIMEOUT         = 04H;
+  MODE_NOWAIT_READ_TIMEOUT       = 06H;
+
+TYPE
+  DCBINFO                        = RECORD (* dcbinf *)
+    CASE                           : TYPEPREFIX OF
+    | TRUE                         :
+      usWriteTimeout               : CARDINAL;
+      usReadTimeout                : CARDINAL;
+      fbCtlHndShake                : SHORTCARD;
+      fbFlowReplace                : SHORTCARD;
+      fbTimeout                    : SHORTCARD;
+      bErrorReplacementChar        : SHORTCARD;
+      bBreakReplacementChar        : SHORTCARD;
+      bXONChar                     : SHORTCARD;
+      bXOFFChar                    : SHORTCARD;
+    | FALSE                        :
+      WriteTimeout                 : CARDINAL;
+      ReadTimeout                  : CARDINAL;
+      CtlHndShake                  : SHORTCARD;
+      FlowReplace                  : SHORTCARD;
+      Timeout                      : SHORTCARD;
+      ErrorReplacementChar         : SHORTCARD;
+      BreakReplacementChar         : SHORTCARD;
+      XONChar                      : SHORTCARD;
+      XOFFChar                     : SHORTCARD;
+    END                            END;
+  PDCBINFO                       = POINTER TO DCBINFO;
+
+TYPE
+  (*$A1 Byte alignment for record fields *)
+  TRACKLAYOUT                    = RECORD (* trckl *)
+    CASE                           : TYPEPREFIX OF
+    | TRUE                         :
+      bCommand                     : SHORTCARD;
+      usHead                       : CARDINAL;
+      usCylinder                   : CARDINAL;
+      usFirstSector                : CARDINAL;
+      cSectors                     : CARDINAL;
+      TrackTable                   : ARRAY [0..0] OF RECORD
+        usSectorNumber               : CARDINAL;
+        usSectorSize                 : CARDINAL;
+                                     END;
+    | FALSE                        :
+      Command                      : SHORTCARD;
+      Head                         : CARDINAL;
+      Cylinder                     : CARDINAL;
+      FirstSector                  : CARDINAL;
+      Sectors                      : CARDINAL;
+      TrackTableArray              : ARRAY [0..0] OF RECORD
+        SectorNumber                 : CARDINAL;
+        SectorSize                   : CARDINAL;
+                                     END;
+    END;                           END;
+  PTRACKLAYOUT                   = POINTER TO TRACKLAYOUT;
+  (*$A Default alignment for record fields *)
+
+CONST
+  DEVTYPE_48TPI                   = 0000H;
+  DEVTYPE_96TPI                   = 0001H;
+  DEVTYPE_35                      = 0002H;
+  DEVTYPE_8SD                     = 0003H;
+  DEVTYPE_8DD                     = 0004H;
+  DEVTYPE_FIXED                   = 0005H;
+  DEVTYPE_TAPE                    = 0006H;
+  DEVTYPE_UNKNOWN                 = 0007H;
+
+
+TYPE (*$A1 Byte alignment for record fields *)
+  BIOSPARAMETERBLOCK              = RECORD (* bspblk *)
+    CASE                            : TYPEPREFIX OF
+    | TRUE                          :
+      usBytesPerSector              : CARDINAL;
+      bSectorsPerCluster            : SHORTCARD;
+      usReservedSectors             : CARDINAL;
+      cFATs                         : SHORTCARD;
+      cRootEntries                  : CARDINAL;
+      cSectors                      : CARDINAL;
+      bMedia                        : SHORTCARD;
+      usSectorsPerFAT               : CARDINAL;
+      usSectorsPerTrack             : CARDINAL;
+      cHeads                        : CARDINAL;
+      cHiddenSectors                : LONGCARD;
+      cLargeSectors                 : LONGCARD;
+      abReserved                    : ARRAY [0..5] OF SHORTCARD;
+      cCylinders                    : CARDINAL;
+      bDeviceType                   : SHORTCARD;
+      fsDeviceAttr                  : CARDINAL;
+    | FALSE                         :
+      BytesPerSector                : CARDINAL;
+      SectorsPerCluster             : SHORTCARD;
+      ReservedSectors               : CARDINAL;
+      FATs                          : SHORTCARD;
+      RootEntries                   : CARDINAL;
+      Sectors                       : CARDINAL;
+      Media                         : SHORTCARD;
+      SectorsPerFAT                 : CARDINAL;
+      SectorsPerTrack               : CARDINAL;
+      Heads                         : CARDINAL;
+      HiddenSectors                 : LONGCARD;
+      LargeSectors                  : LONGCARD;
+      Reserved                      : ARRAY [0..5] OF SHORTCARD;
+      Cylinders                     : CARDINAL;
+      DeviceType                    : SHORTCARD;
+      DeviceAttr                    : CARDINAL;
+    END;                            END;
+  PBIOSPARAMETERBLOCK             = POINTER TO BIOSPARAMETERBLOCK;
+
+TYPE
+  SCREENGROUP                     = RECORD (* scrgrp *)
+    CASE                            : TYPEPREFIX OF
+    | TRUE                          :
+      idScreenGrp                   : CARDINAL;
+      fTerminate                    : CARDINAL;
+    | FALSE                         :
+      ScreenGrpId                   : CARDINAL;
+      TerminateFlag                 : CARDINAL;
+    END;                            END;
+  PSCREENGROUP                    = POINTER TO SCREENGROUP;
+
+TYPE
+  FRAME                           = RECORD (* frm *)
+    CASE                            : TYPEPREFIX OF
+    | TRUE                          :
+      bCharsPerLine                 : SHORTCARD;
+      bLinesPerInch                 : SHORTCARD;
+    | FALSE                         :
+      CharsPerLine                  : SHORTCARD;
+      LinesPerInch                  : SHORTCARD;
+    END;                            END;
+  PFRAME                          = POINTER TO FRAME;
+
+TYPE
+  KBDTYPE                         = RECORD (* kbdtyp *)
+    CASE                            : TYPEPREFIX OF
+    | TRUE                          :
+      usType                        : CARDINAL;
+      reserved1                     : CARDINAL;
+      reserved2                     : CARDINAL;
+    | FALSE                         :
+      Type                          : CARDINAL;
+      Reserved1                     : CARDINAL;
+      Reserved2                     : CARDINAL;
+    END;                            END;
+  PKBDTYPE                        = POINTER TO KBDTYPE;
+
+TYPE
+  LINECONTROL                     = RECORD (* lnctl *)
+    CASE                            : TYPEPREFIX OF
+    | TRUE                          :
+      bDataBits                     : SHORTCARD;
+      bParity                       : SHORTCARD;
+      bStopBits                     : SHORTCARD;
+      fTransBreak                   : SHORTCARD;
+    | FALSE                         :
+      DataBits                      : SHORTCARD;
+      Parity                        : SHORTCARD;
+      StopBits                      : SHORTCARD;
+      TransBreakFlag                : SHORTCARD;
+    END;                            END;
+  PLINECONTROL                    = POINTER TO LINECONTROL;
+
+CONST (* MODEMSTATUS.fbModemOn, ASYNC_GETMODEMOUTPUT *)
+  DTR_ON                          = 01H;
+  RTS_ON                          = 02H;
+
+CONST (* MODEMSTATUS.fbModemOff *)
+  DTR_OFF                         = 0FEH;
+  RTS_OFF                         = 0FDH;
+
+TYPE
+  MODEMSTATUS                     = RECORD (* mdmst *)
+    CASE                            : TYPEPREFIX OF
+    | TRUE                          :
+      fbModemOn                     : SHORTCARD;
+      fbModemOff                    : SHORTCARD;
+    | FALSE                         :
+      ModemOnFlag                   : SHORTCARD;
+      ModemOffFlag                  : SHORTCARD;
+    END;                            END;
+  PMODEMSTATUS                    = POINTER TO MODEMSTATUS;
+
+TYPE (*$A1 Byte alignent for record fields *)
+  TRACKFORMAT                     = RECORD (* trckfmt *)
+    CASE                            : TYPEPREFIX OF
+    | TRUE                          :
+      bCommand                      : SHORTCARD;
+      usHead                        : CARDINAL;
+      usCylinder                    : CARDINAL;
+      usReserved                    : CARDINAL;
+      cSectors                      : CARDINAL;
+      FormatTable                   : ARRAY [0..0] OF RECORD
+        bCylinder                     : SHORTCARD;
+        bHead                         : SHORTCARD;
+        idSector                      : SHORTCARD;
+        bBytesSector                  : SHORTCARD;
+                                      END;
+    | FALSE                         :
+      Command                       : SHORTCARD;
+      Head                          : CARDINAL;
+      Cylinder                      : CARDINAL;
+      Reserved                      : CARDINAL;
+      Sectors                       : CARDINAL;
+      FormatTableArray              : ARRAY [0..0] OF RECORD
+        Cylinder                      : SHORTCARD;
+        Head                          : SHORTCARD;
+        SectorId                      : SHORTCARD;
+        BytesSector                   : SHORTCARD;
+                                      END;
+    END;                            END;
+  PTRACKFORMAT                    = POINTER TO TRACKFORMAT;
+
+TYPE
+  RXQUEUE                         = RECORD (* rxq *)
+    CASE                            : TYPEPREFIX OF
+    | TRUE                          :
+      cch                           : CARDINAL;
+      cb                            : CARDINAL;
+    | FALSE                         :
+      ChCount                       : CARDINAL;
+      BCount                        : CARDINAL;
+    END;                            END;
+  PRXQUEUE                        = POINTER TO RXQUEUE;
+
+TYPE
+  DEVICEPARAMETERBLOCK            = RECORD (* dvpblck *)
+    CASE                            : TYPEPREFIX OF
+    | TRUE                          :
+      reserved1                     : CARDINAL;
+      cCylinders                    : CARDINAL;
+      cHeads                        : CARDINAL;
+      cSectorsPerTrack              : CARDINAL;
+      reserved2                     : CARDINAL;
+      reserved3                     : CARDINAL;
+      reserved4                     : CARDINAL;
+      reserved5                     : CARDINAL;
+    | FALSE                         :
+      Reserved1                     : CARDINAL;
+      Cylinders                     : CARDINAL;
+      Heads                         : CARDINAL;
+      SectorsPerTrack               : CARDINAL;
+      Reserved2                     : CARDINAL;
+      Reserved3                     : CARDINAL;
+      Reserved4                     : CARDINAL;
+      Reserved5                     : CARDINAL;
+    END;                            END;
+  PDEVICEPARAMETERBLOCK           = POINTER TO DEVICEPARAMETERBLOCK;
+
+TYPE (*$A2 Word alignment for record fields >= 2 bytes *)
+  PTRDRAWFUNCTION                 = RECORD (* ptrdfnc *)
+    CASE                            : TYPEPREFIX OF
+    | TRUE                          :
+      usReturnCode                  : CARDINAL;
+      pfnDraw                       : PFN;
+      pchDataSeg                    : PCH;
+    | FALSE                         :
+      ReturnCode                    : CARDINAL;
+      Draw                          : PFN;
+      DataSeg                       : PCH;
+    END;                            END;
+  PPTRDRAWFUNCTION                = POINTER TO PTRDRAWFUNCTION;
+
+TYPE
+  PTRDRAWADDRESS                  = RECORD (* ptrdaddr *)
+    CASE                            : TYPEPREFIX OF
+    | TRUE                          :
+      reserved                      : CARDINAL;
+      ptrdfnc                       : PTRDRAWFUNCTION;
+    | FALSE                         :
+      Reserved                      : CARDINAL;
+      PtrDFnc                       : PTRDRAWFUNCTION;
+    END;                            END;
+  PPTRDRAWADDRESS                 = POINTER TO PTRDRAWADDRESS;
+
+TYPE
+  SHIFTSTATE                      = RECORD (* shftst *)
+    CASE                            : TYPEPREFIX OF
+    | TRUE                          :
+      fsState                       : CARDINAL;
+      fNLS                          : SHORTCARD;
+    | FALSE                         :
+      State                         : CARDINAL;
+      NLSFlag                       : SHORTCARD;
+    END;                            END;
+  PSHIFTSTATE                     = POINTER TO SHIFTSTATE;
+
+CONST (* HOTKEY.fsHotKey/SHIFTSTATE.fsState *)
+  RIGHTSHIFT                      = 0001H;
+  LEFTSHIFT                       = 0002H;
+  CONTROL                         = 0004H;
+  ALT                             = 0008H;
+  SCROLLLOCK_ON                   = 0010H;
+  NUMLOCK_ON                      = 0020H;
+  CAPSLOCK_ON                     = 0040H;
+  INSERT_ON                       = 0080H;
+  LEFTCONTROL                     = 0100H;
+  LEFTALT                         = 0200H;
+  RIGHTCONTROL                    = 0400H;
+  RIGHTALT                        = 0800H;
+  SCROLLLOCK                      = 1000H;
+  NUMLOCK                         = 2000H;
+  CAPSLOCK                        = 4000H;
+  SYSREQ                          = 8000H;
+
+TYPE
+  HOTKEY                          = RECORD (* htky *)
+    CASE                            : TYPEPREFIX OF
+    | TRUE                          :
+      fsHotKey                      : CARDINAL;
+      uchScancodeMake               : SHORTCARD;
+      uchScancodeBreak              : SHORTCARD;
+      idHotKey                      : CARDINAL;
+    | FALSE                         :
+      HotKeyFlag                    : CARDINAL;
+      ScancodeMake                  : SHORTCARD;
+      ScancodeBreak                 : SHORTCARD;
+      HotKeyId                      : CARDINAL;
+    END;                            END;
+  PHOTKEY                         = POINTER TO HOTKEY;
+
+TYPE
+  MONITORPOSITION                 = RECORD (* mnpos *)
+    CASE                            : TYPEPREFIX OF
+    | TRUE                          :
+      fPosition                     : CARDINAL;
+      index                         : CARDINAL;
+      pbInBuf                       : LONGCARD;
+      offOutBuf                     : CARDINAL;
+    | FALSE                         :
+      Position                      : CARDINAL;
+      Index                         : CARDINAL;
+      InBuf                         : LONGCARD;
+      OutBufOff                     : CARDINAL;
+    END;                            END;
+  PMONITORPOSITION                = POINTER TO MONITORPOSITION;
+
+TYPE
+  RATEDELAY                       = RECORD (* rtdly *)
+    CASE                            : TYPEPREFIX OF
+    | TRUE                          :
+      usDelay                       : CARDINAL;
+      usRate                        : CARDINAL;
+    | FALSE                         :
+      Delay                         : CARDINAL;
+      Rate                          : CARDINAL;
+    END;                            END;
+  PRATEDELAY                      = POINTER TO RATEDELAY;
+
+TYPE
+  CODEPAGEINFO                    = RECORD (* cpi *)
+    CASE                            : TYPEPREFIX OF
+    | TRUE                          :
+      pbTransTable                  : PVOID;
+      idCodePage                    : CARDINAL;
+      idTable                       : CARDINAL;
+    | FALSE                         :
+      TransTable                    : PVOID;
+      CodePageId                    : CARDINAL;
+      TableId                       : CARDINAL;
+    END;                            END;
+  PCODEPAGEINFO                   = POINTER TO CODEPAGEINFO;
+
+TYPE
+  CPID                            = RECORD (* cpid *)
+    CASE                            : TYPEPREFIX OF
+    | TRUE                          :
+      idCodePage                    : CARDINAL;
+      Reserved                      : CARDINAL;
+    | FALSE                         :
+      CodePageId                    : CARDINAL;
+      reserved                      : CARDINAL;
+    END;                            END;
+  PCPID                           = POINTER TO CPID;
+
+TYPE
+  LDTADDRINFO                     = RECORD (* ldtaddr *)
+    CASE                            : TYPEPREFIX OF
+    | TRUE                          :
+      pulPhysAddr                   : POINTER TO LONGCARD;
+      cb                            : CARDINAL;
+    | FALSE                         :
+      PhysAddr                      : POINTER TO LONGCARD;
+      Count                         : CARDINAL;
+    END;                            END;
+  PLDTADDRINFO                    = POINTER TO LDTADDRINFO;
+
+TYPE
+  PTRDRAWDATA                     = RECORD (* ptrdd *)
+    CASE                            : TYPEPREFIX OF
+    | TRUE                          :
+      cb                            : CARDINAL;
+      usConfig                      : CARDINAL;
+      usFlag                        : CARDINAL;
+    | FALSE                         :
+      Count                         : CARDINAL;
+      Config                        : CARDINAL;
+      Flag                          : CARDINAL;
+    END;                            END;
+  PPTRDRAWDATA                    = POINTER TO PTRDRAWDATA;
+
+(*$A restore default alignment for record fields *)
+
+
+(***********************************************************************)
+(* New OS/2 2.1 structures for Lockable Drive IOCtls                   *)
+(***********************************************************************)
+
+(*$A1 Byte alignment for record fields *)
+
+TYPE (* for Category 8, Lockable Drive IOCtls, Functions 40H, 5DH, 66H *)
+  DRIVEPARAM                      = RECORD
+    Command                         : SHORTCARD;
+    Drive                           : SHORTCARD;
+                                    END;
+  PDRIVEPARAM                     = POINTER TO DRIVEPARAM;
+
+CONST (* values for Category 8, Function 40H, DRIVEPARAM.Command *)
+  COMMAND_UNLOCK                  = 0;
+  COMMAND_LOCK                    = 1;
+  COMMAND_EJECT                   = 2;
+
+CONST (* values for Category 8, Function 5DH, DRIVEPARAM.Command *)
+  COMMAND_RETURN_EXCL_OWNERSHIP   = 0;  (* for Categroy 8, Function 5DH *)
+  COMMAND_REQUEST_EXCL_OWNERSHIP  = 1;
+
+CONST (* values for Category 8, Function 66H, DRIVEPARAM.Command *)
+  COMMAND_NOTHING                 = 0;
+
+TYPE (* for Category 8, Function 5DH, Diskette Control Data Packet *)
+  DISKETTECONTROLDATA             = RECORD
+    Reserved                        : SHORTCARD;
+                                    END;
+  PDISKETTECONTROLDATA            = POINTER TO DISKETTECONTROLDATA;
+
+TYPE (* for Categroy 8, Function 66H, Data Packet for Query Lock Status *)
+  QUERYLOCKDATA                   = RECORD
+    LockStatus                      : LONGCARD;
+    Reserved                        : SHORTCARD;
+                                    END;
+  PQUERYLOCKDATA                  = POINTER TO QUERYLOCKDATA;
+
+CONST (* for QUERYLOCKDATA.LockStatus *)
+  LOCKSTATUS_UNSUPPORTED          = 0;         (* .... ..00 *)
+  LOCKSTATUS_DRIVE_LOCKED         = 1;         (* .... ..01 *)
+  LOCKSTATUS_DRIVE_UNLOCKED       = 2;         (* .... ..10 *)
+  LOCKSTATUS_QUERY_UNSUPPORTED    = 3;         (* .... ..11 *)
+  LOCKSTATUS_NOMEDIA_IN_DRIVE     = 0 SHL 2;   (* .... 00.. *)
+  LOCKSTATUS_MEDIA_IN_DRIVE       = 1 SHL 2;   (* .... 01.. *)
+
+(*$A restore default alignment for record fields *)
+
+
+(***********************************************************************)
+(* New OS/2 2.1 structures for Power Management IOCtls                 *)
+(***********************************************************************)
+
+(*$A1 Byte alignment for record fields *)
+
+CONST (* Power Management (Category 12) function codes *)
+  POWER_SEND_EVENT                = 0040H;
+  POWER_SET_EVENT_RESOURCE        = 0041H;
+  POWER_QUERY_STATUS              = 0060H;
+  POWER_EVENT                     = 0061H;
+  POWER_QUERY_INFO                = 0062H;
+
+CONST (* Power Management return codes from a CARDINAL output data packet *)
+  PowerNoError                    = 0000H;
+  PowerBadSubId                   = 0001H;
+  PowerBadReserved                = 0002H;
+  PowerBadDevId                   = 0003H;
+  PowerBadPwrState                = 0004H;
+  PowerSemAlreadySetup            = 0005H;
+  PowerBadFlags                   = 0006H;
+  PowerBadSemHandle               = 0007H;
+  PowerBadLength                  = 0008H;
+  PowerDisabled                   = 0009H;
+  PowerRAMSemaphore               = 000DH;
+
+TYPE (* for Category 12, Function 40H, Send Power Event *)
+  POWEREVENTPARAM                 = RECORD
+    Parm1                           : LONGCARD;
+    Parm2                           : LONGCARD;
+                                    END;
+  PPOWEREVENTPARAM                = POINTER TO POWEREVENTPARAM;
+
+CONST (* values for POWEREVENTPARAM.Parm1 *)
+  POWER_MANAGEMENT_ENABLE         = 0003H;
+  POWER_MANAGEMENT_DISABLE        = 0004H;
+  POWER_MANAGEMENT_RESTORE_BIOS   = 0005H;
+  POWER_MANAGEMENT_SET_STATE      = 0006H;
+  POWER_EVENT_BATTERY_LOW         = 0007H;
+  POWER_EVENT_NORMAL_RESUME       = 0008H;
+  POWER_EVENT_CRITICAL_RESUME     = 0009H;
+
+TYPE (* for Category 12, Function 41H, Set Power Event Resource *)
+  POWERRESPARAM                   = RECORD
+    ReqFlags                        : CARDINAL;
+    SemHandle                       : LONGCARD;
+    EventMask                       : LONGCARD;
+                                    END;
+  PPOWERRESPARAM                  = POINTER TO POWERRESPARAM;
+
+CONST (* bits for POWERRESPARAM.ReqFlags *)
+  SEMSETUP                        = 1 SHL 0;  (* .... .... .... ...1 *)
+  SEMREMOVAL                      = 1 SHL 1;  (* .... .... .... ..1. *)
+  SEM16BIT                        = 1 SHL 2;  (* .... .... .... .1.. *)
+  SEM32BIT                        = 1 SHL 3;  (* .... .... .... 1... *)
+  SEMNO                           = 1 SHL 4;  (* .... .... ...1 .... *)
+
+CONST (* bits for POWERRESPARAM.EventMask *)
+  EVENTMASK_ENABLE                = 1 SHL POWER_MANAGEMENT_ENABLE;
+  EVENTMASK_DISABLE               = 1 SHL POWER_MANAGEMENT_DISABLE;
+  EVENTMASK_RESTORE_BIOS          = 1 SHL POWER_MANAGEMENT_RESTORE_BIOS;
+  EVENTMASK_SET_STATE             = 1 SHL POWER_MANAGEMENT_SET_STATE;
+  EVENTMASK_BATTERY_LOW           = 1 SHL POWER_EVENT_BATTERY_LOW;
+  EVENTMASK_NORMAL_RESUME         = 1 SHL POWER_EVENT_NORMAL_RESUME;
+  EVENTMASK_CRITICAL_RESUME       = 1 SHL POWER_EVENT_CRITICAL_RESUME;
+
+TYPE (* for Category 12, Function 60H, Query Power State *)
+  POWERSTATEPARAM                 = RECORD
+    ParmLength                      : CARDINAL;
+    PowerFlags                      : CARDINAL;
+    ACStatus                        : SHORTCARD;
+    BatteryStatus                   : SHORTCARD;
+    BatteryLife                     : SHORTCARD;  (* percentage value *)
+                                    END;
+  PPOWERSTATEPARAM                = POINTER TO POWERSTATEPARAM;
+
+CONST (* bits for POWERSTATEPARAM.PowerFlags *)
+  POWER_MANAGEMENT_ENABLED        = 1;  (* .... .... .... ...1 *)
+
+CONST (* values for POWERSTATEPARAM.ACStatus *)
+  AC_ONLINE                       = 0;
+  AC_OFFLINE                      = 1;
+  AC_UNKNOWN                      = 255;
+
+CONST (* values for POWERSTATEPARAM.BatteryStatus *)
+  BATTERY_HIGH                    = 0;
+  BATTERY_LOW                     = 1;
+  BATTERY_CRITICAL                = 2;
+  BATTERY_CHARGING                = 3;
+  BATTERY_UNKNOWN                 = 255;
+
+CONST (* values for POWERSTATEPARAM.BatteryLife *)
+  BATTERY_LIFE_UNKNOWN            = 255;
+
+TYPE (* for Category 12, Function 61H, Query Power Event *)
+  QUERYPOWEREVENTPARAM            = RECORD
+    ParmLength                      : CARDINAL; (* 12 for input *)
+    MsgCount                        : CARDINAL;
+    Event                           : POWEREVENTPARAM;
+                                    END;
+  PQUERYPOWEREVENTPARAM           = POINTER TO QUERYPOWEREVENTPARAM;
+
+TYPE (* for Category 12, Function 61H, Query Power Info *)
+  POWERINFOPARAM                  = RECORD
+    ParmLength                      : CARDINAL; (* 8 bytes always *)
+    BIOSFlags                       : CARDINAL;
+    BIOSVersion                     : CARDINAL;
+    SubsysVersion                   : CARDINAL;
+                                    END;
+  PPOWERINFOPARAM                 = POINTER TO POWERINFOPARAM;
+
+(*$A restore default alignment for record fields *)
+
+
+(***********************************************************************)
+(* New OS/2 2.1 structures for CD-ROM IOCtls                           *)
+(***********************************************************************)
+
+(*$A1 Byte alignment for record fields *)
+
+TYPE (* for Category 8, Function 63H, Data Packet Get Device Parameters *)
+  DEVICEPARAM                     = RECORD
+    ExtendedDeviceBPB               : ARRAY [0..31] OF SHORTCARD;
+    Cylinders                       : CARDINAL;
+    DeviceType                      : SHORTCARD;
+    DeviceAttributes                : CARDINAL;
+                                    END;
+  PDEVICEPARAM                    = POINTER TO DEVICEPARAM;
+
+CONST (* for DEVICEPARAM.DeviceType *)
+  DEVTYPE_OTHER                   = 7;  (* other, e.g. 3.5 1.44MB drive *)
+  DEVTYPE_RWOPTDISK               = 8;  (* R/W optical Disk *)
+  DEVTYPE_288                     = 9;  (* 3.5 inch 2.88MB Drive *)
+
+CONST (* for DEVICEPARAM.DeviceAttributes *)
+  DEVATTR_UNREMOVABLE             = 1 SHL 0;  (* .... ...x *)
+  DEVATTR_CHANGELINE              = 1 SHL 1;  (* .... ..x. *)
+  DEVATTR_GT16MB                  = 1 SHL 2;  (* .... .x.. *)
+
+TYPE (* for Category 80H, Functions for Drive and Disk IOCtls *)
+  SUBFUNCTION                     = SHORTCARD;
+  CDROMDRIVERNAME                 = ARRAY [0..3] OF CHAR; (* usually "CD01" *)
+  CDROMDRIVEDISKPARAM             = RECORD
+    Name                            : CDROMDRIVERNAME;
+    CASE                            : SUBFUNCTION OF
+    | 46H (* Lock/Unlock Door *)    :
+      DoorLock                      : BOOLEAN; (* TRUE=lock FALSE=unlock *)
+    | 50H (* Seek *)                :
+      MinSecFrameFormat50H          : BOOLEAN;  (* FALSE=logical format *)
+      StartingSectorNumber50H       : LONGCARD;
+    | 70H (* Drive Head Location *) :
+      MinSecFrameFormat70H          : BOOLEAN;
+    | 72H (* Read Long *)           :
+      SectorCount                   : CARDINAL;
+      StartingSectorNumber72H       : LONGCARD;
+      Reserved72H                   : SHORTCARD;
+      InterleaveSize                : SHORTCARD;
+      InterleaveSkipFactor          : SHORTCARD;
+    ELSE
+    END;                            END;
+  PCDROMDRIVEDISKPARAM            = POINTER TO CDROMDRIVEDISKPARAM;
+
+CONST (* bit values for Function 60H Device Status, returned in a LONGCARD *)
+  DEVSTATUS_AUDIO_PLAYING         = 1 SHL 12; (* ...1 .... .... .... *)
+  DEVSTATUS_DISK_NOT_PRESENT      = 1 SHL 11; (* .... 1... .... .... *)
+  DEVSTATUS_MINSECFRAME           = 1 SHL 9;  (* .... ..1. .... .... *)
+  DEVSTATUS_AUDIOCHANNEL          = 1 SHL 8;  (* .... ...1 .... .... *)
+  DEVSTATUS_PREFETCHING           = 1 SHL 7;  (* .... .... 1... .... *)
+  DEVSTATUS_ISO9660_INTERLEAVE    = 1 SHL 5;  (* .... .... ..1. .... *)
+  DEVSTATUS_AUDIO_VIDEO_READ      = 1 SHL 4;  (* .... .... ...1 .... *)
+  DEVSTATUS_READ_AND_WRITE        = 1 SHL 3;  (* .... .... .... 1... *)
+  DEVSTATUS_COOKED_AND_RAW        = 1 SHL 2;  (* .... .... .... .1.. *)
+  DEVSTATUS_DOOR_UNLOCKED         = 1 SHL 1;  (* .... .... .... ..1. *)
+  DEVSTATUS_DOOR_OPEN             = 1 SHL 0;  (* .... .... .... ...1 *)
+
+TYPE (* for Category 80H, Function 72H, CD-ROM Data Read *)
+  CDROMDATA                       = RECORD
+    Sync                            : ARRAY [0..11] OF CHAR;
+    Header                          : LONGCARD;
+    DataArea                        : ARRAY [0..2047] OF CHAR;
+    EdcEccArea                      : ARRAY [0..287] OF CHAR;
+                                    END;
+  PCDROMDATA                      = POINTER TO CDROMDATA;
+
+TYPE (* for Category 80H, Function 79H, CD-ROM Get UPC Data *)
+  UPCDATA                         = RECORD
+    ControlAdr                      : SHORTCARD;
+    ProductCode                     : ARRAY [0..6] OF CHAR;
+    Reserved                        : SHORTCARD;
+    Frame                           : SHORTCARD;
+                                    END;
+  PUPCDATA                        = POINTER TO UPCDATA;
+
+TYPE (* for Category 81H, Audio IOCtls Parameter *)
+  CDROMAUDIOPARAM                 = RECORD
+    Name                            : CDROMDRIVERNAME;
+    CASE                            : SUBFUNCTION OF
+    | 50H (* Play Audio *)          :
+      MinSecFrameFormat50H          : BOOLEAN;  (* FALSE=logical format *)
+      StartingSectorNumber50H       : LONGCARD;
+      EndSectorNumber50H            : LONGCARD;
+    | 62H (* Audio Track Info *)    :
+      TrackNumber                   : SHORTCARD;
+    ELSE
+    END;                            END;
+  PCDROMAUDIOPARAM                = POINTER TO CDROMAUDIOPARAM;
+
+TYPE (* for Category 81H, Function 40H + 60H, Audio Channel Data *)
+  AUDIOCONTROLDATA                = ARRAY [0..3] OF RECORD
+    InputChannel                    : SHORTCARD;
+    OutputVolumeControl             : SHORTCARD;
+                                    END;
+  PAUDIOCONTROLDATA               = POINTER TO AUDIOCONTROLDATA;
+
+TYPE (* for Category 81H, Function 61H, Audio Disk Information *)
+  AUDIODISKINFODATA               = RECORD
+    LowestTrack                     : SHORTCARD;
+    HighestTrack                    : SHORTCARD;
+    StartingPointLeadOutTrack       : LONGCARD;
+                                    END;
+  PAUDIODISKINFODATA              = POINTER TO AUDIODISKINFODATA;
+
+TYPE (* for Category 81H, Function 62H, Audio Track Information *)
+  AUDIOTRACKINFODATA              = RECORD
+    StartingPointTrack              : LONGCARD;
+    TrackControlInfo                : SHORTCARD;
+                                    END;
+  PAUDIOTRACKINFODATA             = POINTER TO AUDIOTRACKINFODATA;
+
+CONST (* bit values for AUDIOTRACKINFODATA.TrackControlInfo *)
+  TRACKCONTROL_4CHANNELS          = 1 SHL 7;  (* 1... .... *)
+  TRACKCONTROL_DATATRACK          = 1 SHL 6;  (* .1.. .... *)
+  TRACKCONTROL_COPY_PERMITTED     = 1 SHL 5;  (* ..1. .... *)
+  TRACKCONTROL_AUDIO_PREEMPHASIS  = 1 SHL 4;  (* ...1 .... *)
+  TRACKCONTROL_ADRDATA            = 07H;      (* .... .xxx *)
+
+TYPE (* for Category 81H, Function 63H, Audio-Subchannel Q Info *)
+  RUNNINGTIME                     = RECORD
+    Min                             : SHORTCARD;
+    Sec                             : SHORTCARD;
+    Frame                           : SHORTCARD;
+                                    END;
+  AUDIOSUBCHANNELQINFODATA        = RECORD
+    ControlADR                      : SHORTCARD;
+    TrackNumber                     : SHORTCARD;
+    Index                           : SHORTCARD;
+    RunningTimeTrack                : RUNNINGTIME;
+    Reserved                        : SHORTCARD;
+    RunningTimeDisk                 : RUNNINGTIME;
+                                    END;
+  PAUDIOSUBCHANNELQINFODATA       = POINTER TO AUDIOSUBCHANNELQINFODATA;
+
+TYPE (* for Category 81H, Function 65H, Audio-Status Information *)
+  AUDIOSTATUSINFODATA             = RECORD
+    Status                          : CARDINAL;
+    LastStartingLoc                 : LONGCARD;
+    LastEndingLoc                   : LONGCARD;
+                                    END;
+  PAUDIOSTATUSINFODATA            = POINTER TO AUDIOSTATUSINFODATA;
+
+CONST (* bit values for AUDIOSTATUSINFODATA.Status *)
+  AUDIOSTATUS_PAUSED              = 0001H;  (* .... .... .... ...1 *)
+
+TYPE (* for Category 82H, Function 60H, Get Drive Letter Info *)
+  DRIVELETTERINFODATA             = RECORD
+    CDROMCount                      : CARDINAL;
+    FirstDrive                      : CARDINAL;
+                                    END;
+  PDRIVELETTERINFODATA            = POINTER TO DRIVELETTERINFODATA;
+
+(*$A restore default alignment for record fields *)
+
+END DOSDEVIOCTL.

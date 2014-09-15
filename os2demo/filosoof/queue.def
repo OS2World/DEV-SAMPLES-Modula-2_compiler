@@ -1,0 +1,25 @@
+(********************************************************************
+  QUEUE.DEF   
+
+  Copyright (c) 1995 by Johan Terryn (CompuServe 100421,3024)
+*********************************************************************)
+
+DEFINITION MODULE Queue;
+
+FROM SYSTEM IMPORT ADDRESS;
+
+TYPE queue;
+
+PROCEDURE makeempty(VAR q : queue);
+
+PROCEDURE empty(q :queue):BOOLEAN;
+
+PROCEDURE insert(VAR q:queue; item :ADDRESS);
+
+PROCEDURE remove(VAR q :queue; VAR item :ADDRESS);
+
+PROCEDURE define(VAR q :queue);
+
+PROCEDURE destroy(VAR q :queue);
+
+END Queue.

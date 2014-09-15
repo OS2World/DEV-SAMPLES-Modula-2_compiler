@@ -1,0 +1,60 @@
+DEFINITION MODULE DOSDATETIME;
+
+(************************************************************************
+  OS/2 2.0 interface for Date/Time and Timer support.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF        IMPORT APIRET, LHANDLE;
+FROM   DOSSEMAPHORES IMPORT HSEM;
+
+TYPE
+  DATETIME = RECORD
+    hours      : SHORTCARD;
+    minutes    : SHORTCARD;
+    seconds    : SHORTCARD;
+    hundredths : SHORTCARD;
+    day        : SHORTCARD;
+    month      : SHORTCARD;
+    year       : CARDINAL;
+    timezone   : INTEGER;
+    weekday    : SHORTCARD;
+    filler     : SYSTEM.BYTE;
+  END;
+  PDATETIME    = POINTER TO DATETIME;
+  HTIMER       = LHANDLE;
+  PHTIMER      = POINTER TO HTIMER;
+
+
+PROCEDURE DosGetDateTime
+( VAR DateTime        : DATETIME
+)                     : APIRET;
+
+PROCEDURE DosSetDateTime
+( VAR DateTime        : DATETIME
+)                     : APIRET;
+
+PROCEDURE DosAsyncTimer
+( TimeInterval        : LONGCARD;
+  SemHandle           : HSEM;
+  VAR TimerHandle     : HTIMER
+)                     : APIRET;
+
+PROCEDURE DosStartTimer
+( TimeInterval        : LONGCARD;
+  SemHandle           : HSEM;
+  VAR TimerHandle     : HTIMER
+)                     : APIRET;
+
+PROCEDURE DosStopTimer
+( TimerHandle         : HTIMER
+)                     : APIRET;
+
+
+END DOSDATETIME.

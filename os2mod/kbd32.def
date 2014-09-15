@@ -1,0 +1,92 @@
+DEFINITION MODULE KBD32;
+
+(*************************************************************************
+  32-bit OS/2 thunking layer for 16-bit keyboard kernel API.
+
+  This interface only contains the 3 most important APIs
+  of the keyboard kernel, thus keeping this thunking
+  module small. For a full thunking module of the keyboard
+  kernel see KBD.DEF!
+
+  (c) 1995 by Juergen Neuhoff
+**************************************************************************)
+
+(*$XL+    language extensions: '_' in symbol names                       *)
+(*$A2     word alignment for record fields >= 2 bytes                    *)
+
+TYPE
+  HKBD          = CARDINAL;
+  APIRET16      = CARDINAL;
+
+TYPE (* KBDKEYINFO structure, for KbdCharIn *)
+  KBDKEYINFO    = RECORD
+    CharCode      : CHAR;
+    ScanCode      : SHORTCARD;
+    Status        : SHORTCARD;
+    NlsShift      : SHORTCARD;
+    State         : CARDINAL;
+    Time          : LONGCARD;
+                  END;
+  PKBDKEYINFO   = POINTER TO KBDKEYINFO;
+
+TYPE (* KBDINFO structure, for KbdSetStatus or KbdGetStatus *)
+  KBDINFO       = RECORD
+    Size          : CARDINAL;
+    Mask          : CARDINAL;
+    TurnAround    : CARDINAL;
+    Interim       : CARDINAL;
+    State         : CARDINAL;
+                  END;
+  PKBDINFO      = POINTER TO KBDINFO;
+
+CONST (* KBDINFO.Mask *)
+  KEYBOARD_ECHO_ON                = 0001H;
+  KEYBOARD_ECHO_OFF               = 0002H;
+  KEYBOARD_BINARY_MODE            = 0004H;
+  KEYBOARD_ASCII_MODE             = 0008H;
+  KEYBOARD_MODIFY_STATE           = 0010H;
+  KEYBOARD_MODIFY_INTERIM         = 0020H;
+  KEYBOARD_MODIFY_TURNAROUND      = 0040H;
+  KEYBOARD_2B_TURNAROUND          = 0080H;
+  KEYBOARD_SHIFT_REPORT           = 0100H;
+
+CONST (* KBDINFO.State or KBDKEYINFO.ShiftState *)
+  KBDSTF_RIGHTSHIFT               = 0001H;
+  KBDSTF_LEFTSHIFT                = 0002H;
+  KBDSTF_CONTROL                  = 0004H;
+  KBDSTF_ALT                      = 0008H;
+  KBDSTF_SCROLLLOCK_ON            = 0010H;
+  KBDSTF_NUMLOCK_ON               = 0020H;
+  KBDSTF_CAPSLOCK_ON              = 0040H;
+  KBDSTF_INSERT_ON                = 0080H;
+  KBDSTF_LEFTCONTROL              = 0100H;
+  KBDSTF_LEFTALT                  = 0200H;
+  KBDSTF_RIGHTCONTROL             = 0400H;
+  KBDSTF_RIGHTALT                 = 0800H;
+  KBDSTF_SCROLLLOCK               = 1000H;
+  KBDSTF_NUMLOCK                  = 2000H;
+  KBDSTF_CAPSLOCK                 = 4000H;
+  KBDSTF_SYSREQ                   = 8000H;
+
+
+PROCEDURE KbdCharIn
+(
+  VAR KeyInfo : KBDKEYINFO;
+  IOWait      : CARDINAL;
+  Handle      : HKBD
+)             : APIRET16;
+
+PROCEDURE KbdSetStatus
+(
+  VAR KbdInfo : KBDINFO;
+  Handle      : HKBD
+)             : APIRET16;
+
+PROCEDURE KbdGetStatus
+(
+  VAR KbdInfo : KBDINFO;
+  Handle      : HKBD
+)             : APIRET16;
+
+
+END KBD32.

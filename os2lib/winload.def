@@ -1,0 +1,7 @@
+LIBRARY PMWIN
+EXPORTS
+  WinDeleteProcedure    @987
+  WinDeleteLibrary      @722
+  WinLoadProcedure      @986
+  WinLoadLibrary        @777
+

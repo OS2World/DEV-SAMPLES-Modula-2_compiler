@@ -1,0 +1,30 @@
+(********************************************************************
+  SEMAPHOR.DEF   
+
+  Copyright (c) 1995 by Johan Terryn (CompuServe 100421,3024)
+*********************************************************************)
+
+DEFINITION MODULE Semaphore;
+
+
+TYPE SIGNAL;
+     ProcessId;
+
+VAR Null, currentprocess: ProcessId;
+    Idle : SIGNAL;
+
+PROCEDURE Init( VAR s:SIGNAL);
+
+PROCEDURE PSem( VAR s:SIGNAL);
+
+PROCEDURE VSem( VAR s:SIGNAL);
+
+PROCEDURE Waiting( VAR s:SIGNAL): BOOLEAN;
+
+PROCEDURE StartP(p : PROC; wssize : CARDINAL);
+
+PROCEDURE TermP;
+
+PROCEDURE equal (p1,p2 : ProcessId):BOOLEAN;
+
+END Semaphore.

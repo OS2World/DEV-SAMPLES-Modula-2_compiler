@@ -1,0 +1,64 @@
+DEFINITION MODULE GPIDEFAULTS;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager
+           GPI Default Primitive Attributes.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF        IMPORT HPS, RECTL;
+FROM   GPIPRIMITIVES IMPORT ARCPARAMS;
+
+(*** default functions *)
+
+PROCEDURE GpiQueryDefArcParams
+( PresSpaceHandle               : HPS;
+  VAR ArcParams                 : ARCPARAMS
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryDefAttrs
+( PresSpaceHandle               : HPS;
+  PrimType                      : LONGINT;
+  AttrMask                      : LONGCARD;
+  VAR Attrs                     : ARRAY OF SYSTEM.BYTE
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryDefTag
+( PresSpaceHandle               : HPS;
+  VAR Tag                       : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryDefViewingLimits
+( PresSpaceHandle               : HPS;
+  VAR Limits                    : RECTL
+)                               : BOOLEAN;
+
+PROCEDURE GpiSetDefArcParams
+( PresSpaceHandle               : HPS;
+  VAR ArcParams                 : ARCPARAMS
+)                               : BOOLEAN;
+
+PROCEDURE GpiSetDefAttrs
+( PresSpaceHandle               : HPS;
+  PrimType                      : LONGINT;
+  AttrMask                      : LONGCARD;
+  VAR Attrs                     : ARRAY OF SYSTEM.BYTE
+)                               : BOOLEAN;
+
+PROCEDURE GpiSetDefTag
+( PresSpaceHandle               : HPS;
+  Tag                           : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiSetDefViewingLimits
+( PresSpaceHandle               : HPS;
+  VAR Limits                    : RECTL
+)                               : BOOLEAN;
+
+END GPIDEFAULTS.

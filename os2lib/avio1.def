@@ -1,0 +1,14 @@
+LIBRARY VIOCALLS
+EXPORTS
+  VioAssociate            @55
+  VioCreateLogFont        @60
+  VioCreatePS             @56
+  VioDeleteSetId          @57
+  VioDestroyPS            @61
+  VioGetDeviceCellSize    @58
+  VioGetOrg               @59
+  VioQueryFonts           @64
+  VioQuerySetIds          @62
+  VioSetDeviceCellSize    @65
+  VioSetOrg               @63
+  VioShowPS               @66

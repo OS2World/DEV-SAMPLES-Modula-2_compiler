@@ -1,0 +1,8 @@
+LIBRARY PMWIN
+EXPORTS
+  WinSetClassThunkProc     @930
+  WinQueryClassThunkProc   @931
+  WinSetWindowThunkProc    @932
+  WinQueryWindowThunkProc  @933
+  WinQueryWindowModel      @934
+

@@ -1,0 +1,17 @@
+LIBRARY PMWP
+EXPORTS
+  WinRegisterObjectClass    @200
+  WinDeregisterObjectClass  @201
+  WinReplaceObjectClass     @219
+  WinEnumObjectClasses      @205
+  WinCreateObject           @281
+  WinSetObjectData          @250
+  WinDestroyObject          @251
+  WinQueryObject            @252
+  WinSetFileIcon            @210
+  WinFreeFileIcon           @216
+  WinLoadFileIcon           @209
+  WinStoreWindowPos         @207
+  WinRestoreWindowPos       @208
+  WinShutdownSystem         @149
+  ShlGetUserWordPtr         @0xE0

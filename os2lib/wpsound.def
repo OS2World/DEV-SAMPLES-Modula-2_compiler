@@ -1,0 +1,6 @@
+LIBRARY WPCONFIG
+EXPORTS
+  WPSoundClassData         @0x0014
+  WPSoundNewClass          @0x0015
+  M_WPSoundClassData       @0x0078
+  M_WPSoundNewClass        @0x0079

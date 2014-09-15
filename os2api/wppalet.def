@@ -1,0 +1,264 @@
+DEFINITION MODULE WPPALET;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPPalette;
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPABS;
+IMPORT OS2DEF;
+IMPORT WPOBJECT;
+IMPORT SYSTEM;
+IMPORT WINMESSAGEMGR;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPPalette             = POINTER TO WPPalette;
+TYPE PM_WPPalette           = POINTER TO M_WPPalette;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPPalette
+*************************************************************************)
+
+TYPE HWND                   = OS2DEF.HWND;
+TYPE PWPFolder              = WPOBJECT.PWPObject;
+TYPE USEITEM                = WPOBJECT.USEITEM;
+TYPE VIEWITEM               = WPOBJECT.VIEWITEM;
+TYPE RECTL                  = OS2DEF.RECTL;
+TYPE HPS                    = OS2DEF.HPS;
+TYPE BYTE                   = SYSTEM.BYTE;
+TYPE POINTL                 = OS2DEF.POINTL;
+TYPE PSZ                    = OS2DEF.PSZ;
+
+CONST WM_USER               = WINMESSAGEMGR.WM_USER;
+
+CONST
+  (*
+   *  Open view for the wpOpen() method
+   *)
+  OPEN_PALETTE       = 121;
+
+CONST
+  (*
+   *  Palette save-restore keys
+   *)
+
+  IDKEY_PALXCELLCOUNT      = 1000;
+  IDKEY_PALYCELLCOUNT      = 1001;
+  IDKEY_PALXCELLWIDTH      = 1002;
+  IDKEY_PALYCELLHEIGHT     = 1003;
+  IDKEY_PALXGAP            = 1004;
+  IDKEY_PALYGAP            = 1005;
+  IDKEY_PALSCREENSIZEX     = 1006;
+  IDKEY_PALSCREENSIZEY     = 1007;
+  IDKEY_PALCELLDATA_FIRST  = 1050;
+
+CONST
+  (*
+   *  Default palette information
+   *)
+  DEF_XCELLCOUNT    = 6;
+  DEF_YCELLCOUNT    = 5;
+
+TYPE
+  (*
+   *  Variables kept for each open palette window as
+   *  a structure pointed to by the QWL_USER window
+   *  word ...
+   *)
+
+  CELL       = RECORD
+    cbData     : LONGCARD;  (* Size of the data that follows *)
+    (* Class specific cell data follows immediately afterwards -
+     * for example the font palette would store the ASCII name of
+     * the font, and the color palette would store the RGB color
+     * of the cell.
+     *)
+  END;
+  PCELL      = POINTER TO CELL;
+
+  PALINFO           = RECORD
+    xCellCount        : LONGCARD;      (* Number of columns of cells *)
+    yCellCount        : LONGCARD;      (* Number of rows of cells *)
+    xCursor           : LONGCARD;      (* Cursor location (readonly) *)
+    yCursor           : LONGCARD;      (* Cursor location (readonly) *)
+    xCellWidth        : LONGCARD;      (* Width of each cell *)
+    yCellHeight       : LONGCARD;      (* Height of each cell *)
+    xGap              : LONGCARD;      (* X separation of cells *)
+    yGap              : LONGCARD;      (* Y separation of cells *)
+                      END;
+  PPALINFO          = POINTER TO PALINFO;
+
+  PALETTEDATA       = RECORD
+    Palette           : PWPFolder;     (* Folder object for this window *)
+    UseItem           : USEITEM;       (* Folder object's INUSE list item *)
+    ViewItem          : VIEWITEM;
+    xCursor           : LONGCARD;
+    yCursor           : LONGCARD;
+                      END;
+  PPALETTEDATA      = POINTER TO PALETTEDATA;
+
+  CELLSTRUCT        = RECORD
+    rclCell           : RECTL;         (* Cell coordinates *)
+    pCell             : PCELL;         (* Cell data pointer *)
+                      END;
+  PCELLSTRUCT       = POINTER TO CELLSTRUCT;
+
+
+CONST
+  (*
+   *  Miscellaneous
+   *)
+  PM_INVALIDATECELL = WM_USER+1000;
+
+CONST
+  (* Macros that act on a PALINFO...
+   *)
+  ID_PALSCROLLHORZ  =  8091;
+  ID_PALSCROLLVERT  =  8092;
+
+CONST
+  (* Coordinates (these are in DIALOG UNITS)
+   *)
+  CXBUTTON          = 12;      (* Width of a button (with no text) *)
+  CYBUTTON          = 12;      (* Height of a button *)
+  XBUTTONGAP        = 6;
+  YBUTTONGAP        = 4;
+  CYBUTTONAREA      = CYBUTTON + 2*YBUTTONGAP;
+  DEF_XCELLWIDTH    = 22;
+  DEF_YCELLHEIGHT   = 16;
+  DEF_XCELLGAP      = 4;
+  DEF_YCELLGAP      = 4;
+
+
+(*************************************************************************
+  SOM class API for WPPalette, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPPalette_MajorVersion     = 1;
+  WPPalette_MinorVersion     = 2;
+
+TYPE
+  WPPaletteClassDataStructure   = RECORD
+    classObject                   : PSOMClass;
+    wpPaintCell                   : somMToken;
+    wpSelectCell                  : somMToken;
+    wpSetupCell                   : somMToken;
+    wpQueryPaletteInfo            : somMToken;
+    wpSetPaletteInfo              : somMToken;
+    wpEditCell                    : somMToken;
+    wpDragCell                    : somMToken;
+    withdrawn                     : somMToken;
+    wpInitCellStructs             : somMToken;
+    wpRedrawCell                  : somMToken;
+    wpPaintPalette                : somMToken;
+    wpMouseAction                 : somMToken;
+    wpQueryPaletteHelp            : somMToken;
+    wpShowPalettePointer          : somMToken;
+                                  END;
+
+VAR
+  WPPaletteClassData : WPPaletteClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPPalette = RECORD( WPABS.WPAbstract ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPPaletteNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+PROCEDURE( Self : PWPPalette ) wpPaintCell
+(
+  VAR Cell      : CELL;
+  hps           : HPS;
+  VAR rcl       : RECTL;
+  fHilite       : BOOLEAN
+);
+
+PROCEDURE( Self : PWPPalette ) wpSetupCell
+(
+  VAR CellData  : ARRAY OF BYTE;
+  cb            : LONGCARD;
+  x             : LONGCARD;
+  y             : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPPalette ) wpRedrawCell
+(
+  VAR Cell      : CELL
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPPalette ) wpQueryPaletteInfo
+(
+  VAR PalInfo   : PALINFO
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPPalette ) wpSetPaletteInfo
+(
+  VAR PalInfo   : PALINFO
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPPalette ) wpEditCell
+(
+  VAR Cell      : CELL;
+  hwndPal       : HWND
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPPalette ) wpDragCell
+(
+  VAR Cell      : CELL;
+  hwndPal       : HWND;
+  VAR ptlDrag   : POINTL
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPPalette ) wpQueryPaletteHelp( ) : LONGCARD;
+
+
+
+(*************************************************************************
+  SOM class API for M_WPPalette, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPPalette_MajorVersion   = 1;
+  M_WPPalette_MinorVersion   = 2;
+
+TYPE
+  M_WPPaletteClassDataStructure   = RECORD
+    classObject                     : PSOMClass;
+    wpclsQueryEditString            : somMToken;
+                                    END;
+
+VAR
+  M_WPPaletteClassData : M_WPPaletteClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPPalette = RECORD( WPABS.M_WPAbstract ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPPaletteNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+PROCEDURE( Self : PM_WPPalette ) wpclsQueryEditString( ) : PSZ;
+
+END WPPALET.

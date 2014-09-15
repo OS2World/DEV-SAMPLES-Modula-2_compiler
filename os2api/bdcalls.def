@@ -1,0 +1,175 @@
+DEFINITION MODULE BDCALLS;
+
+(*************************************************************************
+  OS/2 2.x or 3.0  Bidi public interface definition file
+
+  (c) 1995 by Juergen Neuhoff
+**************************************************************************)
+
+(*$XL+    Modula-2 language extensions: '_' allowed for symbol names     *)
+(*$A      default alignment for record fields                            *)
+(*$API16+ 32 to 16 bit thunking for API functions                        *)
+
+IMPORT SYSTEM;
+
+TYPE
+  PCHAR16  = SYSTEM.DWORD;  (* 16:16 pointer to CHAR or CHAR array *)
+  APIRET16 = CARDINAL;
+
+
+CONST (* BidiHotKeys in BIDISTRUCT *)
+(*
+   The following defined value may be used to Enable/Disable the Bidi      
+   keyboard hot keys.                                                      
+   To enable a hot key, perform an 'OR' operation on the Bidi hot key flag 
+   word in the KBVCBTYPE  structure with the required defined value.       
+   To disable a hot key, perform an 'AND NOT' operation on the Bidi hot key
+   flag word in the KBVCBTYPE  structure with the required defined value.  
+*)
+  BDHKFLAG_PUSH        = VAL( CARDINAL, 0004H );
+  BDHKFLAG_END_PUSH    = VAL( CARDINAL, 0008H );
+  BDHKFLAG_AUTO_PUSH   = VAL( CARDINAL, 0010H );
+  BDHKFLAG_FIELD_REV   = VAL( CARDINAL, 0020H );
+  BDHKFLAG_SCREEN_REV  = VAL( CARDINAL, 0040H );
+  BDHKFLAG_BIDI_POPUP  = VAL( CARDINAL, 0200H );
+  BDHKFLAG_AUTOMATIC   = VAL( CARDINAL, 0400H );
+  BDHKFLAG_INITIAL     = VAL( CARDINAL, 0800H );
+  BDHKFLAG_MIDDLE      = VAL( CARDINAL, 1000H );
+  BDHKFLAG_FINAL       = VAL( CARDINAL, 2000H );
+  BDHKFLAG_ISOLATED    = VAL( CARDINAL, 4000H );
+
+CONST (* Bidi Flags in BIDISTRUCT *)
+(*
+   The following defined value may be used to Enable/Disable the Bidi    
+   functions.                                                            
+   To enable a Bidi function, perform an 'OR' operation on the Bidi flags
+   word in the BDKBVCB  structure with the required defined value.       
+   To disable a Bidi fuction, perform an 'AND NOT' operation on the Bidi 
+   flags word in the BDKBVCB  structure with the required defined value. 
+*)
+  BDFLAG_AUTOPUSH_RTL  = VAL( CARDINAL, 0001H );
+  BDFLAG_AUTOPUSH_LTR  = VAL( CARDINAL, 0002H );
+  BDFLAG_PUSHLEVEL     = VAL( CARDINAL, 0004H );
+  BDFLAG_LAYER         = VAL( CARDINAL, 0010H );
+  BDFLAG_FIELD_REV     = VAL( CARDINAL, 0020H );
+
+CONST (*  CSD in BIDIATT *)
+(*
+   The following defined value may be used to select the specified 
+   bit in the Bidi Attributes.                                     
+*)
+  BDCSD_AUTOMATIC     = VAL( LONGCARD, 00000000H );
+  BDCSD_PASSTHRU      = VAL( LONGCARD, 00000001H );
+  BDCSD_BASE          = VAL( LONGCARD, 00000010H );
+  BDCSD_INITIAL       = VAL( LONGCARD, 00000011H );
+  BDCSD_MIDDLE        = VAL( LONGCARD, 00000012H );
+  BDCSD_FINAL         = VAL( LONGCARD, 00000013H );
+  BDCSD_ISOLATED      = VAL( LONGCARD, 00000014H );
+  BDNUM_ARABIC        = VAL( LONGCARD, 00000000H );
+  BDNUM_PASSTHRU      = VAL( LONGCARD, 00001000H );
+  BDNUM_HINDU         = VAL( LONGCARD, 00002000H );
+  BDORIENT_LTR        = VAL( LONGCARD, 00000000H );
+  BDORIENT_RTL        = VAL( LONGCARD, 00010000H );
+  BD_LEVEL            = VAL( LONGCARD, 30000000H );
+  BD_SUPPORT          = VAL( LONGCARD, 00000000H );
+
+(*$A2  WORD alignment for record fields >= 2 bytes *)
+
+TYPE (* the keyboard control block structure *)
+  BDKVCB              = RECORD 
+    BDLength            : CARDINAL;    
+    BDVersionId         : CARDINAL;    
+    BDAtts              : LONGCARD;    
+    Reserved            : LONGCARD;    
+    BDHotKeyFlags       : CARDINAL;    
+    BDFlags             : CARDINAL;    
+    Reserved2           : ARRAY [0..63] OF SHORTCARD;
+                        END;
+
+TYPE (* the printer control block structure *)
+  BDPRCB              = RECORD
+    PRLength            : CARDINAL;  
+    PRAtts              : LONGCARD;  
+    Reserved            : ARRAY [0..13] OF SHORTCARD;
+                        END;
+
+TYPE (* the Character Shape Determination structure *)
+  CSDRec              = RECORD
+    RecLength           : LONGCARD;    
+    Buffer              : PCHAR16;     
+    BufferLength        : LONGCARD;    
+    BufferIndex         : LONGCARD;    
+                        END;
+
+(*$A  default alignment for record fields *)
+
+PROCEDURE NlsQueryBidiAtt
+(
+  Effect                : LONGINT;
+  VAR RetInfo           : ARRAY OF SYSTEM.BYTE
+)                       : APIRET16;
+
+PROCEDURE NlsSetBidiAtt
+(
+  Effect                : LONGINT;
+  VAR SetInfo           : ARRAY OF SYSTEM.BYTE
+)                       : APIRET16;
+
+PROCEDURE NlsShapeBidiString
+(
+  BidiAtts              : LONGCARD;
+  Reserved              : LONGCARD;
+  FAR VAR Source        : ARRAY OF SYSTEM.BYTE;  (* in a 16-bit segment *)
+  FAR VAR Target        : ARRAY OF SYSTEM.BYTE;  (* in a 16-bit segment *)
+  Length                : LONGCARD;
+  Increment             : LONGCARD 
+)                       : APIRET16;
+
+PROCEDURE NlsEditShape
+(
+  BidiAtts              : LONGCARD;
+  Effect                : LONGINT;
+  FAR VAR Source        : CSDRec;                (* in a 16-bit segment *)
+  FAR VAR Target        : CSDRec;                (* in a 16-bit segment *)
+  VAR CSDState          : LONGCARD;
+  Increment             : LONGCARD
+)                       : APIRET16;
+
+PROCEDURE NlsInverseString
+(
+  FAR VAR Source        : ARRAY OF SYSTEM.BYTE;  (* in a 16-bit segment *)
+  FAR VAR Target        : ARRAY OF SYSTEM.BYTE;  (* in a 16-bit segment *)
+  Length                : LONGCARD;
+  Increment             : LONGCARD
+)                       : APIRET16;
+
+PROCEDURE NlsConvertBidiNumerics
+(
+  BidiAtts              : LONGCARD;
+  Reserved              : LONGINT;
+  FAR VAR Source        : ARRAY OF SYSTEM.BYTE;  (* in a 16-bit segment *)
+  FAR VAR Target        : ARRAY OF SYSTEM.BYTE;  (* in a 16-bit segment *)
+  Length                : LONGCARD;
+  Increment             : LONGCARD
+)                       : APIRET16;
+
+PROCEDURE NlsSetBidiPrint
+(
+  BidiAtts              : LONGCARD;
+  Length                : LONGCARD;
+  FileHandle            : CARDINAL
+)                       : APIRET16;
+
+PROCEDURE NlsConvertBidiString
+(
+  FAR VAR Source        : ARRAY OF SYSTEM.BYTE;  (* in a 16-bit segment *)
+  FAR VAR Target        : ARRAY OF SYSTEM.BYTE;  (* in a 16-bit segment *)
+  Length                : LONGCARD;
+  Increment             : LONGCARD;
+  SBidiAtts             : LONGCARD;
+  TBidiAtts             : LONGCARD;
+  Reserved              : LONGCARD
+)                       : APIRET16;
+
+
+END BDCALLS.

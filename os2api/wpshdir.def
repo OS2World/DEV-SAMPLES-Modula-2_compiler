@@ -1,0 +1,95 @@
+DEFINITION MODULE WPSHDIR;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPSharedDir
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPFOLDER;
+IMPORT OS2DEF;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPSharedDir           = POINTER TO WPSharedDir;
+TYPE PM_WPSharedDir         = POINTER TO M_WPSharedDir;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPSharedDir
+*************************************************************************)
+
+TYPE HWND                   = OS2DEF.HWND;
+
+(*************************************************************************
+  SOM class API for WPSharedDir, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPSharedDir_MajorVersion     = 1;
+  WPSharedDir_MinorVersion     = 2;
+
+TYPE
+  WPSharedDirClassDataStructure     = RECORD
+    classObject                       : PSOMClass;
+    wpAddResourcePage                 : somMToken;
+                                      END;
+
+VAR
+  WPSharedDirClassData : WPSharedDirClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPSharedDir = RECORD( WPFOLDER.WPFolder ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPSharedDirNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+PROCEDURE( Self : PWPSharedDir ) wpAddResourcePage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+
+(*************************************************************************
+  SOM class API for M_WPSharedDir, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPSharedDir_MajorVersion   = 1;
+  M_WPSharedDir_MinorVersion   = 2;
+
+TYPE
+  M_WPSharedDirClassDataStructure   = RECORD
+    classObject                       : PSOMClass;
+                                      END;
+
+VAR
+  M_WPSharedDirClassData : M_WPSharedDirClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPSharedDir = RECORD( WPFOLDER.M_WPFolder ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPSharedDirNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+
+END WPSHDIR.

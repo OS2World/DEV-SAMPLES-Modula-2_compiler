@@ -1,0 +1,12 @@
+LIBRARY PMSHAPI
+EXPORTS
+  PrfQueryProfileInt       @114
+  PrfQueryProfileString    @115
+  PrfWriteProfileString    @116
+  PrfQueryProfileSize      @101
+  PrfQueryProfileData      @117
+  PrfWriteProfileData      @118
+  PrfOpenProfile           @102
+  PrfCloseProfile          @103
+  PrfReset                 @108
+  PrfQueryProfile          @107

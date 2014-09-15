@@ -1,0 +1,93 @@
+DEFINITION MODULE WPPDR;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPPdr
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPTRANS;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPPdr                 = POINTER TO WPPdr;
+TYPE PM_WPPdr               = POINTER TO M_WPPdr;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPPdr
+*************************************************************************)
+
+(*************************************************************************
+  SOM class API for WPPdr, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPPdr_MajorVersion     = 1;
+  WPPdr_MinorVersion     = 1;
+
+TYPE
+  WPPdrClassDataStructure     = RECORD
+    classObject                 : PSOMClass;
+    prtGetPDriverInfo           : somMToken;
+    prtSetPDriverInfo           : somMToken;
+    prtGetPDriverName           : somMToken;
+    prtGetPDeviceName           : somMToken;
+    prtSetPdrIcon               : somMToken;
+    prtSetPDriverDiscardhwndDlg : somMToken;
+    prtSetPDriverInstallhwndDlg : somMToken;
+                                END;
+
+VAR
+  WPPdrClassData : WPPdrClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPPdr = RECORD( WPTRANS.WPTransient ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPPdrNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+
+(*************************************************************************
+  SOM class API for M_WPPdr, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPPdr_MajorVersion   = 1;
+  M_WPPdr_MinorVersion   = 1;
+
+TYPE
+  M_WPPdrClassDataStructure   = RECORD
+    classObject                 : PSOMClass;
+                                END;
+
+VAR
+  M_WPPdrClassData : M_WPPdrClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPPdr = RECORD( WPTRANS.M_WPTransient ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPPdrNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+
+END WPPDR.

@@ -1,0 +1,6 @@
+LIBRARY DOSCALLS
+EXPORTS
+  DosDevConfig        @231
+  DosDevIOCtl         @284
+  DosPhysicalDisk     @287
+

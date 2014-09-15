@@ -1,0 +1,241 @@
+DEFINITION MODULE WINPROGRAMLIST;
+
+(************************************************************************
+  OS/2 2.x Presentation Manager Shell Program List Calls
+
+  Copyright (c) 1992, 1994 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF       IMPORT TYPEPREFIX, PSZ, HWND;
+FROM   WINWINDOWMGR IMPORT SWP;
+IMPORT WINDEF;
+
+TYPE (* program handle *)
+  HPROGRAM       = WINDEF.HPROGRAM;
+  HAPP           = WINDEF.HAPP;
+
+TYPE (* ini file handle *)
+  HINI           = WINDEF.HINI;
+
+CONST (* maximum path length *)
+  MAXPATHL               = 128;
+
+CONST (* root group handle *)
+  SGH_ROOT               = HPROGRAM( -1 );
+
+TYPE
+  HPROGARRAY             = RECORD (* hpga *)
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      ahprog               : ARRAY [0..0] OF HPROGRAM;
+    | FALSE                :
+      ProgHandle           : ARRAY [0..0] OF HPROGRAM;
+    END;                   END;
+  PHPROGARRAY            = POINTER TO HPROGARRAY;
+
+TYPE
+  PROGCATEGORY           = LONGCARD;   (* progc *)
+  PPROGCATEGORY          = POINTER TO PROGCATEGORY;
+
+CONST (* values acceptable for PROGCATEGORY for PM groups *)
+  PROG_DEFAULT              = PROGCATEGORY( 0 );
+  PROG_FULLSCREEN           = PROGCATEGORY( 1 );
+  PROG_WINDOWABLEVIO        = PROGCATEGORY( 2 );
+  PROG_PM                   = PROGCATEGORY( 3 );
+  PROG_GROUP                = PROGCATEGORY( 5 );
+  PROG_REAL                 = PROGCATEGORY( 4 );
+  PROG_VDM                  = PROGCATEGORY( 4 );
+  PROG_WINDOWEDVDM          = PROGCATEGORY( 7 );
+  PROG_DLL                  = PROGCATEGORY( 6 );
+  PROG_PDD                  = PROGCATEGORY( 8 );
+  PROG_VDD                  = PROGCATEGORY( 9 );
+  PROG_WINDOW_REAL          = PROGCATEGORY( 10 );
+  PROG_WINDOW_PROT          = PROGCATEGORY( 11 );
+  PROG_30_STD               = PROGCATEGORY( 11 );
+  PROG_WINDOW_AUTO          = PROGCATEGORY( 12 );
+  PROG_SEAMLESSVDM          = PROGCATEGORY( 13 );
+  PROG_30_STDSEAMLESSVDM    = PROGCATEGORY( 13 );
+  PROG_SEAMLESSCOMMON       = PROGCATEGORY( 14 );
+  PROG_30_STDSEAMLESSCOMMON = PROGCATEGORY( 14 );
+  PROG_31_STDSEAMLESSVDM    = PROGCATEGORY( 15 );
+  PROG_31_STDSEAMLESSCOMMON = PROGCATEGORY( 16 );
+  PROG_31_ENHSEAMLESSVDM    = PROGCATEGORY( 17 );
+  PROG_31_ENHSEAMLESSCOMMON = PROGCATEGORY( 18 );
+  PROG_31_ENH               = PROGCATEGORY( 19 );
+  PROG_31_STD               = PROGCATEGORY( 20 );
+  PROG_RESERVED             = PROGCATEGORY( 255 );
+
+TYPE
+  PROGTYPE               = RECORD (* progt *)
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      progc                : PROGCATEGORY;
+      fbVisible            : LONGCARD;
+    | FALSE                :
+      ProgCategory         : PROGCATEGORY;
+      VisibleFlag          : LONGCARD;
+    END;                   END;
+  PPROGTYPE               = POINTER TO PROGTYPE;
+
+CONST (* visibility flag for PROGTYPE structure *)
+  SHE_VISIBLE            = 00H;
+  SHE_INVISIBLE          = 01H;
+  SHE_RESERVED           = 0FFH;
+
+CONST (* Protected group flag for PROGTYPE structure *)
+  SHE_UNPROTECTED        = 00H;
+  SHE_PROTECTED          = 02H;
+
+TYPE (* Structures associated with 'Prf' calls *)
+  PROGDETAILS            = RECORD      (* progde *)
+    Length                 : LONGCARD; (* set this to sizeof(PROGDETAILS)  *)
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      progt                : PROGTYPE;
+      pszTitle             : PSZ;      (* any of the pointers can be NULL  *)
+      pszExecutable        : PSZ;
+      pszParameters        : PSZ;
+      pszStartupDir        : PSZ;
+      pszIcon              : PSZ;
+      pszEnvironment       : PSZ;      (* this is terminated by  /0/0      *)
+      swpInitial           : SWP;      (* this replaces XYWINSIZE          *)
+    | FALSE                :
+      ProgTitle            : PROGTYPE;
+      Title                : PSZ;      (* any of the pointers can be NULL  *)
+      Executable           : PSZ;
+      Parameters           : PSZ;
+      StartupDir           : PSZ;
+      Icon                 : PSZ;
+      Environment          : PSZ;      (* this is terminated by  /0/0      *)
+      InitialSWP           : SWP;      (* this replaces XYWINSIZE          *)
+    END;                   END;
+  PPROGDETAILS           = POINTER TO PROGDETAILS;
+  PROGTITLE              = RECORD      (* progti *)
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      hprog                : HPROGRAM;
+      progt                : PROGTYPE;
+      pszTitle             : PSZ;
+    | FALSE                :
+      ProgHandle           : HPROGRAM;
+      ProgTitle            : PROGTYPE;
+      Title                : PSZ;
+    END;                   END;
+  PPROGTITLE             = POINTER TO PROGTITLE;
+
+PROCEDURE PrfQueryProgramTitles
+( IniHandle              : HINI;
+  ProgGroupHandle        : HPROGRAM;
+  Titles                 : PPROGTITLE;
+  BufferMax              : LONGCARD;
+  VAR Count              : LONGCARD
+)                        : LONGCARD;
+
+(*********************************************************************)
+(*  NOTE: string information is concatanated after the array of      *)
+(*        PROGTITLE structures so you need to allocate storage       *)
+(*        greater than TSIZE(PROGTITLE)*cPrograms to query programs  *)
+(*        in a group.                                                *)
+(*                                                                   *)
+(*  PrfQueryProgramTitles recommended usage to obtain titles of all  *)
+(*  programs in a group (Hgroup=SGH_ROOT is for all groups):         *)
+(*                                                                   *)
+(*  BufLen := PrfQueryProgramTitles                                  *)
+(*  ( Hini, Hgroup, PPROGTITLE( NIL ), 0, Count );                   *)
+(*  Storage.ALLOCATE( pBuffer, BufLen );                             *)
+(*  Len := PrfQueryProgramTitles                                     *)
+(*  ( Hini, Hgroup, PPROGTITLE( pBuffer ), BufLen, Count );          *)
+(*                                                                   *)
+(*********************************************************************)
+
+PROCEDURE PrfAddProgram
+( IniHandle              : HINI;
+  VAR Details            : PROGDETAILS;
+  ProgGroupHandle        : HPROGRAM
+)                        : HPROGRAM;
+
+PROCEDURE PrfChangeProgram
+( IniHandle              : HINI;
+  ProgHandle             : HPROGRAM;
+  VAR Details            : PROGDETAILS
+)                        : BOOLEAN;
+
+PROCEDURE PrfQueryDefinition
+( IniHandle              : HINI;
+  ProgHandle             : HPROGRAM;
+  Details                : PPROGDETAILS;
+  BufferMax              : LONGCARD
+)                        : LONGCARD;
+
+(*********************************************************************)
+(*  NOTE: string information is concatanated after the PROGDETAILS   *)
+(*        field structure so you need to allocate storage greater    *)
+(*        than TSIZE(PROGDETAILS) to query programs                  *)
+(*                                                                   *)
+(*  Sample PrfQueryDefinition recomended usage:                      *)
+(*                                                                   *)
+(*  BufLen := PrfQueryDefinition                                     *)
+(*  ( Hini, Hprog, PPROGDETAILS( NIL ), 0 );                         *)
+(*  Storage.ALLOCATE( pBuffer, BufLen );                             *)
+(*  pProgDetails := SYSTEM.ADR( pBuffer );                           *)
+(*  pProgDetails^.Length := TSIZE( PPROGDETAILS );                   *)
+(*  len := PrfQueryDefinition                                        *)
+(*  ( Hini, Hprog, PPROGDETAILS( pBuffer ), BufLen );                *)
+(*********************************************************************)
+
+PROCEDURE PrfRemoveProgram
+( IniHandle              : HINI;
+  ProgHandle             : HPROGRAM
+)                        : BOOLEAN;
+
+PROCEDURE PrfQueryProgramHandle
+( IniHandle              : HINI;
+  Exe                    : ARRAY OF CHAR;
+  ProgArray              : PHPROGARRAY;
+  BufferMax              : LONGCARD;
+  VAR Count              : LONGCARD
+)                        : LONGCARD;
+
+PROCEDURE PrfCreateGroup
+( IniHandle              : HINI;
+  Title                  : ARRAY OF CHAR;
+  Visibility             : SHORTCARD
+)                        : HPROGRAM;
+
+PROCEDURE PrfDestroyGroup
+( IniHandle              : HINI;
+  ProgGroupHandle        : HPROGRAM
+)                        : BOOLEAN;
+
+PROCEDURE PrfQueryProgramCategory
+( IniHandle              : HINI;
+  VAR Exe                : ARRAY OF CHAR
+)                        : PROGCATEGORY;
+
+PROCEDURE WinStartApp
+( NotifyWinHandle        : HWND;
+  VAR Details            : PROGDETAILS;
+  Params                 : PSZ;
+  Reserved               : SYSTEM.ADDRESS;
+  Options                : LONGCARD
+)                        : HAPP;
+
+CONST (* bit values for Options parameter *)
+  SAF_VALIDFLAGS         = 001FH;
+  SAF_INSTALLEDCMDLINE   = 0001H; (* use installed parameters *)
+  SAF_STARTCHILDAPP      = 0002H; (* related application      *)
+  SAF_MAXIMIZED          = 0004H; (* Start App maximized *)
+  SAF_MINIMIZED          = 0008H; (* Start App minimized, if !SAF_MAXIMIZED *)
+  SAF_BACKGROUND         = 0010H; (* Start app in the background *)
+
+PROCEDURE WinTerminateApp
+( AppHandle              : HAPP
+)                        : BOOLEAN;
+
+
+END WINPROGRAMLIST.

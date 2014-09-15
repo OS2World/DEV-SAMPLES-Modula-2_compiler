@@ -1,0 +1,60 @@
+DEFINITION MODULE WINDESKTOP;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager Desktop API.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF  IMPORT TYPEPREFIX, HBITMAP, HWND;
+
+TYPE (* Desktop API definitions *)
+  DESKTOP                = RECORD              (* dsk *)
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      cbSize               : LONGCARD;
+      hbm                  : HBITMAP;
+    | FALSE                :
+      Size                 : LONGCARD;
+      BitMapHandle         : HBITMAP;
+    END;
+    x                      : LONGINT;
+    y                      : LONGINT;
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      fl                   : LONGCARD;
+      lTileCount           : LONGINT;
+      szFile               : ARRAY [0..259] OF CHAR;
+    | FALSE                :
+      Flags                : LONGCARD;
+      TileCount            : LONGINT;
+      File                 : ARRAY [0..259] OF CHAR;
+    END;                   END;
+  PDESKTOP               = POINTER TO DESKTOP;  (* pdsk *)
+
+PROCEDURE WinSetDesktopBkgnd
+( DesktopWinHandle       : HWND;
+  VAR DesktopState       : DESKTOP
+)                        : HBITMAP;
+
+PROCEDURE WinQueryDesktopBkgnd
+( DesktopWinHandle       : HWND;
+  VAR DesktopState       : DESKTOP
+)                        : BOOLEAN;
+
+CONST
+  SDT_DESTROY            = 0001H;
+  SDT_NOBKGND            = 0002H;
+  SDT_TILE               = 0004H;
+  SDT_SCALE              = 0008H;
+  SDT_PATTERN            = 0010H;
+  SDT_CENTER             = 0020H;
+  SDT_RETAIN             = 0040H;
+  SDT_LOADFILE           = 0080H;
+
+END WINDESKTOP.

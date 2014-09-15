@@ -1,0 +1,19 @@
+LIBRARY PMWIN
+EXPORTS
+  WinSetPointer                @866
+  WinSetPointerOwner           @971
+  WinShowPointer               @881
+  WinLockPointerUpdate         @997
+  WinQuerySysPointer           @828
+  WinQuerySysPointerData       @1003
+  WinSetSysPointerData         @1002
+  WinLoadPointer               @780
+  WinCreatePointer             @717
+  WinSetPointerPos             @867
+  WinDestroyPointer            @727
+  WinQueryPointer              @821
+  WinQueryPointerPos           @823
+  WinCreatePointerIndirect     @942
+  WinQueryPointerInfo          @822
+  WinDrawPointer               @732
+  WinGetSysBitmap              @760

@@ -1,0 +1,128 @@
+DEFINITION MODULE DOSMISC;
+
+(************************************************************************
+  OS/2 2.0 interface for miscellaneous functions.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF     IMPORT APIRET, PCHAR, PSZ, HFILE;
+
+CONST (* definitions for DosSearchPath() control word *)
+  DSP_IMPLIEDCUR        = 1; (* current dir will be searched first *)
+  DSP_PATHREF           = 2; (* from env.variable *)
+  DSP_IGNORENETERR      = 4; (* ignore net errs & continue search *)
+
+CONST (* indices for DosQuerySysInfo() *)
+  QSV_MAX_PATH_LENGTH   = 1;
+  Q_MAX_PATH_LENGTH     = QSV_MAX_PATH_LENGTH;
+  QSV_MAX_TEXT_SESSIONS = 2;
+  QSV_MAX_PM_SESSIONS   = 3;
+  QSV_MAX_VDM_SESSIONS  = 4;
+  QSV_BOOT_DRIVE        = 5;       (* 1=A, 2=B, etc. *)
+  QSV_DYN_PRI_VARIATION = 6;       (* 0=Absolute, 1=Dynamic *)
+  QSV_MAX_WAIT          = 7;       (* seconds *)
+  QSV_MIN_SLICE         = 8;       (* milli seconds *)
+  QSV_MAX_SLICE         = 9;       (* milli seconds *)
+  QSV_PAGE_SIZE         = 10;
+  QSV_VERSION_MAJOR     = 11;
+  QSV_VERSION_MINOR     = 12;
+  QSV_VERSION_REVISION  = 13;      (* Revision letter *)
+  QSV_MS_COUNT          = 14;      (* Free running millisecond counter *)
+  QSV_TIME_LOW          = 15;      (* Low dword of time in seconds *)
+  QSV_TIME_HIGH         = 16;      (* High dword of time in seconds *)
+  QSV_TOTPHYSMEM        = 17;      (* Physical memory on system *)
+  QSV_TOTRESMEM         = 18;      (* Resident memory on system *)
+  QSV_TOTAVAILMEM       = 19;      (* Available memory for all processes *)
+  QSV_MAXPRMEM          = 20;      (* Avail private mem for calling proc *)
+  QSV_MAXSHMEM          = 21;      (* Avail shared mem for calling proc *)
+  QSV_TIMER_INTERVAL    = 22;      (* Timer interval in tenths of ms *)
+  QSV_MAX_COMP_LENGTH   = 23;      (* max len of one component in a name *)
+  QSV_MAX               = QSV_MAX_COMP_LENGTH;
+
+CONST (* definitions for DosError() - combine with OR *)
+  FERR_DISABLEHARDERR   = 00000000H;     (* disable hard error popups *)
+  FERR_ENABLEHARDERR    = 00000001H;     (* enable hard error popups *)
+  FERR_ENABLEEXCEPTION  = 00000000H;     (* enable exception popups *)
+  FERR_DISABLEEXCEPTION = 00000002H;     (* disable exception popups *)
+
+CONST (* definitions for DosQueryRASInfo() Index *)
+  SIS_MMIOADDR          = 0;
+  SIS_MEC_TABLE         = 1;
+  SIS_SYS_LOG           = 2;
+
+
+PROCEDURE DosError
+( Flags             : LONGCARD
+)                   : APIRET;
+
+PROCEDURE DosGetMessage
+( VAR Table         : ARRAY OF PCHAR;
+  TableCount        : LONGCARD;
+  VAR DataArea      : ARRAY OF CHAR;
+  DataLength        : LONGCARD;
+  MsgNumber         : LONGCARD;
+  FileName          : ARRAY OF CHAR;
+  VAR MsgLength     : LONGCARD
+)                   : APIRET;
+
+PROCEDURE DosErrClass
+( Code              : LONGCARD;
+  VAR Class         : LONGCARD;
+  VAR Action        : LONGCARD;
+  VAR Locus         : LONGCARD
+)                   : APIRET;
+
+PROCEDURE DosInsertMessage
+( VAR Table         : ARRAY OF PCHAR;
+  TableCount        : LONGCARD;
+  MsgInput          : ARRAY OF CHAR;
+  MsgInputLength    : LONGCARD;
+  VAR DataArea      : ARRAY OF CHAR;
+  DataLength        : LONGCARD;
+  VAR MsgLength     : LONGCARD
+)                   : APIRET;
+
+PROCEDURE DosPutMessage
+( FileHandle        : HFILE;
+  MessageLength     : LONGCARD;
+  MessageBuffer     : ARRAY OF CHAR
+)                   : APIRET;
+
+PROCEDURE DosQuerySysInfo
+( StartIndex        : LONGCARD;
+  LastIndex         : LONGCARD;
+  VAR DataBuf       : ARRAY OF SYSTEM.LONGWORD;
+  DataBufLen        : LONGCARD
+)                   : APIRET;
+
+PROCEDURE DosScanEnv
+( EnvVarName        : ARRAY OF CHAR;
+  VAR ResultPointer : PSZ
+)                   : APIRET;
+
+PROCEDURE DosSearchPath
+( Control           : LONGCARD;
+  PathRef           : ARRAY OF CHAR;
+  FileName          : ARRAY OF CHAR;
+  VAR ResultBuffer  : ARRAY OF CHAR;
+  ResultBufferLen   : LONGCARD
+)                   : APIRET;
+
+PROCEDURE DosQueryMessageCP
+( VAR BufferArea    : ARRAY OF SYSTEM.WORD;
+  BufferLength      : LONGCARD;
+  FileName          : ARRAY OF CHAR;
+  VAR DataLength    : LONGCARD
+)                   : APIRET;
+
+PROCEDURE DosQueryRASInfo
+( Index             : LONGCARD;
+  Addr              : SYSTEM.ADDRESS
+)                   : APIRET;
+
+END DOSMISC.

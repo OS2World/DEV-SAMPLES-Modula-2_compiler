@@ -1,0 +1,69 @@
+DEFINITION MODULE WINTRACKRECT;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager WinTrackRect() function.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM   OS2DEF  IMPORT TYPEPREFIX, POINTL, RECTL, HWND, HPS;
+
+TYPE (* WinTrackRect() tracking information structure *)
+  TRACKINFO               = RECORD  (* ti *)
+  CASE                      : TYPEPREFIX OF
+  | TRUE                    :
+    cxBorder                : LONGINT;
+    cyBorder                : LONGINT;
+    cxGrid                  : LONGINT;
+    cyGrid                  : LONGINT;
+    cxKeyboard              : LONGINT;
+    cyKeyboard              : LONGINT;
+    rclTrack                : RECTL;
+    rclBoundary             : RECTL;
+    ptlMinTrackSize         : POINTL;
+    ptlMaxTrackSize         : POINTL;
+    fs                      : LONGCARD;
+  | FALSE                   :
+    xBorderSize             : LONGINT;
+    yBorderSize             : LONGINT;
+    xGridSize               : LONGINT;
+    yGridSize               : LONGINT;
+    xKeyboardSize           : LONGINT;
+    yKeyboardSize           : LONGINT;
+    Track                   : RECTL;
+    Boundary                : RECTL;
+    MinTrackSize            : POINTL;
+    MaxTrackSize            : POINTL;
+    Flag                    : LONGCARD;
+  END;                      END;
+  PTRACKINFO              = POINTER TO TRACKINFO;
+
+PROCEDURE WinTrackRect
+( WinHandle               : HWND;
+  PresSpaceHandle         : HPS;
+  VAR Trackinfo           : TRACKINFO
+)                         : BOOLEAN;
+
+PROCEDURE WinShowTrackRect
+( WinHandle               : HWND;
+  Show                    : BOOLEAN
+)                         : BOOLEAN;
+
+CONST (* WinTrackRect() flags *)
+  TF_LEFT                 = 0001H;
+  TF_TOP                  = 0002H;
+  TF_RIGHT                = 0004H;
+  TF_BOTTOM               = 0008H;
+  TF_MOVE                 = TF_LEFT OR TF_TOP OR TF_RIGHT OR TF_BOTTOM;
+  TF_SETPOINTERPOS        = 0010H;
+  TF_GRID                 = 0020H;
+  TF_STANDARD             = 0040H;
+  TF_ALLINBOUNDARY        = 0080H;
+  TF_VALIDATETRACKRECT    = 0100H;
+  TF_PARTINBOUNDARY       = 0200H;
+
+END WINTRACKRECT.

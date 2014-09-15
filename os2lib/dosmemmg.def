@@ -1,0 +1,15 @@
+LIBRARY DOSCALLS
+EXPORTS
+  DosAllocMem               @299
+  DosFreeMem                @304
+  DosSetMem                 @305
+  DosGiveSharedMem          @303
+  DosGetSharedMem           @302
+  DosGetNamedSharedMem      @301
+  DosAllocSharedMem         @300
+  DosQueryMem               @306
+  DosSubAllocMem            @345
+  DosSubFreeMem             @346
+  DosSubSetMem              @344
+  DosSubUnsetMem            @347
+

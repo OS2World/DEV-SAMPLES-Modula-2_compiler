@@ -1,0 +1,87 @@
+DEFINITION MODULE WPSTART;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPStartup
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPFOLDER;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPStartup             = POINTER TO WPStartup;
+TYPE PM_WPStartup           = POINTER TO M_WPStartup;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPStartup
+*************************************************************************)
+
+
+(*************************************************************************
+  SOM class API for WPStartup, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPStartup_MajorVersion     = 1;
+  WPStartup_MinorVersion     = 2;
+
+TYPE
+  WPStartupClassDataStructure     = RECORD
+    classObject                     : PSOMClass;
+                                    END;
+
+VAR
+  WPStartupClassData : WPStartupClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPStartup = RECORD( WPFOLDER.WPFolder ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPStartupNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+
+(*************************************************************************
+  SOM class API for M_WPStartup, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPStartup_MajorVersion   = 1;
+  M_WPStartup_MinorVersion   = 2;
+
+TYPE
+  M_WPStartupClassDataStructure   = RECORD
+    classObject                     : PSOMClass;
+                                    END;
+
+VAR
+  M_WPStartupClassData : M_WPStartupClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPStartup = RECORD( WPFOLDER.M_WPFolder ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPStartupNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+
+END WPSTART.

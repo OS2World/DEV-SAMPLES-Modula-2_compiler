@@ -1,0 +1,8 @@
+LIBRARY DOSCALLS
+EXPORTS
+  DosOpenVDD            @308
+  DosRequestVDD         @267
+  DosCloseVDD           @268
+  DosQueryDOSProperty   @373
+  DosSetDOSProperty     @374
+

@@ -1,0 +1,6 @@
+LIBRARY PMWP
+EXPORTS
+  WPDrivesClassData         @0x002C
+  WPDrivesNewClass          @0x002D
+  M_WPDrivesClassData       @0x0155
+  M_WPDrivesNewClass        @0x0156

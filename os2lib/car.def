@@ -1,0 +1,6 @@
+LIBRARY CAR
+EXPORTS
+  CarClassData         @0x0006
+  CarNewClass          @0x0004
+  M_CarClassData       @0x0001
+  M_CarNewClass        @0x0002

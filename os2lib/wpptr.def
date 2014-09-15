@@ -1,0 +1,6 @@
+LIBRARY PMWP
+EXPORTS
+  WPPointerClassData         @0x0041
+  WPPointerNewClass          @0x0042
+  M_WPPointerClassData       @0x016D
+  M_WPPointerNewClass        @0x016E

@@ -1,0 +1,21 @@
+LIBRARY PMGPI
+EXPORTS
+  GpiOpenSegment                @408
+  GpiCloseSegment               @361
+  GpiDeleteSegment              @376
+  GpiQueryInitialSegmentAttrs   @455
+  GpiSetInitialSegmentAttrs     @527
+  GpiQuerySegmentAttrs          @482
+  GpiSetSegmentAttrs            @547
+  GpiQuerySegmentPriority       @484
+  GpiSetSegmentPriority         @548
+  GpiDeleteSegments             @377
+  GpiQuerySegmentNames          @483
+  GpiGetData                    @394
+  GpiPutData                    @421
+  GpiDrawChain                  @380
+  GpiDrawFrom                   @382
+  GpiDrawSegment                @383
+  GpiDrawDynamics               @381
+  GpiRemoveDynamics             @496
+

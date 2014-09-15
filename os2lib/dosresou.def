@@ -1,0 +1,6 @@
+LIBRARY DOSCALLS
+EXPORTS
+  DosGetResource         @352
+  DosFreeResource        @353
+  DosQueryResourceSize   @572
+

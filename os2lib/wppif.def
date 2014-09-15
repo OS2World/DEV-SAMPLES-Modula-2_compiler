@@ -1,0 +1,6 @@
+LIBRARY PMWP
+EXPORTS
+  WPPifClassData         @0x005C
+  WPPifNewClass          @0x005D
+  M_WPPifClassData       @0x0194
+  M_WPPifNewClass        @0x0195

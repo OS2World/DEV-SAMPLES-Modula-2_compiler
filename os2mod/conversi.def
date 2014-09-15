@@ -1,0 +1,132 @@
+DEFINITION MODULE Conversions;
+
+(**************************************************************************
+   OS/2 2.x  Modula-2 utility for numeric conversions to/from strings.
+
+   Copyright (c) 1993 by Juergen Neuhoff
+**************************************************************************)
+
+IMPORT SYSTEM;
+
+PROCEDURE ShortIntToStr
+( i      : SHORTINT;
+  VAR s  : ARRAY OF CHAR
+)        : BOOLEAN;
+
+PROCEDURE IntToStr
+( i      : INTEGER;
+  VAR s  : ARRAY OF CHAR
+)        : BOOLEAN;
+
+PROCEDURE LongIntToStr
+( i      : LONGINT;
+  VAR s  : ARRAY OF CHAR
+)        : BOOLEAN;
+
+PROCEDURE StrToShortInt
+( s      : ARRAY OF CHAR;
+  VAR i  : SHORTINT
+)        : BOOLEAN;
+
+PROCEDURE StrToInt
+( s      : ARRAY OF CHAR;
+  VAR i  : INTEGER
+)        : BOOLEAN;
+
+PROCEDURE StrToLongInt
+( s      : ARRAY OF CHAR;
+  VAR i  : LONGINT
+)        : BOOLEAN;
+
+PROCEDURE ShortCardToStr
+( c      : SHORTCARD;
+  VAR s  : ARRAY OF CHAR
+)        : BOOLEAN;
+
+PROCEDURE CardToStr
+( c      : CARDINAL;
+  VAR s  : ARRAY OF CHAR
+)        : BOOLEAN;
+
+PROCEDURE LongCardToStr
+( c      : LONGCARD;
+  VAR s  : ARRAY OF CHAR
+)        : BOOLEAN;
+
+PROCEDURE StrToShortCard
+( s      : ARRAY OF CHAR;
+  VAR c  : SHORTCARD
+)        : BOOLEAN;
+
+PROCEDURE StrToCard
+( s      : ARRAY OF CHAR;
+  VAR c  : CARDINAL
+)        : BOOLEAN;
+
+PROCEDURE StrToLongCard
+( s      : ARRAY OF CHAR;
+  VAR c  : LONGCARD
+)        : BOOLEAN;
+
+
+PROCEDURE ShortHexToStr
+( h      : SYSTEM.BYTE;
+  VAR s  : ARRAY OF CHAR
+)        : BOOLEAN;
+
+PROCEDURE HexToStr
+( h      : SYSTEM.WORD;
+  VAR s  : ARRAY OF CHAR
+)        : BOOLEAN;
+
+PROCEDURE LongHexToStr
+( h      : SYSTEM.LONGWORD;
+  VAR s  : ARRAY OF CHAR
+)        : BOOLEAN;
+
+PROCEDURE StrToShortHex
+( s      : ARRAY OF CHAR;
+  VAR h  : SYSTEM.BYTE
+)        : BOOLEAN;
+
+PROCEDURE StrToHex
+( s      : ARRAY OF CHAR;
+  VAR h  : SYSTEM.WORD
+)        : BOOLEAN;
+
+PROCEDURE StrToLongHex
+( s      : ARRAY OF CHAR;
+  VAR h  : SYSTEM.LONGWORD
+)        : BOOLEAN;
+
+PROCEDURE ShortOctToStr
+( o      : SYSTEM.BYTE;
+  VAR s  : ARRAY OF CHAR
+)        : BOOLEAN;
+
+PROCEDURE OctToStr
+( o      : SYSTEM.WORD;
+  VAR s  : ARRAY OF CHAR
+)        : BOOLEAN;
+
+PROCEDURE LongOctToStr
+( o      : SYSTEM.LONGWORD;
+  VAR s  : ARRAY OF CHAR
+)        : BOOLEAN;
+
+PROCEDURE StrToShortOct
+( s      : ARRAY OF CHAR;
+  VAR o  : SYSTEM.BYTE
+)        : BOOLEAN;
+
+PROCEDURE StrToOct
+( s      : ARRAY OF CHAR;
+  VAR o  : SYSTEM.WORD
+)        : BOOLEAN;
+
+PROCEDURE StrToLongOct
+( s      : ARRAY OF CHAR;
+  VAR o  : SYSTEM.LONGWORD
+)        : BOOLEAN;
+
+END Conversions.

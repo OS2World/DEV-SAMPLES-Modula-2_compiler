@@ -1,0 +1,167 @@
+DEFINITION MODULE WINSTDVALSET;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager
+           CUA value set control class.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM OS2DEF        IMPORT TYPEPREFIX, HWND, PSZ;
+FROM WINSTDDRAG    IMPORT PDRAGINFO;
+
+(*************************************************************************)
+(*    Define messages for the value set control                          *)
+(*************************************************************************)
+CONST
+  VM_QUERYITEM         = 0375H;    (* Query item at location    *)
+  VM_QUERYITEMATTR     = 0376H;    (* Query item attributes     *)
+  VM_QUERYMETRICS      = 0377H;    (* Query metrics of control  *)
+  VM_QUERYSELECTEDITEM = 0378H;    (* Query selected item       *)
+  VM_SELECTITEM        = 0379H;    (* Set selected item         *)
+  VM_SETITEM           = 037AH;    (* Set item at location      *)
+  VM_SETITEMATTR       = 037BH;    (* Set item attributes       *)
+  VM_SETMETRICS        = 037CH;    (* Set metrics of control    *)
+  VN_SELECT            = 120;      (* Item selected by user     *)
+  VN_ENTER             = 121;      (* Item entered by user      *)
+  VN_DRAGLEAVE         = 122;      (* Drag left control         *)
+  VN_DRAGOVER          = 123;      (* Drag is over item         *)
+  VN_DROP              = 124;      (* Drop occurred on item     *)
+  VN_DROPHELP          = 125;      (* Request help for drop     *)
+  VN_INITDRAG          = 126;      (* Drag initiated on item    *)
+  VN_SETFOCUS          = 127;      (* Value set gaining focus   *)
+  VN_KILLFOCUS         = 128;      (* Value set losing focus    *)
+  VN_HELP              = 129;      (* Help requested by user    *)
+
+(*************************************************************************)
+(*    Value set control data structure                                   *)
+(*************************************************************************)
+TYPE
+  VSCDATA              = RECORD      (* vscd *)
+    CASE                 : TYPEPREFIX OF
+    | TRUE               :
+      cbSize             : LONGCARD; (* Size of control block             *)
+      usRowCount         : CARDINAL; (* Number of rows in value set       *)
+      usColumnCount      : CARDINAL; (* Number of columns in value set    *)
+    | FALSE              :
+      Size               : LONGCARD; (* Size of control block             *)
+      RowCount           : CARDINAL; (* Number of rows in value set       *)
+      ColumnCount        : CARDINAL; (* Number of columns in value set    *)
+    END;                 END;
+  PVSCDATA             = POINTER TO VSCDATA;
+
+(**************+**********************************************************)
+(*    Value set drag initialization structure                            *)
+(*************************************************************************)
+TYPE
+  VSDRAGINIT           = RECORD      (* vsdinit *)
+    CASE                 : TYPEPREFIX OF
+    | TRUE               :
+      hwnd               : HWND;     (* Window handle of value set control*)
+    | FALSE              :
+      WinHandle          : HWND;     (* Window handle of value set control*)
+    END;
+    x                    : LONGINT;  (* X coordinate of pointer on desktop*)
+    y                    : LONGINT;  (* Y coordinate of pointer on desktop*)
+    CASE                 : TYPEPREFIX OF
+    | TRUE               :
+      cx                 : LONGINT;  (* X offset from pointer hot spot    *)
+      cy                 : LONGINT;  (* Y offset from pointer hot spot    *)
+      usRow              : CARDINAL; (* Number of rows in value set       *)
+      usColumn           : CARDINAL; (* Number of columns in value set    *)
+    | FALSE              :
+      xOffset            : LONGINT;  (* X offset from pointer hot spot    *)
+      yOffset            : LONGINT;  (* Y offset from pointer hot spot    *)
+      RowCount           : CARDINAL; (* Number of rows in value set       *)
+      ColumnCount        : CARDINAL; (* Number of columns in value set    *)
+    END;                 END;
+  PVSDRAGINIT          = POINTER TO VSDRAGINIT;
+
+(*************************************************************************)
+(*       Value set drag information structure                            *)
+(*************************************************************************)
+TYPE
+  VSDRAGINFO           = RECORD       (* vsdinfo *)
+    CASE                 : TYPEPREFIX OF
+    | TRUE               :
+      pDragInfo          : PDRAGINFO; (* Pointer to a drag info structure *)
+      usRow              : CARDINAL;  (* Number of rows in value set      *)
+      usColumn           : CARDINAL;  (* Number of columns in value set   *)
+    | FALSE              :
+      DragInfo           : PDRAGINFO; (* Pointer to a drag info structure *)
+      RowCount           : CARDINAL;  (* Number of rows in value set      *)
+      ColumnCount        : CARDINAL;  (* Number of columns in value set   *)
+    END;                 END;
+  PVSDRAGINFO          = POINTER TO VSDRAGINFO;
+
+(*************************************************************************)
+(*    Value set query item text structure                                *)
+(*************************************************************************)
+TYPE
+  VSTEXT               = RECORD      (* vstext *)
+    CASE                 : TYPEPREFIX OF
+    | TRUE               :
+      pszItemText        : PSZ;      (* Pointer to string for item text  *)
+      ulBufLen           : LONGCARD; (* Buffer len to copy string into   *)
+    | FALSE              :
+      ItemText           : PSZ;      (* Pointer to string for item text  *)
+      BufLen             : LONGCARD; (* Buffer len to copy string into   *)
+    END;                 END;
+  PVSTEXT              = POINTER TO VSTEXT;
+
+(*************************************************************************)
+(*    Value set control style flag definition                            *)
+(*************************************************************************)
+CONST
+  VS_BITMAP            = 0001H;   (* Default all items to bitmaps      *)
+  VS_ICON              = 0002H;   (* Default all items to icons        *)
+  VS_TEXT              = 0004H;   (* Default all items to text strings *)
+  VS_RGB               = 0008H;   (* Default all items to color info   *)
+  VS_COLORINDEX        = 0010H;   (* Default all items to color indices*)
+  VS_BORDER            = 0020H;   (* Add a border around the control   *)
+  VS_ITEMBORDER        = 0040H;   (* Add a border around each item     *)
+  VS_SCALEBITMAPS      = 0080H;   (* Scale bitmaps to cell size        *)
+  VS_RIGHTTOLEFT       = 0100H;   (* Support right to left ordering    *)
+  VS_OWNERDRAW         = 0200H;   (* Owner draws value set background  *)
+
+(*************************************************************************)
+(*    Value set item attribute definition                                *)
+(*************************************************************************)
+CONST
+  VIA_BITMAP           = 0001H;  (* If set, item contains a bitmap    *)
+  VIA_ICON             = 0002H;  (* If set, item contains an icon     *)
+  VIA_TEXT             = 0004H;  (* If set, item contains text string *)
+  VIA_RGB              = 0008H;  (* If set, item contains color value *)
+  VIA_COLORINDEX       = 0010H;  (* If set, item contains color index *)
+  VIA_OWNERDRAW        = 0020H;  (* If set, item is ownerdraw         *)
+  VIA_DISABLED         = 0040H;  (* If set, item is unselectable      *)
+  VIA_DRAGGABLE        = 0080H;  (* If set, item can be source of drag*)
+  VIA_DROPONABLE       = 0100H;  (* If set, item can be target of drop*)
+
+(*************************************************************************)
+(*    Message parameter attributes for sizing and spacing of items       *)
+(*************************************************************************)
+CONST
+  VMA_ITEMSIZE         = 0001H;
+  VMA_ITEMSPACING      = 0002H;
+
+(*************************************************************************)
+(*    Ownerdraw flag definitions                                         *)
+(*************************************************************************)
+CONST
+  VDA_ITEM             = 0001H;
+  VDA_ITEMBACKGROUND   = 0002H;
+  VDA_SURROUNDING      = 0003H;
+  VDA_BACKGROUND       = 0004H;
+
+(*************************************************************************)
+(*    Error return codes                                                 *)
+(*************************************************************************)
+CONST
+  VSERR_INVALID_PARAMETERS  = -1;
+
+END WINSTDVALSET.

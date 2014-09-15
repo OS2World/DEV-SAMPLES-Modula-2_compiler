@@ -1,0 +1,4 @@
+LIBRARY PMGPI
+EXPORTS
+  GpiPolygons   @650
+

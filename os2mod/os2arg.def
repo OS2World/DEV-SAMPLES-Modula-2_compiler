@@ -1,0 +1,37 @@
+(*************************************************************************
+    32-bit-OS/2 utility for accessing the command line and environment.
+                11.03.95 14.23 : corrected : STRING
+
+    Copyright (c) 1994 by Juergen Neuhoff
+**************************************************************************)
+
+DEFINITION MODULE OS2ARG;
+
+
+TYPE
+  STRING      = ARRAY [0..255] OF CHAR;
+  PSTRING     = POINTER TO STRING;
+
+
+PROCEDURE ArgCount() : LONGCARD;
+(*
+   returns the number of command line arguments
+*)
+
+PROCEDURE Arg( Index : LONGCARD ) : PSTRING;
+(*
+   returns a pointer to the n'th zero-terminated argument string
+*)
+
+PROCEDURE EnvCount() : LONGCARD;
+(*
+   returns the number of environment variables
+*)
+
+PROCEDURE Env( Index : LONGCARD ) : PSTRING;
+(*
+   returns a pointer to the n'th zero-terminated environment string
+*)
+
+
+END OS2ARG.

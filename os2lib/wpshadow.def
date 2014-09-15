@@ -1,0 +1,6 @@
+LIBRARY PMWP
+EXPORTS
+  WPShadowClassData         @0x0020
+  WPShadowNewClass          @0x0021
+  M_WPShadowClassData       @0x0149
+  M_WPShadowNewClass        @0x014A

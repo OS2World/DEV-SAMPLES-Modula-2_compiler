@@ -1,0 +1,13 @@
+LIBRARY PMSHAPI
+EXPORTS
+  PrfQueryProgramTitles    @113
+  PrfAddProgram            @109
+  PrfChangeProgram         @110
+  PrfQueryDefinition       @111
+  PrfRemoveProgram         @104
+  PrfQueryProgramHandle    @58
+  PrfCreateGroup           @55
+  PrfDestroyGroup          @60
+  PrfQueryProgramCategory  @59
+  WinStartApp              @119
+  WinTerminateApp          @130

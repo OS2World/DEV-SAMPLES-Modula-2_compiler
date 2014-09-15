@@ -1,0 +1,104 @@
+DEFINITION MODULE WINSHELLDATA;
+
+(************************************************************************
+  OS/2 2.x Presentation Manager Shell profile calls for OS2.INI file
+
+  Copyright (c) 1992, 1994 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF   IMPORT PSZ, TYPEPREFIX, HAB;
+IMPORT WINDEF;
+
+TYPE (* ini file handle *)
+  HINI           = WINDEF.HINI;
+
+TYPE
+  PRFPROFILE             = RECORD  (* prfpro *)
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      cchUserName          : LONGCARD;
+      pszUserName          : PSZ;
+      cchSysName           : LONGCARD;
+      pszSysName           : PSZ
+    | FALSE                :
+      UserNameSize         : LONGCARD;
+      UserName             : PSZ;
+      SysNameSize          : LONGCARD;
+      SysName              : PSZ
+    END;                   END;
+  PPRFPROFILE            = POINTER TO PRFPROFILE;
+
+PROCEDURE PrfQueryProfileInt
+( IniHandle              : HINI;
+  App                    : ARRAY OF CHAR;
+  Key                    : ARRAY OF CHAR;
+  Default                : LONGINT
+)                        : LONGINT;
+
+PROCEDURE PrfQueryProfileString
+( IniHandle              : HINI;
+  App                    : PSZ;
+  Key                    : PSZ;
+  Default                : PSZ;
+  VAR Buffer             : ARRAY OF CHAR;
+  BufferMax              : LONGCARD
+)                        : LONGCARD;
+
+PROCEDURE PrfWriteProfileString
+( IniHandle              : HINI;
+  App                    : PSZ;
+  Key                    : PSZ;
+  Data                   : PSZ
+)                        : BOOLEAN;
+
+PROCEDURE PrfQueryProfileSize
+( IniHandle              : HINI;
+  App                    : PSZ;
+  Key                    : PSZ;
+  VAR DataLen            : LONGCARD
+)                        : BOOLEAN;
+
+PROCEDURE PrfQueryProfileData
+( IniHandle              : HINI;
+  App                    : PSZ;
+  Key                    : PSZ;
+  VAR Buffer             : ARRAY OF SYSTEM.BYTE;
+  VAR BufferLen          : LONGCARD
+)                        : BOOLEAN;
+
+PROCEDURE PrfWriteProfileData
+( IniHandle              : HINI;
+  App                    : PSZ;
+  Key                    : PSZ;
+  VAR Data               : ARRAY OF SYSTEM.BYTE;
+  DataLen                : LONGCARD
+)                        : BOOLEAN;
+
+PROCEDURE PrfOpenProfile
+( AnchorBlockHandle      : HAB;
+  FileName               : ARRAY OF CHAR
+)                        : HINI;
+
+PROCEDURE PrfCloseProfile
+( IniHandle              : HINI
+)                        : BOOLEAN;
+
+PROCEDURE PrfReset
+( AnchorBlockHandle      : HAB;
+  VAR Profile            : PRFPROFILE
+)                        : BOOLEAN;
+
+PROCEDURE PrfQueryProfile
+( AnchorBlockHandle      : HAB;
+  VAR Profile            : PRFPROFILE
+)                        : BOOLEAN;
+
+CONST (* public message, broadcast on WinReset *)
+  PL_ALTERED             = 008EH;  (* WM_SHELLFIRST + 0E *)
+
+END WINSHELLDATA.

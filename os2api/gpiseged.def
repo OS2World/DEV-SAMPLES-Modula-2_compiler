@@ -1,0 +1,105 @@
+DEFINITION MODULE GPISEGEDITING;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager
+           GPI Segment Editing via Elements.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF  IMPORT HPS;
+
+CONST (* edit modes used by GpiSet/QueryEditMode *)
+  SEGEM_ERROR                 = 0;
+  SEGEM_INSERT                = 1;
+  SEGEM_REPLACE               = 2;
+
+(*** segment editing by element functions *)
+
+PROCEDURE GpiBeginElement
+( PresSpaceHandle             : HPS;
+  Type                        : LONGINT;
+  Desc                        : ARRAY OF CHAR
+)                             : BOOLEAN;
+
+PROCEDURE GpiEndElement
+( PresSpaceHandle             : HPS
+)                             : BOOLEAN;
+
+PROCEDURE GpiLabel
+( PresSpaceHandle             : HPS;
+  Label                       : LONGINT
+)                             : BOOLEAN;
+
+PROCEDURE GpiElement
+( PresSpaceHandle             : HPS;
+  Type                        : LONGINT;
+  Desc                        : ARRAY OF CHAR;
+  Length                      : LONGINT;
+  VAR Data                    : ARRAY OF SYSTEM.BYTE
+)                             : LONGINT;
+
+PROCEDURE GpiQueryElement
+( PresSpaceHandle             : HPS;
+  Offset                      : LONGINT;
+  MaxLength                   : LONGINT;
+  VAR Data                    : ARRAY OF SYSTEM.BYTE
+)                             : LONGINT;
+
+PROCEDURE GpiDeleteElement
+( PresSpaceHandle             : HPS
+)                             : BOOLEAN;
+
+PROCEDURE GpiDeleteElementRange
+( PresSpaceHandle             : HPS;
+  FirstElement                : LONGINT;
+  LastElement                 : LONGINT
+)                             : BOOLEAN;
+
+PROCEDURE GpiDeleteElementsBetweenLabels
+( PresSpaceHandle             : HPS;
+  FirstLabel                  : LONGINT;
+  LastLabel                   : LONGINT
+)                             : BOOLEAN;
+
+PROCEDURE GpiQueryEditMode
+( PresSpaceHandle             : HPS
+)                             : LONGINT;
+
+PROCEDURE GpiSetEditMode
+( PresSpaceHandle             : HPS;
+  Mode                        : LONGINT
+)                             : BOOLEAN;
+
+PROCEDURE GpiQueryElementPointer
+( PresSpaceHandle             : HPS
+)                             : LONGINT;
+
+PROCEDURE GpiSetElementPointer
+( PresSpaceHandle             : HPS;
+  Element                     : LONGINT
+)                             : BOOLEAN;
+
+PROCEDURE GpiOffsetElementPointer
+( PresSpaceHandle             : HPS;
+  Offset                      : LONGINT
+)                             : BOOLEAN;
+
+PROCEDURE GpiQueryElementType
+( PresSpaceHandle             : HPS;
+  VAR Type                    : LONGINT;
+  Length                      : LONGINT;
+  VAR Data                    : ARRAY OF SYSTEM.BYTE
+)                             : LONGINT;
+
+PROCEDURE GpiSetElementPointerAtLabel
+( PresSpaceHandle             : HPS;
+  Label                       : LONGINT
+)                             : BOOLEAN;
+
+END GPISEGEDITING.

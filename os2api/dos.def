@@ -1,0 +1,29 @@
+DEFINITION MODULE DOS;
+
+(************************************************************************
+  OS/2 2.x/3.0 toplevel interface for all components of DOS kernel
+
+  Copyright (c) 1995 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+ language extensions: '_' for identifiers, extended import syntax *)
+
+IMPORT FROM OS2DEF          ;
+IMPORT FROM DOSPROCESS      ;
+IMPORT FROM DOSFILEMGR      ;
+IMPORT FROM DOSMEMMGR       ;
+IMPORT FROM DOSSEMAPHORES   ;
+IMPORT FROM DOSDATETIME     ;
+IMPORT FROM DOSMODULEMGR    ;
+IMPORT FROM DOSRESOURCES    ;
+IMPORT FROM DOSNLS          ;
+IMPORT FROM DOSEXCEPTIONS   ;
+IMPORT FROM DOSMISC         ;
+IMPORT FROM DOSQUEUES       ;
+IMPORT FROM DOSSESMGR       ;
+IMPORT FROM DOSDEVICES      ;
+IMPORT FROM DOSNMPIPES      ;
+IMPORT FROM DOSPROFILE      ;
+IMPORT FROM DOSMVDM         ;
+
+END DOS.

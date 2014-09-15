@@ -1,0 +1,55 @@
+DEFINITION MODULE CharStuff;
+(*
+    Title     : Various string and character goodies
+    Author    : I.R. Matters  (Ian.Matters@anu.edu.au)
+    System    : Juergen Neuhoff's Modula-2 compiler on OS/2
+    Last Edit : 27 May 1995
+*)
+
+
+TYPE PadStyles = (PadLeft, PadRight, PadBoth);
+
+
+PROCEDURE AppendChar (ch: CHAR; VAR s: ARRAY OF CHAR);
+(*
+  Append a character to a string
+*)
+
+
+PROCEDURE Pad (VAR s: ARRAY OF CHAR; len: CARDINAL; style: PadStyles);
+(*
+   Pad a string with spaces until it is the nominated length
+*)
+
+
+PROCEDURE StrOfChars (n: CARDINAL; ch: CHAR; VAR s: ARRAY OF CHAR);
+(*
+    Create a string containing a number of characters
+*)
+
+
+PROCEDURE Spaces (n: CARDINAL; VAR s: ARRAY OF CHAR);
+(*
+    Create a string containing a number of spaces
+*)
+
+
+PROCEDURE Dots (n: CARDINAL; VAR s: ARRAY OF CHAR);
+(*
+    Create a string containing a number of dot characters
+*)
+
+
+PROCEDURE Trim (VAR s: ARRAY OF CHAR);
+(*
+  Remove leading and trailing spaces from a string
+*)
+
+
+PROCEDURE Upper (VAR s: ARRAY OF CHAR);
+(*
+  Convert a string to upper case
+*)
+
+
+END CharStuff.

@@ -1,0 +1,10 @@
+LIBRARY PMWIN
+EXPORTS
+  WinLoadAccelTable     @776
+  WinCopyAccelTable     @709
+  WinCreateAccelTable   @713
+  WinDestroyAccelTable  @723
+  WinTranslateAccel     @904
+  WinSetAccelTable      @850
+  WinQueryAccelTable    @798
+

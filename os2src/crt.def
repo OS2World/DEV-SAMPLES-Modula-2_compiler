@@ -1,0 +1,253 @@
+DEFINITION MODULE CRT;
+(*
+    Title     : An adaption of the Turbo Pascal CRT Unit
+    Author    : I.R. Matters (Ian.Matters@anu.edu.au)
+    System    : Juergen Neuhoff's Modula-2 compiler on OS/2 v3.0
+    Version   : 1.03
+    Last Edit : 28 June 1995
+*)
+
+
+FROM SYSTEM IMPORT BYTE, WORD;
+
+
+CONST
+
+  (* CRT modes *)
+
+  BW40         =   0;  (* 40x25 B/W on Color adapter     *)
+  CO40         =   1;  (* 40x25 Color on Color adapter   *)
+  BW80         =   2;  (* 80x25 B/W on Color adapter     *)
+  CO80         =   3;  (* 80x25 Color on Color adapter   *)
+  BW132        =   4;  (* 132x25 B/W on Color adapter    *)
+  CO132        =   5;  (* 132x25 Color on Color adapter  *)
+  Mono         =   7;  (* 80x25 on Monochrome adapter    *)
+  Font8x8      = 256;  (* Add-in for 43 or 50 line modes *)
+
+  (* Foreground and background color constants *)
+
+  Black        =   0;
+  Blue         =   1;
+  Green        =   2;
+  Cyan         =   3;
+  Red          =   4;
+  Magenta      =   5;
+  Brown        =   6;
+  LightGray    =   7;
+
+  (* Foreground color constants *)
+  
+  DarkGray     =   8;
+  LightBlue    =   9;
+  LightGreen   =  10;
+  LightCyan    =  11;
+  LightRed     =  12;
+  LightMagenta =  13;
+  Yellow       =  14;
+  White        =  15;
+
+  (* Add-in for foreground blinking *)
+
+  Blink        = 128;
+
+
+TYPE
+
+  (* Cursor modes *)
+
+  CursorModes  = (NoCursor, SmallCursor, LargeCursor);
+
+
+VAR
+
+  (* Interface variables *)
+
+  LastMode : WORD;  (* The result of the most recent  *)
+                    (* TextMode call - Read only      *)
+
+  TextAttr : BYTE;  (* Current text attribute         *)
+                    (* Read only - use SetTextAttr to *)
+                    (* set this variable              *)
+
+  WindMin  : WORD;  (* Window upper left coordinates  *)
+  WindMax  : WORD;  (* Window lower right coordinates *)
+
+
+(* Procedure definitions *)
+
+PROCEDURE KeyPressed(): BOOLEAN;
+(*
+   Has a character key been pressed on the keyboard?
+*)
+
+PROCEDURE ReadKey(): CHAR;
+(*
+   Read the current key from the keyboard buffer without echo
+*)
+
+PROCEDURE TextMode (Mode: CARDINAL);
+(*
+   Select a new text screen mode
+*)
+
+PROCEDURE Window (X1, Y1, X2, Y2: CARDINAL);
+(*
+   Set the current window location and size
+*)
+
+PROCEDURE GotoXY (X, Y: CARDINAL);
+(*
+   Position the cursor relative to the current window
+*)
+
+PROCEDURE CursorXY (VAR X, Y: CARDINAL);
+(*
+   Read the current cursor position relative to the current window
+*)
+
+PROCEDURE WhereX(): CARDINAL;
+(*
+   Return the current horizontal cursor position in the current window
+*)
+
+PROCEDURE WhereY(): CARDINAL;
+(*
+   Return the current vertical cursor position in the current window
+*)
+
+PROCEDURE ClrScr;
+(*
+   Clear the current window and set the cursor home
+*)
+
+PROCEDURE ClrEOL;
+(*
+   Clear the current window to the end of the current line
+*)
+
+PROCEDURE ClrEOS;
+(*
+   Clear the current window to the end of the screen
+*)
+
+PROCEDURE InsLine;
+(*
+   Insert a blank line at the cursor position
+*)
+
+PROCEDURE DelLine;
+(*
+   Delete the line at the cursor position
+*)
+
+PROCEDURE TextColor (Color: CARDINAL);
+(*
+   Select the foreground character color
+*)
+
+PROCEDURE TextBackground (Color: CARDINAL);
+(*
+   Select the background color
+*)
+
+PROCEDURE LowVideo;
+(*
+   Select low intensity character colors
+*)
+
+PROCEDURE HighVideo;
+(*
+   Select high intensity character colors
+*)
+
+PROCEDURE NormVideo;
+(*
+   Return the text attributes to the default setting
+*)
+
+PROCEDURE Delay (mS: CARDINAL);
+(*
+  Delay for a number of milliseconds
+*)
+
+PROCEDURE Sound (Hz, mS: CARDINAL);
+(*
+  Produce a sound at the desired frequency for a number of milliseconds
+*)
+
+PROCEDURE Bell;
+(*
+  Make a pleasant bell sound
+*)
+
+PROCEDURE Buzz;
+(*
+  Make a buzzing sound
+*)
+
+PROCEDURE ClearKB;
+(*
+   Flush the keyboard type-ahead buffer
+*)
+
+PROCEDURE Cursor (Mode: CursorModes);
+(*
+  Set the cursor to the requested mode 
+*)
+
+PROCEDURE CurrentCursor(): CursorModes;
+(*
+  Get the cursor mode 
+*)
+
+PROCEDURE ByteToWord (B : BYTE): WORD;
+(*
+   Convert a byte to a word
+*)
+
+PROCEDURE Lo (W : WORD): BYTE;
+(*
+   Extract the low order byte from a word
+*)
+
+PROCEDURE Hi (W : WORD): BYTE;
+(*
+   Extract the high order byte from a word
+*)
+
+PROCEDURE ScreenChar(): CHAR;
+(*
+   Read a character from the screen at the cursor position
+*)
+
+PROCEDURE MaxWidth(): CARDINAL;
+(*
+   What is the full screen width?
+*)
+
+PROCEDURE MaxHeight(): CARDINAL;
+(*
+   What is the full screen height?
+*)
+
+PROCEDURE InsChar;
+(*
+   Insert a blank character at the cursor position
+*)
+
+PROCEDURE DelChar;
+(*
+   Delete the character at the cursor position
+*)
+
+PROCEDURE InitialMode(): CARDINAL;
+(*
+   What was the initial screen mode?
+*)
+
+PROCEDURE SetTextAttr (Attr : BYTE);
+(*
+   Set the screen colors to the required attributes
+*)
+
+END CRT.

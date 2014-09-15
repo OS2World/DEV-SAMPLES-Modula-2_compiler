@@ -1,0 +1,14 @@
+LIBRARY PMWIN
+EXPORTS
+  WinSetClipbrdOwner       @855
+  WinSetClipbrdData        @854
+  WinQueryClipbrdData      @806
+  WinQueryClipbrdFmtInfo   @807
+  WinSetClipbrdViewer      @856
+  WinEnumClipbrdFmts       @739
+  WinEmptyClipbrd          @733
+  WinOpenClipbrd           @793
+  WinCloseClipbrd          @707
+  WinQueryClipbrdOwner     @808
+  WinQueryClipbrdViewer    @809
+

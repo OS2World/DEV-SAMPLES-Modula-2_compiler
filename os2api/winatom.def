@@ -1,0 +1,63 @@
+DEFINITION MODULE WINATOM;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager Atom manager.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM OS2DEF IMPORT LHANDLE;
+
+TYPE
+  HATOMTBL               = LHANDLE;
+  ATOM                   = LONGCARD;
+
+PROCEDURE WinQuerySystemAtomTable
+()                       : HATOMTBL;
+
+PROCEDURE WinCreateAtomTable
+( InitialBytes           : LONGCARD;
+  BucketsSize            : LONGCARD
+)                        : HATOMTBL;
+
+PROCEDURE WinDestroyAtomTable
+( AtomTblHandle          : HATOMTBL
+)                        : HATOMTBL;
+
+PROCEDURE WinAddAtom
+( AtomTblHandle          : HATOMTBL;
+  AtomName               : ARRAY OF CHAR
+)                        : ATOM;
+
+PROCEDURE WinFindAtom
+( AtomTblHandle          : HATOMTBL;
+  AtomName               : ARRAY OF CHAR
+)                        : ATOM;
+
+PROCEDURE WinDeleteAtom
+( AtomTblHandle          : HATOMTBL;
+  Atom                   : ATOM
+)                        : ATOM;
+
+PROCEDURE WinQueryAtomUsage
+( AtomTblHandle          : HATOMTBL;
+  Atom                   : ATOM
+)                        : LONGCARD;
+
+PROCEDURE WinQueryAtomLength
+( AtomTblHandle          : HATOMTBL;
+  Atom                   : ATOM
+)                        : LONGCARD;
+
+PROCEDURE WinQueryAtomName
+( AtomTblHandle          : HATOMTBL;
+  Atom                   : ATOM;
+  VAR Buffer             : ARRAY OF CHAR;
+  BufferMax              : LONGCARD
+)                        : LONGCARD;
+
+END WINATOM.

@@ -1,0 +1,110 @@
+DEFINITION MODULE GPIMETAFILES;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager
+           GPI MetaFiles.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF  IMPORT HMF, HAB, HPS;
+
+CONST (* constants for index values of options array for GpiPlayMetaFile *)
+  PMF_SEGBASE                     = 0;
+  PMF_LOADTYPE                    = 1;
+  PMF_RESOLVE                     = 2;
+  PMF_LCIDS                       = 3;
+  PMF_RESET                       = 4;
+  PMF_SUPPRESS                    = 5;
+  PMF_COLORTABLES                 = 6;
+  PMF_COLORREALIZABLE             = 7;
+  PMF_DEFAULTS                    = 8;
+  PMF_DELETEOBJECTS               = 9;
+
+CONST (* options for GpiPlayMetaFile *)
+  RS_DEFAULT                      = 0;
+  RS_NODISCARD                    = 1;
+  LC_DEFAULT                      = 0;
+  LC_NOLOAD                       = 1;
+  LC_LOADDISC                     = 3;
+  LT_DEFAULT                      = 0;
+  LT_NOMODIFY                     = 1;
+  LT_ORIGINALVIEW                 = 4;
+  RES_DEFAULT                     = 0;
+  RES_NORESET                     = 1;
+  RES_RESET                       = 2;
+  SUP_DEFAULT                     = 0;
+  SUP_NOSUPPRESS                  = 1;
+  SUP_SUPPRESS                    = 2;
+  CTAB_DEFAULT                    = 0;
+  CTAB_NOMODIFY                   = 1;
+  CTAB_REPLACE                    = 3;
+  CTAB_REPLACEPALETTE             = 4;
+  CREA_DEFAULT                    = 0;
+  CREA_REALIZE                    = 1;
+  CREA_NOREALIZE                  = 2;
+  CREA_DOREALIZE                  = 3;
+  DDEF_DEFAULT                    = 0;
+  DDEF_IGNORE                     = 1;
+  DDEF_LOADDISC                   = 3;
+  DOBJ_DEFAULT                    = 0;
+  DOBJ_NODELETE                   = 1;
+  DOBJ_DELETE                     = 2;
+  RSP_DEFAULT                     = 0;
+  RSP_NODISCARD                   = 1;
+
+
+(*** MetaFile functions *)
+
+PROCEDURE GpiCopyMetaFile
+( MetaFileHandle                  : HMF
+)                                 : HMF;
+
+PROCEDURE GpiDeleteMetaFile
+( MetaFileHandle                  : HMF
+)                                 : BOOLEAN;
+
+PROCEDURE GpiLoadMetaFile
+( AnchorBlockHandle               : HAB;
+  FileName                        : ARRAY OF CHAR
+)                                 : HMF;
+
+PROCEDURE GpiPlayMetaFile
+( PresSpaceHandle                 : HPS;
+  MetaFileHandle                  : HMF;
+  Count1                          : LONGINT;
+  VAR Options                     : ARRAY OF LONGINT;
+  VAR SegCount                    : LONGINT;
+  Count2                          : LONGINT;
+  VAR Desc                        : ARRAY OF CHAR
+)                                 : LONGINT;
+
+PROCEDURE GpiQueryMetaFileBits
+( MetaFileHandle                  : HMF;
+  Offset                          : LONGINT;
+  Length                          : LONGINT;
+  VAR Data                        : ARRAY OF SYSTEM.BYTE
+)                                 : BOOLEAN;
+
+PROCEDURE GpiQueryMetaFileLength
+( MetaFileHandle                  : HMF
+)                                 : LONGINT;
+
+PROCEDURE GpiSaveMetaFile
+( MetaFileHandle                  : HMF;
+  FileName                        : ARRAY OF CHAR
+)                                 : BOOLEAN;
+
+PROCEDURE GpiSetMetaFileBits
+( MetaFileHandle                  : HMF;
+  Offset                          : LONGINT;
+  Length                          : LONGINT;
+  VAR Data                        : ARRAY OF SYSTEM.BYTE
+)                                 : BOOLEAN;
+
+END GPIMETAFILES.

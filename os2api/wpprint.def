@@ -1,0 +1,187 @@
+DEFINITION MODULE WPPRINT;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPPrinter;
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPABS;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPPrinter             = POINTER TO WPPrinter;
+TYPE PM_WPPrinter           = POINTER TO M_WPPrinter;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPPrinter
+*************************************************************************)
+
+
+(*************************************************************************
+  SOM class API for WPPrinter, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPPrinter_MajorVersion     = 1;
+  WPPrinter_MinorVersion     = 1;
+
+TYPE
+  WPPrinterClassDataStructure   = RECORD
+    classObject                   : PSOMClass;
+    pdvNew                        : somMToken;
+    pdvOpen                       : somMToken;
+    pdvPrintDestType              : somMToken;
+    pdvQueueName                  : somMToken;
+    pdvComputerName               : somMToken;
+    pdvSetViewStatus              : somMToken;
+    pdvSetDialogPrintFlag         : somMToken;
+    pdvIsDialogPrintOn            : somMToken;
+    pdvGetJobFolderhWnd           : somMToken;
+    pdvSetPrintDestType           : somMToken;
+    pdvSetQueueName               : somMToken;
+    pdvSetComputerName            : somMToken;
+    pdvSetTitle                   : somMToken;
+    pdvHoldQueue                  : somMToken;
+    pdvReleaseQueue               : somMToken;
+    pdvChangeQueue                : somMToken;
+    pdvAddJob                     : somMToken;
+    pdvDeleteJob                  : somMToken;
+    pdvDeleteAllJob               : somMToken;
+    pdvHoldJob                    : somMToken;
+    pdvReleaseJob                 : somMToken;
+    pdvChangeJob                  : somMToken;
+    pdvHasThisPort                : somMToken;
+    pdvHasThisPDriver             : somMToken;
+    pdvHasThisQDriver             : somMToken;
+    pdvGetQueueObject             : somMToken;
+    pdvGetCountryData             : somMToken;
+    pdvSetCountryData             : somMToken;
+    pdvGetJobDetailTable          : somMToken;
+    pdvGetJobFieldInfo            : somMToken;
+    pdvPrintPD                    : somMToken;
+    pdvFreePrintDest              : somMToken;
+    pdvNewRemote                  : somMToken;
+    pdvCopyRemote                 : somMToken;
+    pdvCapabilities               : somMToken;
+    pdvSetCapabilities            : somMToken;
+    pdvLogonName                  : somMToken;
+    pdvSetLogonName               : somMToken;
+    pdvLocalPrintDriverOnly       : somMToken;
+    pdvSetLocalPrintDriverOnly    : somMToken;
+    pdvRemotePDriverList          : somMToken;
+    pdvSetRemotePDriverList       : somMToken;
+    pdvPrintSpecificFormat        : somMToken;
+    pdvSetPrintSpecificFormat     : somMToken;
+    pdvRemoteAdminCopy            : somMToken;
+    pdvRemoteAdminCreate          : somMToken;
+    pdvRemoteAdminDelete          : somMToken;
+    pdvAddJobViewer               : somMToken;
+    pdvDelJobViewer               : somMToken;
+    pdvTimerTicks                 : somMToken;
+    pdvSetTimerTicks              : somMToken;
+    wpDeleteAllJobs               : somMToken;
+    wpHoldPrinter                 : somMToken;
+    wpReleasePrinter              : somMToken;
+    wpQueryComputerName           : somMToken;
+    wpQueryPrinterName            : somMToken;
+    wpSetComputerName             : somMToken;
+    wpSetPrinterName              : somMToken;
+    wpSetDefaultPrinter           : somMToken;
+    pdvSetLSAlias                 : somMToken;
+    pdvLSAlias                    : somMToken;
+    pdvLocalAlias                 : somMToken;
+    pdvSetLocalAlias              : somMToken;
+    pdvRemoteJobView              : somMToken;
+    pdvSetRemoteData              : somMToken;
+    pdvCopy                       : somMToken;
+    pdvSetJobDetailTable          : somMToken;
+    pdvGetQueueStatusLine         : somMToken;
+    pdvSetQueueStatusLine         : somMToken;
+    pdvGetNewDlg                  : somMToken;
+    pdvSetNewDlg                  : somMToken;
+    pdvGetLastRefreshTime         : somMToken;
+    pdvSetLastRefreshTime         : somMToken;
+                                  END;
+
+VAR
+  WPPrinterClassData : WPPrinterClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPPrinter = RECORD( WPABS.WPAbstract ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPPrinterNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+PROCEDURE( Self : PWPPrinter ) wpDeleteAllJobs( ) : BOOLEAN;
+
+PROCEDURE( Self : PWPPrinter ) wpHoldPrinter( ) : BOOLEAN;
+
+PROCEDURE( Self : PWPPrinter ) wpReleasePrinter( ) : BOOLEAN;
+
+PROCEDURE( Self : PWPPrinter ) wpQueryComputerName
+(
+  VAR szComputerName : ARRAY OF CHAR
+)                    : LONGCARD;
+
+PROCEDURE( Self : PWPPrinter ) wpQueryPrinterName
+(
+  VAR szPrinterName  : ARRAY OF CHAR
+)                    : BOOLEAN;
+
+PROCEDURE( Self : PWPPrinter ) wpSetComputerName
+(
+  szComputerName     : ARRAY OF CHAR
+)                    : BOOLEAN;
+
+PROCEDURE( Self : PWPPrinter ) wpSetPrinterName
+(
+  szPrinterName      : ARRAY OF CHAR
+)                    : BOOLEAN;
+
+PROCEDURE( Self : PWPPrinter ) wpSetDefaultPrinter( ) : BOOLEAN;
+
+
+(*************************************************************************
+  SOM class API for M_WPPrinter, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPPrinter_MajorVersion   = 1;
+  M_WPPrinter_MinorVersion   = 1;
+
+TYPE
+  M_WPPrinterClassDataStructure   = RECORD
+    classObject                     : PSOMClass;
+                                    END;
+
+VAR
+  M_WPPrinterClassData : M_WPPrinterClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPPrinter = RECORD( WPABS.M_WPAbstract ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPPrinterNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+END WPPRINT.

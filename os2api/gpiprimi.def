@@ -1,0 +1,959 @@
+DEFINITION MODULE GPIPRIMITIVES;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager
+           GPI Drawing Primitives and Primitive Attributes.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF  IMPORT TYPEPREFIX, HPS, POINTL, RECTL;
+FROM   GPIDEF  IMPORT FIXED, SIZEL;
+
+CONST (* default color table indices *)
+  CLR_FALSE                     =   -5;
+  CLR_TRUE                      =   -4;
+  CLR_ERROR                     = -255;
+  CLR_DEFAULT                   =   -3;
+  CLR_WHITE                     =   -2;
+  CLR_BLACK                     =   -1;
+  CLR_BACKGROUND                =    0;
+  CLR_BLUE                      =    1;
+  CLR_RED                       =    2;
+  CLR_PINK                      =    3;
+  CLR_GREEN                     =    4;
+  CLR_CYAN                      =    5;
+  CLR_YELLOW                    =    6;
+  CLR_NEUTRAL                   =    7;
+  CLR_DARKGRAY                  =    8;
+  CLR_DARKGREY                  =    8;
+  CLR_DARKBLUE                  =    9;
+  CLR_DARKRED                   =   10;
+  CLR_DARKPINK                  =   11;
+  CLR_DARKGREEN                 =   12;
+  CLR_DARKCYAN                  =   13;
+  CLR_BROWN                     =   14;
+  CLR_PALEGRAY                  =   15;
+  CLR_PALEGREY                  =   15;
+
+CONST (* rgb colors *)
+  RGB_ERROR                     = -255;
+  RGB_BLACK                     =  00000000H;
+  RGB_BLUE                      =  000000FFH;
+  RGB_GREEN                     =  0000FF00H;
+  RGB_CYAN                      =  0000FFFFH;
+  RGB_RED                       =  00FF0000H;
+  RGB_PINK                      =  00FF00FFH;
+  RGB_YELLOW                    =  00FFFF00H;
+  RGB_WHITE                     =  00FFFFFFH;
+
+CONST (* control flags used by GpiBeginArea *)
+  BA_NOBOUNDARY                 = 0;
+  BA_BOUNDARY                   = 0001H;
+  BA_ALTERNATE                  = 0;
+  BA_WINDING                    = 0002H;
+  BA_EXCL                       = 0;
+  BA_INCL                       = 8;
+
+CONST (* fill options for GpiBox/GpiFullArc *)
+  DRO_FILL                      = 1;
+  DRO_OUTLINE                   = 2;
+  DRO_OUTLINEFILL               = 3;
+
+CONST (* basic pattern symbols *)
+  PATSYM_ERROR                  = -1;
+  PATSYM_DEFAULT                =  0;
+  PATSYM_DENSE1                 =  1;
+  PATSYM_DENSE2                 =  2;
+  PATSYM_DENSE3                 =  3;
+  PATSYM_DENSE4                 =  4;
+  PATSYM_DENSE5                 =  5;
+  PATSYM_DENSE6                 =  6;
+  PATSYM_DENSE7                 =  7;
+  PATSYM_DENSE8                 =  8;
+  PATSYM_VERT                   =  9;
+  PATSYM_HORIZ                  = 10;
+  PATSYM_DIAG1                  = 11;
+  PATSYM_DIAG2                  = 12;
+  PATSYM_DIAG3                  = 13;
+  PATSYM_DIAG4                  = 14;
+  PATSYM_NOSHADE                = 15;
+  PATSYM_SOLID                  = 16;
+  PATSYM_HALFTONE               = 17;
+  PATSYM_HATCH                  = 18;
+  PATSYM_DIAGHATCH              = 19;
+  PATSYM_BLANK                  = 64;
+
+CONST (* lcid values for GpiSet/QueryPattern and others *)
+  LCID_ERROR                    = -1;
+  LCID_DEFAULT                  =  0;
+
+(*** global primitive functions *)
+
+PROCEDURE GpiSetColor
+( PresSpaceHandle               : HPS;
+  Color                         : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryColor
+( PresSpaceHandle               : HPS
+)                               : LONGINT;
+
+
+(*** line primitive functions *)
+
+PROCEDURE GpiBox
+( PresSpaceHandle               : HPS;
+  Control                       : LONGINT;
+  VAR CornerPoint               : POINTL;
+  HRound                        : LONGINT;
+  VRound                        : LONGINT
+)                               : LONGINT;
+
+PROCEDURE GpiMove
+( PresSpaceHandle               : HPS;
+  VAR Point                     : POINTL
+)                               : BOOLEAN;
+
+PROCEDURE GpiLine
+( PresSpaceHandle               : HPS;
+  VAR EndPoint                  : POINTL
+)                               : LONGINT;
+
+PROCEDURE GpiPolyLine
+( PresSpaceHandle               : HPS;
+  Count                         : LONGINT;
+  VAR Points                    : ARRAY OF POINTL
+)                               : LONGINT;
+
+PROCEDURE GpiPolyLineDisjoint
+( PresSpaceHandle               : HPS;
+  Count                         : LONGINT;
+  VAR Points                    : ARRAY OF POINTL
+)                               : LONGINT;
+
+
+(*** area primitive functions *)
+
+PROCEDURE GpiSetPattern
+( PresSpaceHandle               : HPS;
+  PatternSymbol                 : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryPattern
+( PresSpaceHandle               : HPS
+)                               : LONGINT;
+
+PROCEDURE GpiBeginArea
+( PresSpaceHandle               : HPS;
+  Options                       : LONGCARD
+)                               : BOOLEAN;
+
+PROCEDURE GpiEndArea
+( PresSpaceHandle               : HPS
+)                               : LONGINT;
+
+(*** character primitive functions *)
+
+PROCEDURE GpiCharString
+( PresSpaceHandle               : HPS;
+  Count                         : LONGINT;
+  String                        : ARRAY OF CHAR
+)                               : LONGINT;
+
+PROCEDURE GpiCharStringAt
+( PresSpaceHandle               : HPS;
+  VAR Point                     : POINTL;
+  Count                         : LONGINT;
+  String                        : ARRAY OF CHAR
+)                               : LONGINT;
+
+CONST (* mode for GpiSetAttrMode *)
+  AM_ERROR                      = -1;
+  AM_PRESERVE                   =  0;
+  AM_NOPRESERVE                 =  1;
+
+CONST (* foreground mixes *)
+  FM_ERROR                      = -1;
+  FM_DEFAULT                    =  0;
+  FM_OR                         =  1;
+  FM_OVERPAINT                  =  2;
+  FM_LEAVEALONE                 =  5;
+  FM_XOR                        =  4;
+  FM_AND                        =  6;
+  FM_SUBTRACT                   =  7;
+  FM_MASKSRCNOT                 =  8;
+  FM_ZERO                       =  9;
+  FM_NOTMERGESRC                = 10;
+  FM_NOTXORSRC                  = 11;
+  FM_INVERT                     = 12;
+  FM_MERGESRCNOT                = 13;
+  FM_NOTCOPYSRC                 = 14;
+  FM_MERGENOTSRC                = 15;
+  FM_NOTMASKSRC                 = 16;
+  FM_ONE                        = 17;
+
+CONST (* background mixes *)
+  BM_ERROR                      = -1;
+  BM_DEFAULT                    =  0;
+  BM_OR                         =  1;
+  BM_OVERPAINT                  =  2;
+  BM_LEAVEALONE                 =  5;
+  BM_XOR                        =  4;
+  BM_AND                        =  6;
+  BM_SUBTRACT                   =  7;
+  BM_MASKSRCNOT                 =  8;
+  BM_ZERO                       =  9;
+  BM_NOTMERGESRC                = 10;
+  BM_NOTXORSRC                  = 11;
+  BM_INVERT                     = 12;
+  BM_MERGESRCNOT                = 13;
+  BM_NOTCOPYSRC                 = 14;
+  BM_MERGENOTSRC                = 15;
+  BM_NOTMASKSRC                 = 16;
+  BM_ONE                        = 17;
+  BM_SRCTRANSPARENT             = 18;
+  BM_DESTTRANSPARENT            = 19;
+
+CONST (* basic line type styles *)
+  LINETYPE_ERROR                = -1;
+  LINETYPE_DEFAULT              =  0;
+  LINETYPE_DOT                  =  1;
+  LINETYPE_SHORTDASH            =  2;
+  LINETYPE_DASHDOT              =  3;
+  LINETYPE_DOUBLEDOT            =  4;
+  LINETYPE_LONGDASH             =  5;
+  LINETYPE_DASHDOUBLEDOT        =  6;
+  LINETYPE_SOLID                =  7;
+  LINETYPE_INVISIBLE            =  8;
+  LINETYPE_ALTERNATE            =  9;
+
+CONST (* cosmetic line widths *)
+  LINEWIDTH_ERROR               = -1;
+  LINEWIDTH_DEFAULT             =  0;
+  LINEWIDTH_NORMAL              =  00010000H;  (* MAKEFIXED(1,0) *)
+  LINEWIDTH_THICK               =  00020000H;  (* MAKEFIXED(2,0) *)
+
+CONST (* actual line widths *)
+  LINEWIDTHGEOM_ERROR           = -1;
+
+CONST (* line end styles *)
+  LINEEND_ERROR                 = -1;
+  LINEEND_DEFAULT               =  0;
+  LINEEND_FLAT                  =  1;
+  LINEEND_SQUARE                =  2;
+  LINEEND_ROUND                 =  3;
+
+CONST (* line join styles *)
+  LINEJOIN_ERROR                = -1;
+  LINEJOIN_DEFAULT              =  0;
+  LINEJOIN_BEVEL                =  1;
+  LINEJOIN_ROUND                =  2;
+  LINEJOIN_MITRE                =  3;
+
+CONST (* character directions *)
+  CHDIRN_ERROR                  = -1;
+  CHDIRN_DEFAULT                =  0;
+  CHDIRN_LEFTRIGHT              =  1;
+  CHDIRN_TOPBOTTOM              =  2;
+  CHDIRN_RIGHTLEFT              =  3;
+  CHDIRN_BOTTOMTOP              =  4;
+
+CONST (* character text alignments *)
+  TA_NORMAL_HORIZ               = 0001H;
+  TA_LEFT                       = 0002H;
+  TA_CENTER                     = 0003H;
+  TA_RIGHT                      = 0004H;
+  TA_STANDARD_HORIZ             = 0005H;
+  TA_NORMAL_VERT                = 0100H;
+  TA_TOP                        = 0200H;
+  TA_HALF                       = 0300H;
+  TA_BASE                       = 0400H;
+  TA_BOTTOM                     = 0500H;
+  TA_STANDARD_VERT              = 0600H;
+
+CONST (* character modes *)
+  CM_ERROR                      = -1;
+  CM_DEFAULT                    =  0;
+  CM_MODE1                      =  1;
+  CM_MODE2                      =  2;
+  CM_MODE3                      =  3;
+
+CONST (* basic marker symbols *)
+  MARKSYM_ERROR                 = -1;
+  MARKSYM_DEFAULT               =  0;
+  MARKSYM_CROSS                 =  1;
+  MARKSYM_PLUS                  =  2;
+  MARKSYM_DIAMOND               =  3;
+  MARKSYM_SQUARE                =  4;
+  MARKSYM_SIXPOINTSTAR          =  5;
+  MARKSYM_EIGHTPOINTSTAR        =  6;
+  MARKSYM_SOLIDDIAMOND          =  7;
+  MARKSYM_SOLIDSQUARE           =  8;
+  MARKSYM_DOT                   =  9;
+  MARKSYM_SMALLCIRCLE           = 10;
+  MARKSYM_BLANK                 = 64;
+
+CONST (* formatting options for GpiCharStringPosAt *)
+  CHS_OPAQUE                    = 0001H;
+  CHS_VECTOR                    = 0002H;
+  CHS_LEAVEPOS                  = 0008H;
+  CHS_CLIP                      = 0010H;
+  CHS_UNDERSCORE                = 0200H;
+  CHS_STRIKEOUT                 = 0400H;
+
+CONST (* bundle codes for GpiSetAttributes and GpiQueryAttributes *)
+  PRIM_LINE                     = 1;
+  PRIM_CHAR                     = 2;
+  PRIM_MARKER                   = 3;
+  PRIM_AREA                     = 4;
+  PRIM_IMAGE                    = 5;
+
+CONST (* line bundle mask bits *)
+  LBB_COLOR                     = 0001H;
+  LBB_BACK_COLOR                = 0002H;
+  LBB_MIX_MODE                  = 0004H;
+  LBB_BACK_MIX_MODE             = 0008H;
+  LBB_WIDTH                     = 0010H;
+  LBB_GEOM_WIDTH                = 0020H;
+  LBB_TYPE                      = 0040H;
+  LBB_END                       = 0080H;
+  LBB_JOIN                      = 0100H;
+
+CONST (* character bundle mask bits *)
+  CBB_COLOR                     = 0001H;
+  CBB_BACK_COLOR                = 0002H;
+  CBB_MIX_MODE                  = 0004H;
+  CBB_BACK_MIX_MODE             = 0008H;
+  CBB_SET                       = 0010H;
+  CBB_MODE                      = 0020H;
+  CBB_BOX                       = 0040H;
+  CBB_ANGLE                     = 0080H;
+  CBB_SHEAR                     = 0100H;
+  CBB_DIRECTION                 = 0200H;
+  CBB_TEXT_ALIGN                = 0400H;
+  CBB_EXTRA                     = 0800H;
+  CBB_BREAK_EXTRA               = 1000H;
+
+CONST (* marker bundle mask bits *)
+  MBB_COLOR                     = 0001H;
+  MBB_BACK_COLOR                = 0002H;
+  MBB_MIX_MODE                  = 0004H;
+  MBB_BACK_MIX_MODE             = 0008H;
+  MBB_SET                       = 0010H;
+  MBB_SYMBOL                    = 0020H;
+  MBB_BOX                       = 0040H;
+
+CONST (* pattern bundle mask bits *)
+  ABB_COLOR                     = 0001H;
+  ABB_BACK_COLOR                = 0002H;
+  ABB_MIX_MODE                  = 0004H;
+  ABB_BACK_MIX_MODE             = 0008H;
+  ABB_SET                       = 0010H;
+  ABB_SYMBOL                    = 0020H;
+  ABB_REF_POINT                 = 0040H;
+
+CONST (* image bundle mask bits *)
+  IBB_COLOR                     = 0001H;
+  IBB_BACK_COLOR                = 0002H;
+  IBB_MIX_MODE                  = 0004H;
+  IBB_BACK_MIX_MODE             = 0008H;
+
+TYPE (* structure for GpiSetArcParams and GpiQueryArcParams *)
+  ARCPARAMS                     = RECORD             (* arcp *)
+    CASE                          : TYPEPREFIX OF
+    | TRUE                        :
+      lP                          : LONGINT;
+      lQ                          : LONGINT;
+      lR                          : LONGINT;
+      lS                          : LONGINT;
+    | FALSE                       :
+      P                           : LONGINT;
+      Q                           : LONGINT;
+      R                           : LONGINT;
+      S                           : LONGINT;
+    END;                          END;
+  PARCPARAMS                    = POINTER TO ARCPARAMS;
+
+TYPE (* variation of SIZE used for FIXEDs *)
+  SIZEF                         = RECORD             (* sizfx *)
+    CASE                          : TYPEPREFIX OF
+    | TRUE                        :
+      cx                          : FIXED;
+      cy                          : FIXED;
+    | FALSE                       :
+      xSize                       : FIXED;
+      ySize                       : FIXED;
+    END;                          END;
+  PSIZEF                        = POINTER TO SIZEF;
+
+TYPE (* structure for gradient parameters e.g. for GpiSetCharAngle *)
+  GRADIENTL                     = RECORD        (* gradl *)
+    x                             : LONGINT;
+    y                             : LONGINT;
+                                  END;
+  PGRADIENTL                    = POINTER TO GRADIENTL;
+
+TYPE (* line bundle for GpiSetAttributes and GpiQueryAttributes *)
+  LINEBUNDLE                    = RECORD           (* lbnd *)
+    CASE                          : TYPEPREFIX OF
+    | TRUE                        :
+      lColor                      : LONGINT;
+      lBackColor                  : LONGINT;
+      usMixMode                   : CARDINAL;
+      usBackMixMode               : CARDINAL;
+      fxWidth                     : FIXED;
+      lGeomWidth                  : LONGINT;
+      usType                      : CARDINAL;
+      usEnd                       : CARDINAL;
+      usJoin                      : CARDINAL;
+      usReserved                  : CARDINAL;
+    | FALSE                       :
+      Color                       : LONGINT;
+      BackColor                   : LONGINT;
+      MixMode                     : CARDINAL;
+      BackMixMode                 : CARDINAL;
+      Width                       : FIXED;
+      GeomWidth                   : LONGINT;
+      Type                        : CARDINAL;
+      End                         : CARDINAL;
+      Join                        : CARDINAL;
+      Reserved                    : CARDINAL;
+    END;                          END;
+  PLINEBUNDLE                   = POINTER TO LINEBUNDLE;
+
+TYPE (* character bundle for GpiSetAttributes and GpiQueryAttributes *)
+  CHARBUNDLE                    = RECORD           (* cbnd *)
+    CASE                          : TYPEPREFIX OF
+    | TRUE                        :
+      lColor                      : LONGINT;
+      lBackColor                  : LONGINT;
+      usMixMode                   : CARDINAL;
+      usBackMixMode               : CARDINAL;
+      usSet                       : CARDINAL;
+      usPrecision                 : CARDINAL;
+      sizfxCell                   : SIZEF;
+      ptlAngle                    : POINTL;
+      ptlShear                    : POINTL;
+      usDirection                 : CARDINAL;
+      usTextAlign                 : CARDINAL;
+      fxExtra                     : FIXED;
+      fxBreakExtra                : FIXED;
+    | FALSE                       :
+      Color                       : LONGINT;
+      BackColor                   : LONGINT;
+      MixMode                     : CARDINAL;
+      BackMixMode                 : CARDINAL;
+      Set                         : CARDINAL;
+      Precision                   : CARDINAL;
+      CellSize                    : SIZEF;
+      AnglePoint                  : POINTL;
+      ShearPoint                  : POINTL;
+      Direction                   : CARDINAL;
+      TextAlign                   : CARDINAL;
+      Extra                       : FIXED;
+      BreakExtra                  : FIXED;
+    END;                          END;
+  PCHARBUNDLE                   = POINTER TO CHARBUNDLE;
+
+TYPE (* marker bundle for GpiSetAttributes and GpiQueryAttributes *)
+  MARKERBUNDLE                  = RECORD         (* mbnd *)
+    CASE                          : TYPEPREFIX OF
+    | TRUE                        :
+      lColor                      : LONGINT;
+      lBackColor                  : LONGINT;
+      usMixMode                   : CARDINAL;
+      usBackMixMode               : CARDINAL;
+      usSet                       : CARDINAL;
+      usSymbol                    : CARDINAL;
+      sizfxCell                   : SIZEF;
+    | FALSE                       :
+      Color                       : LONGINT;
+      BackColor                   : LONGINT;
+      MixMode                     : CARDINAL;
+      BackMixMode                 : CARDINAL;
+      Set                         : CARDINAL;
+      Symbol                      : CARDINAL;
+      CellSize                    : SIZEF;
+    END;                          END;
+  PMARKERBUNDLE                 = POINTER TO MARKERBUNDLE;
+
+TYPE (* pattern bundle for GpiSetAttributes and GpiQueryAttributes *)
+  AREABUNDLE                    = RECORD            (* pbnd *)
+    CASE                          : TYPEPREFIX OF
+    | TRUE                        :
+      lColor                      : LONGINT;
+      lBackColor                  : LONGINT;
+      usMixMode                   : CARDINAL;
+      usBackMixMode               : CARDINAL;
+      usSet                       : CARDINAL;
+      usSymbol                    : CARDINAL;
+      ptlRefPoint                 : POINTL;
+    | FALSE                       :
+      Color                       : LONGINT;
+      BackColor                   : LONGINT;
+      MixMode                     : CARDINAL;
+      BackMixMode                 : CARDINAL;
+      Set                         : CARDINAL;
+      Symbol                      : CARDINAL;
+      RefPoint                    : POINTL;
+    END;                          END;
+  PAREABUNDLE                   = POINTER TO AREABUNDLE;
+
+TYPE (* image bundle for GpiSetAttributes and GpiQueryAttributes *)
+  IMAGEBUNDLE                   = RECORD           (* ibmd *)
+    CASE                          : TYPEPREFIX OF
+    | TRUE                        :
+      lColor                      : LONGINT;
+      lBackColor                  : LONGINT;
+      usMixMode                   : CARDINAL;
+      usBackMixMode               : CARDINAL;
+    | FALSE                       :
+      Color                       : LONGINT;
+      BackColor                   : LONGINT;
+      MixMode                     : CARDINAL;
+      BackMixMode                 : CARDINAL;
+    END;                          END;
+  PIMAGEBUNDLE                  = POINTER TO IMAGEBUNDLE;
+
+TYPE (* pointer to any bundle used by GpiSet/QueryAttrs *)
+  PBUNDLE                       = SYSTEM.ADDRESS;
+
+CONST (* array indices for GpiQueryTextBox *)
+  TXTBOX_TOPLEFT                = 0;
+  TXTBOX_BOTTOMLEFT             = 1;
+  TXTBOX_TOPRIGHT               = 2;
+  TXTBOX_BOTTOMRIGHT            = 3;
+  TXTBOX_CONCAT                 = 4;
+
+CONST (* array count for GpiQueryTextBox *)
+  TXTBOX_COUNT                  = 5;
+
+CONST (* return codes for GpiPtVisible *)
+  PVIS_ERROR                    = 0;
+  PVIS_INVISIBLE                = 1;
+  PVIS_VISIBLE                  = 2;
+
+CONST (* return codes for GpiRectVisible *)
+  RVIS_ERROR                    = 0;
+  RVIS_INVISIBLE                = 1;
+  RVIS_PARTIAL                  = 2;
+  RVIS_VISIBLE                  = 3;
+
+
+(*** attribute mode functions *)
+
+PROCEDURE GpiSetAttrMode
+( PresSpaceHandle               : HPS;
+  Mode                          : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryAttrMode
+( PresSpaceHandle               : HPS
+)                               : LONGINT;
+
+
+(*** bundle primitive functions *)
+
+PROCEDURE GpiSetAttrs
+( PresSpaceHandle               : HPS;
+  PrimType                      : LONGINT;
+  AttrMask                      : LONGCARD;
+  DefMask                       : LONGCARD;
+  VAR AttrBundle                : ARRAY OF SYSTEM.BYTE
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryAttrs
+( PresSpaceHandle               : HPS;
+  PrimType                      : LONGINT;
+  AttrMask                      : LONGCARD;
+  VAR AttrBundle                : ARRAY OF SYSTEM.BYTE
+)                               : LONGINT;
+
+
+(*** global primitive functions *)
+
+PROCEDURE GpiSetBackColor
+( PresSpaceHandle               : HPS;
+  Color                         : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryBackColor
+( PresSpaceHandle               : HPS
+)                               : LONGINT;
+
+PROCEDURE GpiSetMix
+( PresSpaceHandle               : HPS;
+  MixMode                       : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryMix
+( PresSpaceHandle               : HPS
+)                               : LONGINT;
+
+PROCEDURE GpiSetBackMix
+( PresSpaceHandle               : HPS;
+  MixMode                       : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryBackMix
+( PresSpaceHandle               : HPS
+)                               : LONGINT;
+
+
+(*** line primitive functions *)
+
+PROCEDURE GpiSetLineType
+( PresSpaceHandle               : HPS;
+  LineType                      : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryLineType
+( PresSpaceHandle               : HPS
+)                               : LONGINT;
+
+PROCEDURE GpiSetLineWidth
+( PresSpaceHandle               : HPS;
+  LineWidth                     : FIXED
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryLineWidth
+( PresSpaceHandle               : HPS
+)                               : FIXED;
+
+PROCEDURE GpiSetLineWidthGeom
+( PresSpaceHandle               : HPS;
+  LineWidth                     : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryLineWidthGeom
+( PresSpaceHandle               : HPS
+)                               : LONGINT;
+
+PROCEDURE GpiSetLineEnd
+( PresSpaceHandle               : HPS;
+  LineEnd                       : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryLineEnd
+( PresSpaceHandle               : HPS
+)                               : LONGINT;
+
+PROCEDURE GpiSetLineJoin
+( PresSpaceHandle               : HPS;
+  LineJoin                      : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryLineJoin
+( PresSpaceHandle               : HPS
+)                               : LONGINT;
+
+PROCEDURE GpiSetCurrentPosition
+( PresSpaceHandle               : HPS;
+  VAR Point                     : POINTL
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryCurrentPosition
+( PresSpaceHandle               : HPS;
+  VAR Point                     : POINTL
+)                               : BOOLEAN;
+
+
+(*** arc primitive functions *)
+
+PROCEDURE GpiSetArcParams
+( PresSpaceHandle               : HPS;
+  VAR ArcParams                 : ARCPARAMS
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryArcParams
+( PresSpaceHandle               : HPS;
+  VAR ArcParams                 : ARCPARAMS
+)                               : BOOLEAN;
+
+PROCEDURE GpiPointArc
+( PresSpaceHandle               : HPS;
+  VAR Points                    : ARRAY OF POINTL
+)                               : LONGINT;
+
+PROCEDURE GpiFullArc
+( PresSpaceHandle               : HPS;
+  Control                       : LONGINT;
+  Multiplier                    : FIXED
+)                               : LONGINT;
+
+PROCEDURE GpiPartialArc
+( PresSpaceHandle               : HPS;
+  VAR CenterPoint               : POINTL;
+  Multiplier                    : FIXED;
+  StartAngle                    : FIXED;
+  SweepAngle                    : FIXED
+)                               : LONGINT;
+
+PROCEDURE GpiPolyFillet
+( PresSpaceHandle               : HPS;
+  Count                         : LONGINT;
+  VAR Points                    : ARRAY OF POINTL
+)                               : LONGINT;
+
+PROCEDURE GpiPolySpline
+( PresSpaceHandle               : HPS;
+  Count                         : LONGINT;
+  VAR Points                    : ARRAY OF POINTL
+)                               : LONGINT;
+
+PROCEDURE GpiPolyFilletSharp
+( PresSpaceHandle               : HPS;
+  Count                         : LONGINT;
+  VAR Points                    : ARRAY OF POINTL;
+  VAR Sharpness                 : ARRAY OF FIXED
+)                               : LONGINT;
+
+
+(*** area primitive functions *)
+
+PROCEDURE GpiSetPatternSet
+( PresSpaceHandle               : HPS;
+  Set                           : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryPatternSet
+( PresSpaceHandle               : HPS
+)                               : LONGINT;
+
+PROCEDURE GpiSetPatternRefPoint
+( PresSpaceHandle               : HPS;
+  VAR RefPoint                  : POINTL
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryPatternRefPoint
+( PresSpaceHandle               : HPS;
+  VAR RefPoint                  : POINTL
+)                               : BOOLEAN;
+
+
+(*** character primitive functions *)
+
+PROCEDURE GpiQueryCharStringPos
+( PresSpaceHandle               : HPS;
+  Options                       : LONGCARD;
+  Count                         : LONGINT;
+  String                        : ARRAY OF CHAR;
+  VAR XIncrements               : ARRAY OF LONGINT;
+  VAR Positions                 : ARRAY OF POINTL
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryCharStringPosAt
+( PresSpaceHandle               : HPS;
+  VAR Start                     : POINTL;
+  Options                       : LONGCARD;
+  Count                         : LONGINT;
+  String                        : ARRAY OF CHAR;
+  VAR XIncrements               : ARRAY OF LONGINT;
+  VAR Positions                 : ARRAY OF POINTL
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryTextBox
+( PresSpaceHandle               : HPS;
+  Count1                        : LONGINT;
+  String                        : ARRAY OF CHAR;
+  Count2                        : LONGINT;
+  VAR Points                    : ARRAY OF POINTL
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryDefCharBox
+( PresSpaceHandle               : HPS;
+  VAR Size                      : SIZEL
+)                               : BOOLEAN;
+
+PROCEDURE GpiSetCharSet
+( PresSpaceHandle               : HPS;
+  LocCharSetId                  : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryCharSet
+( PresSpaceHandle               : HPS
+)                               : LONGINT;
+
+PROCEDURE GpiSetCharBox
+( PresSpaceHandle               : HPS;
+  VAR BoxSize                   : SIZEF
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryCharBox
+( PresSpaceHandle               : HPS;
+  VAR BoxSize                   : SIZEF
+)                               : BOOLEAN;
+
+PROCEDURE GpiSetCharAngle
+( PresSpaceHandle               : HPS;
+  VAR Angle                     : GRADIENTL
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryCharAngle
+( PresSpaceHandle               : HPS;
+  VAR Angle                     : GRADIENTL
+)                               : BOOLEAN;
+
+PROCEDURE GpiSetCharShear
+( PresSpaceHandle               : HPS;
+  VAR Angle                     : POINTL
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryCharShear
+( PresSpaceHandle               : HPS;
+  VAR Angle                     : POINTL
+)                               : BOOLEAN;
+
+PROCEDURE GpiSetCharDirection
+( PresSpaceHandle               : HPS;
+  Direction                     : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryCharDirection
+( PresSpaceHandle               : HPS
+)                               : LONGINT;
+
+PROCEDURE GpiSetCharMode
+( PresSpaceHandle               : HPS;
+  Mode                          : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryCharMode
+( PresSpaceHandle               : HPS
+)                               : LONGINT;
+
+PROCEDURE GpiSetTextAlignment
+( PresSpaceHandle               : HPS;
+  Horiz                         : LONGINT;
+  Vert                          : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryTextAlignment
+( PresSpaceHandle               : HPS;
+  VAR Horiz                     : LONGINT;
+  VAR Vert                      : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiCharStringPos
+( PresSpaceHandle               : HPS;
+  VAR Rect                      : RECTL;
+  Options                       : LONGCARD;
+  Count                         : LONGINT;
+  String                        : ARRAY OF CHAR;
+  VAR Adx                       : ARRAY OF LONGINT
+)                               : LONGINT;
+
+PROCEDURE GpiCharStringPosAt
+( PresSpaceHandle               : HPS;
+  VAR Start                     : POINTL;
+  VAR Rect                      : RECTL;
+  Options                       : LONGCARD;
+  Count                         : LONGINT;
+  String                        : ARRAY OF CHAR;
+  VAR Adx                       : ARRAY OF LONGINT
+)                               : LONGINT;
+
+PROCEDURE GpiSetCharExtra
+( PresSpaceHandle               : HPS;
+  Extra                         : FIXED
+)                               : BOOLEAN;
+
+PROCEDURE GpiSetCharBreakExtra
+( PresSpaceHandle               : HPS;
+  BreakExtra                    : FIXED
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryCharExtra
+( PresSpaceHandle               : HPS;
+  VAR Extra                     : FIXED
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryCharBreakExtra
+( PresSpaceHandle               : HPS;
+  VAR BreakExtra                : FIXED
+)                               : BOOLEAN;
+
+
+(*** marker primitive functions  *)
+
+PROCEDURE GpiMarker
+( PresSpaceHandle               : HPS;
+  VAR Point                     : POINTL
+)                               : LONGINT;
+
+PROCEDURE GpiPolyMarker
+( PresSpaceHandle               : HPS;
+  Count                         : LONGINT;
+  VAR Points                    : ARRAY OF POINTL
+)                               : LONGINT;
+
+PROCEDURE GpiSetMarker
+( PresSpaceHandle               : HPS;
+  Symbol                        : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiSetMarkerBox
+( PresSpaceHandle               : HPS;
+  VAR BoxSize                   : SIZEF
+)                               : BOOLEAN;
+
+PROCEDURE GpiSetMarkerSet
+( PresSpaceHandle               : HPS;
+  Set                           : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryMarker
+( PresSpaceHandle               : HPS
+)                               : LONGINT;
+
+PROCEDURE GpiQueryMarkerBox
+( PresSpaceHandle               : HPS;
+  VAR BoxSize                   : SIZEF
+)                               : BOOLEAN;
+
+PROCEDURE GpiQueryMarkerSet
+( PresSpaceHandle               : HPS
+)                               : LONGINT;
+
+
+(*** image primitive functions *)
+
+PROCEDURE GpiImage
+( PresSpaceHandle               : HPS;
+  Format                        : LONGINT;
+  VAR ImageSize                 : SIZEL;
+  Length                        : LONGINT;
+  VAR Data                      : ARRAY OF SYSTEM.BYTE
+)                               : LONGINT;
+
+
+(*** miscellaneous primitive functions *)
+
+PROCEDURE GpiPop
+( PresSpaceHandle               : HPS;
+  Count                         : LONGINT
+)                               : BOOLEAN;
+
+PROCEDURE GpiPtVisible
+( PresSpaceHandle               : HPS;
+  VAR Point                     : POINTL
+)                               : LONGINT;
+
+PROCEDURE GpiRectVisible
+( PresSpaceHandle               : HPS;
+  VAR Rectangle                 : RECTL
+)                               : LONGINT;
+
+PROCEDURE GpiComment
+( PresSpaceHandle               : HPS;
+  Length                        : LONGINT;
+  Data                          : ARRAY OF SYSTEM.BYTE
+)                               : BOOLEAN;
+
+END GPIPRIMITIVES.

@@ -1,0 +1,40 @@
+DEFINITION MODULE WPERRORS;
+
+(************************************************************************
+  OS/2 2.x interface for Workplace Shell error codes.
+
+  Copyright (c) 1992, 1994 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+
+CONST (* WINWORKPLACE error codes *)
+  WPERR_PROTECTED_CLASS              = 1700H;
+  WPERR_INVALID_CLASS                = 1701H;
+  WPERR_INVALID_SUPERCLASS           = 1702H;
+  WPERR_NO_MEMORY                    = 1703H;
+  WPERR_SEMAPHORE_ERROR              = 1704H;
+  WPERR_BUFFER_TOO_SMALL             = 1705H;
+  WPERR_CLSLOADMOD_FAILED            = 1706H;
+  WPERR_CLSPROCADDR_FAILED           = 1707H;
+  WPERR_OBJWORD_LOCATION             = 1708H;
+  WPERR_INVALID_OBJECT               = 1709H;
+  WPERR_MEMORY_CLEANUP               = 170AH;
+  WPERR_INVALID_MODULE               = 170BH;
+  WPERR_INVALID_OLDCLASS             = 170CH;
+  WPERR_INVALID_NEWCLASS             = 170DH;
+  WPERR_NOT_IMMEDIATE_CHILD          = 170EH;
+  WPERR_NOT_WORKPLACE_CLASS          = 170FH;
+  WPERR_CANT_REPLACE_METACLS         = 1710H;
+  WPERR_INI_FILE_WRITE               = 1711H;
+  WPERR_INVALID_FOLDER               = 1712H;
+  WPERR_BUFFER_OVERFLOW              = 1713H;
+  WPERR_OBJECT_NOT_FOUND             = 1714H;
+  WPERR_INVALID_HFIND                = 1715H;
+  WPERR_INVALID_COUNT                = 1716H;
+  WPERR_INVALID_BUFFER               = 1717H;
+  WPERR_ALREADY_EXISTS               = 1718H;
+  WPERR_INVALID_FLAGS                = 1719H;
+  WPERR_INVALID_OBJECTID             = 1720H;
+
+END WPERRORS.

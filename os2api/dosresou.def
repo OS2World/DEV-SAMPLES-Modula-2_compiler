@@ -1,0 +1,58 @@
+DEFINITION MODULE DOSRESOURCES;
+
+(************************************************************************
+  OS/2 2.0 Interface for resource support.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF IMPORT APIRET, HMODULE;
+
+CONST (* Predefined resource types *)
+  RT_POINTER      = 1;  (* mouse pointer shape *)
+  RT_BITMAP       = 2;  (* bitmap *)
+  RT_MENU         = 3;  (* menu template *)
+  RT_DIALOG       = 4;  (* dialog template *)
+  RT_STRING       = 5;  (* string tables *)
+  RT_FONTDIR      = 6;  (* font directory *)
+  RT_FONT         = 7;  (* font *)
+  RT_ACCELTABLE   = 8;  (* accelerator tables *)
+  RT_RCDATA       = 9;  (* binary data *)
+  RT_MESSAGE      = 10; (* error msg     tables *)
+  RT_DLGINCLUDE   = 11; (* dialog include file name *)
+  RT_VKEYTBL      = 12; (* key to vkey tables *)
+  RT_KEYTBL       = 13; (* key to UGL tables *)
+  RT_CHARTBL      = 14; (* glyph to character tables *)
+  RT_DISPLAYINFO  = 15; (* screen display information *)
+  RT_FKASHORT     = 16; (* function key area short form *)
+  RT_FKALONG      = 17; (* function key area long form *)
+  RT_HELPTABLE    = 18; (* Help table for Cary Help manager *)
+  RT_HELPSUBTABLE = 19; (* Help subtable for Cary Help manager *)
+  RT_FDDIR        = 20; (* DBCS uniq/font driver directory *)
+  RT_FD           = 21; (* DBCS uniq/font driver *)
+  RT_MAX          = 22; (* 1st unused Resource Type *)
+  RF_ORDINALID    = 80000000H;    (* ordinal id flag in resource table *)
+
+PROCEDURE DosGetResource
+( ModHandle       : HMODULE;
+  TypeId          : LONGCARD;
+  NameId          : LONGCARD;
+  VAR Offset      : SYSTEM.ADDRESS
+)                 : APIRET;
+
+PROCEDURE DosFreeResource
+( ResAddr         : SYSTEM.ADDRESS
+)                 : APIRET;
+
+PROCEDURE DosQueryResourceSize
+( ModHandle       : HMODULE;
+  TypeId          : LONGCARD;
+  NameId          : LONGCARD;
+  VAR Size        : LONGCARD
+)                 : APIRET;
+
+END DOSRESOURCES.

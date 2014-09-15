@@ -1,0 +1,291 @@
+DEFINITION MODULE WINMLE;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager MultiLine Edit Control.
+           20.02.95 13.33 : changed : new type id MLE_SEARCHDATA
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF  IMPORT TYPEPREFIX, PCHAR;
+
+(*************************************************************************
+* MLE Window styles ( in addition to WS_* )
+*************************************************************************)
+CONST
+  MLS_WORDWRAP       = 00000001H;
+  MLS_BORDER         = 00000002H;
+  MLS_VSCROLL        = 00000004H;
+  MLS_HSCROLL        = 00000008H;
+  MLS_READONLY       = 00000010H;
+  MLS_IGNORETAB      = 00000020H;
+  MLS_DISABLEUNDO    = 00000040H;
+
+(*************************************************************************
+* MLE External Data Types
+*************************************************************************)
+TYPE
+  IPT                = LONGINT;              (* insertion point         *)
+  PIPT               = POINTER TO IPT;       (* insertion point         *)
+  PIX                = LONGINT;              (* pixel                   *)
+  LINE               = LONGCARD;             (* Line number             *)
+
+  FORMATRECT         = RECORD
+    CASE               : TYPEPREFIX OF
+    | TRUE             :
+      cxFormat         : LONGINT;            (* format rectangle width  *)
+      cyFormat         : LONGINT;            (* format rectangle height *)
+    | FALSE            :
+      FormatXSize      : LONGINT;            (* format rectangle width  *)
+      FormatYSize      : LONGINT;            (* format rectangle height *)
+    END;               END;
+  PMLEFORMATRECT     = POINTER TO FORMATRECT;
+
+  MLECTLDATA         = RECORD
+    CASE               : TYPEPREFIX OF
+    | TRUE             :
+      cbCtlData        : CARDINAL; (* Length of the MLECTLDATA structure  *)
+      afIEFormat       : CARDINAL; (* import/export format                *)
+      cchText          : LONGCARD; (* text limit                          *)
+      iptAnchor        : IPT;      (* beginning of selection              *)
+      iptCursor        : IPT;      (* ending of selection                 *)
+      cxFormat         : LONGINT;  (* format rectangle width              *)
+      cyFormat         : LONGINT;  (* format rectangle height             *)
+      afFormatFlags    : LONGCARD; (* formatting rectangle flags          *)
+    | FALSE            :
+      CtlDataLen       : CARDINAL; (* Length of the MLECTLDATA structure  *)
+      EFormat          : CARDINAL; (* import/export format                *)
+      TextLimit        : LONGCARD; (* text limit                          *)
+      Anchor           : IPT;      (* beginning of selection              *)
+      Cursor           : IPT;      (* ending of selection                 *)
+      FormatXSize      : LONGINT;  (* format rectangle width              *)
+      FormatYSize      : LONGINT;  (* format rectangle height             *)
+      FormatFlags      : LONGCARD; (* formatting rectangle flags          *)
+    END;               END;
+  PMLECTLDATA        = POINTER TO MLECTLDATA;
+
+(*************************************************************************
+* afFormatFlags mask
+*************************************************************************)
+CONST
+  MLFFMTRECT_LIMITHORZ   = 00000001H;
+  MLFFMTRECT_LIMITVERT   = 00000002H;
+  MLFFMTRECT_MATCHWINDOW = 00000004H;
+  MLFFMTRECT_FORMATRECT  = 00000007H;
+
+(*************************************************************************
+* afIEFormat - Import/Export Format flags
+*************************************************************************)
+CONST
+  MLFIE_CFTEXT           = 0;
+  MLFIE_NOTRANS          = 1;
+  MLFIE_WINFMT           = 2;
+  MLFIE_RTF              = 3;
+
+(*************************************************************************
+* MLN_OVERFLOW structure
+*************************************************************************)
+TYPE
+  MLEOVERFLOW        = RECORD     (* overflow *)
+    CASE               : TYPEPREFIX OF
+    | TRUE             :
+      afErrInd         : LONGCARD;(* see mask below                         *)
+      nBytesOver       : LONGINT; (* number of bytes overflowed             *)
+      pixHorzOver      : LONGINT; (* number of pixels horizontally overflow *)
+      pixVertOver      : LONGINT; (* number of pixels vertically overflowed *)
+    | FALSE            :
+      ErrInd           : LONGCARD;(* see mask below                         *)
+      BytesOver        : LONGINT; (* number of bytes overflowed             *)
+      HorzOver         : LONGINT; (* number of pixels horizontally overflow *)
+      VertOver         : LONGINT; (* number of pixels vertically overflowed *)
+    END;               END;
+  PMLEOVERFLOW       = POINTER TO OVERFLOW;
+
+(*************************************************************************
+* ErrInd - error format rectangle flags
+*************************************************************************)
+CONST
+  MLFEFR_RESIZE      = 00000001H;
+  MLFEFR_TABSTOP     = 00000002H;
+  MLFEFR_FONT        = 00000004H;
+  MLFEFR_TEXT        = 00000008H;
+  MLFEFR_WORDWRAP    = 00000010H;
+  MLFETL_TEXTBYTES   = 00000020H;
+
+(*************************************************************************
+* MLN_MARGIN structure
+*************************************************************************)
+TYPE
+  MLEMARGSTRUCT      = RECORD       (* margin *)
+    CASE               : TYPEPREFIX OF
+    | TRUE             :
+      afMargins        : CARDINAL;  (* margin indicator     *)
+      usMouMsg         : CARDINAL;  (* mouse message        *)
+      iptNear          : IPT;       (* geometrically nearest ins. point *)
+    | FALSE            :
+      Margins          : CARDINAL;  (* margin indicator     *)
+      MouMsg           : CARDINAL;  (* mouse message        *)
+      Near             : IPT;       (* geometrically nearest ins. point *)
+    END;               END;
+  PMLEMARGSTRUCT     = POINTER TO MARGSTRUCT;
+
+(*************************************************************************
+* afFlags - margin notification indicators
+*************************************************************************)
+CONST
+  MLFMARGIN_LEFT     = 0001H;
+  MLFMARGIN_BOTTOM   = 0002H;
+  MLFMARGIN_RIGHT    = 0003H;
+  MLFMARGIN_TOP      = 0004H;
+
+(*************************************************************************
+* MLM_QUERYSELECTION flags
+*************************************************************************)
+CONST
+  MLFQS_MINMAXSEL    = 0;
+  MLFQS_MINSEL       = 1;
+  MLFQS_MAXSEL       = 2;
+  MLFQS_ANCHORSEL    = 3;
+  MLFQS_CURSORSEL    = 4;
+
+(*************************************************************************
+* MLN_CLPBDFAIL flags
+*************************************************************************)
+CONST
+  MLFCLPBD_TOOMUCHTEXT = 00000001H;
+  MLFCLPBD_ERROR       = 00000002H;
+
+(*************************************************************************
+* MLM_SEARCH structure
+*************************************************************************)
+TYPE
+  SEARCH             = RECORD
+    CASE               : TYPEPREFIX OF
+    | TRUE             :
+      cb               : CARDINAL;  (* size of search spec structure       *)
+      pchFind          : PCHAR;     (* string to search for                *)
+      pchReplace       : PCHAR;     (* string to replace with              *)
+      cchFind          : INTEGER;   (* length of pchFindString             *)
+      cchReplace       : INTEGER;   (* length of replace string            *)
+      iptStart         : IPT;       (* point at which to start search      *)
+                                    (* (negative indicates cursor pt)      *)
+                                    (* becomes pt where string found       *)
+      iptStop          : IPT;       (* point at which to stop search       *)
+                                    (* (negative indicates EOT)            *)
+      cchFound         : CARDINAL;  (* Length of found string at iptStart  *)
+    | FALSE            :
+      Size             : CARDINAL;  (* size of search spec structure       *)
+      Find             : PCHAR;     (* string to search for                *)
+      Replace          : PCHAR;     (* string to replace with              *)
+      FindLen          : INTEGER;   (* length of pchFindString             *)
+      ReplaceLen       : INTEGER;   (* length of replace string            *)
+      Start            : IPT;       (* point at which to start search      *)
+                                    (* (negative indicates cursor pt)      *)
+                                    (* becomes pt where string found       *)
+      Stop             : IPT;       (* point at which to stop search       *)
+                                    (* (negative indicates EOT)            *)
+      FoundLen         : CARDINAL;  (* Length of found string at iptStart  *)
+    END;               END;
+  MLE_SEARCHDATA     = SEARCH;
+  PMLE_SEARCHDATA    = POINTER TO MLE_SEARCHDATA;
+
+(*************************************************************************
+* MLM_SEARCH style flags
+*************************************************************************)
+CONST
+  MLFSEARCH_CASESENSITIVE = 00000001H;
+  MLFSEARCH_SELECTMATCH   = 00000002H;
+  MLFSEARCH_CHANGEALL     = 00000004H;
+
+(*************************************************************************
+* MLE messages - MLM from 0x01b0 to 0x01de; MLN from 0x0001 to 0x000f
+*************************************************************************)
+CONST (* formatting messages *)
+  MLM_SETTEXTLIMIT        = 01B0H;
+  MLM_QUERYTEXTLIMIT      = 01B1H;
+  MLM_SETFORMATRECT       = 01B2H;
+  MLM_QUERYFORMATRECT     = 01B3H;
+  MLM_SETWRAP             = 01B4H;
+  MLM_QUERYWRAP           = 01B5H;
+  MLM_SETTABSTOP          = 01B6H;
+  MLM_QUERYTABSTOP        = 01B7H;
+  MLM_SETREADONLY         = 01B8H;
+  MLM_QUERYREADONLY       = 01B9H;
+
+CONST (* text content manipulation and queries messages *)
+  MLM_QUERYCHANGED        = 01BAH;
+  MLM_SETCHANGED          = 01BBH;
+  MLM_QUERYLINECOUNT      = 01BCH;
+  MLM_CHARFROMLINE        = 01BDH;
+  MLM_LINEFROMCHAR        = 01BEH;
+  MLM_QUERYLINELENGTH     = 01BFH;
+  MLM_QUERYTEXTLENGTH     = 01C0H;
+
+CONST (* text import and export messages *)
+  MLM_FORMAT                = 01C1H;
+  MLM_SETIMPORTEXPORT       = 01C2H;
+  MLM_IMPORT                = 01C3H;
+  MLM_EXPORT                = 01C4H;
+  MLM_DELETE                = 01C6H;
+  MLM_QUERYFORMATLINELENGTH = 01C7H;
+  MLM_QUERYFORMATTEXTLENGTH = 01C8H;
+  MLM_INSERT                = 01C9H;
+
+CONST (* selection messages *)
+  MLM_SETSEL              = 01CAH;
+  MLM_QUERYSEL            = 01CBH;
+  MLM_QUERYSELTEXT        = 01CCH;
+
+CONST (* undo and redo messages *)
+  MLM_QUERYUNDO           = 01CDH;
+  MLM_UNDO                = 01CEH;
+  MLM_RESETUNDO           = 01CFH;
+
+CONST (* text attributes messages *)
+  MLM_QUERYFONT           = 01D0H;
+  MLM_SETFONT             = 01D1H;
+  MLM_SETTEXTCOLOR        = 01D2H;
+  MLM_QUERYTEXTCOLOR      = 01D3H;
+  MLM_SETBACKCOLOR        = 01D4H;
+  MLM_QUERYBACKCOLOR      = 01D5H;
+
+CONST (* scrolling messages *)
+  MLM_QUERYFIRSTCHAR      = 01D6H;
+  MLM_SETFIRSTCHAR        = 01D7H;
+
+CONST (* clipboard messages *)
+  MLM_CUT                 = 01D8H;
+  MLM_COPY                = 01D9H;
+  MLM_PASTE               = 01DAH;
+  MLM_CLEAR               = 01DBH;
+
+CONST (* display manipulation messages *)
+  MLM_ENABLEREFRESH       = 01DCH;
+  MLM_DISABLEREFRESH      = 01DDH;
+
+CONST (* search message *)
+  MLM_SEARCH              = 01DEH;
+  MLM_QUERYIMPORTEXPORT   = 01DFH;
+
+CONST (* notification messages *)
+  MLN_OVERFLOW            = 0001H;
+  MLN_PIXHORZOVERFLOW     = 0002H;
+  MLN_PIXVERTOVERFLOW     = 0003H;
+  MLN_TEXTOVERFLOW        = 0004H;
+  MLN_VSCROLL             = 0005H;
+  MLN_HSCROLL             = 0006H;
+  MLN_CHANGE              = 0007H;
+  MLN_SETFOCUS            = 0008H;
+  MLN_KILLFOCUS           = 0009H;
+  MLN_MARGIN              = 000AH;
+  MLN_SEARCHPAUSE         = 000BH;
+  MLN_MEMERROR            = 000CH;
+  MLN_UNDOOVERFLOW        = 000DH;
+  MLN_CLPBDFAIL           = 000FH;
+
+END WINMLE.

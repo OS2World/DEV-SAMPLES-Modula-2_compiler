@@ -1,0 +1,110 @@
+DEFINITION MODULE RealInOut;
+
+(**************************************************************************
+   OS/2 2.x  Modula-2 standard utility for floating point input/output.
+
+   Copyright (c) 1993 by Juergen Neuhoff
+**************************************************************************)
+
+VAR
+  Done : BOOLEAN;
+
+
+PROCEDURE ReadReal( VAR x : REAL );
+(*
+    Reads a string.
+    The string is then converted to a REAL which is returned in x.
+
+    A real in the format defined for Modula-2 REAL literals is expected:
+    ["+"|"-"] digit {digit} ["." digit {digit}] ["E" ["+"|"-"] digit [digit]]
+
+    Done is set to TRUE if a valid REAL number is read.
+*)
+
+PROCEDURE WriteReal( x : REAL; n : INTEGER );
+(*
+    x is written in scientific notation, right justified in a field
+    of at least n characters.
+*)
+
+PROCEDURE ReadLongReal( VAR x : LONGREAL );
+(*
+    Reads a string.
+    The string is then converted to a LONGREAL which is returned in x.
+
+    A real in the format defined for Modula-2 REAL literals is expected:
+    ["+"|"-"] digit {digit} ["." digit {digit}] ["E" ["+"|"-"] digit [digit]]
+
+    Done is set to TRUE if a valid REAL number is read.
+*)
+
+PROCEDURE WriteLongReal( x : LONGREAL; n : INTEGER );
+(*
+    x is written in scientific notation, right justified in a field
+    of at least n characters.
+*)
+
+PROCEDURE ReadShortReal( VAR x : SHORTREAL );
+(*
+    Reads a string.
+    The string is then converted to a LONGREAL which is returned in x.
+
+    A real in the format defined for Modula-2 REAL literals is expected:
+    ["+"|"-"] digit {digit} ["." digit {digit}] ["E" ["+"|"-"] digit [digit]]
+
+    Done is set to TRUE if a valid REAL number is read.
+*)
+
+PROCEDURE WriteShortReal( x : SHORTREAL; n : INTEGER );
+(*
+    x is written in scientific notation, right justified in a field
+    of at least n characters.
+*)
+
+PROCEDURE WriteFixPt( x : REAL; n,k : INTEGER );
+(*
+    Write x using n characters with k digits after decimal point.
+    If fewer than n characters are needed, leading blanks are inserted.
+*)
+
+PROCEDURE WriteLongFixPt( x : LONGREAL; n,k : INTEGER );
+(*
+    Same as WriteFixPt, for long real value.
+*)
+
+PROCEDURE WriteShortFixPt( x : SHORTREAL; n,k : INTEGER );
+(*
+    Same as WriteFixPt, for short real value.
+*)
+
+PROCEDURE WriteRealOct( x : REAL );
+(*
+    Write x in octal form with exponent and mantissa
+*)
+
+PROCEDURE WriteLongRealOct( x : LONGREAL );
+(*
+    Write long real x in octal form with exponent and mantissa
+*)
+
+PROCEDURE WriteShortRealOct( x : SHORTREAL );
+(*
+    Write short real x in octal form with exponent and mantissa
+*)
+
+PROCEDURE WriteRealHex( x : REAL );
+(*
+    Write x in hexadecimal form with exponent and mantissa
+*)
+
+PROCEDURE WriteLongRealHex( x : LONGREAL );
+(*
+    Write long real x in hexadecimal form with exponent and mantissa
+*)
+
+PROCEDURE WriteShortRealHex( x : SHORTREAL );
+(*
+    Write short real x in hexadecimal form with exponent and mantissa
+*)
+
+END RealInOut.

@@ -1,0 +1,7 @@
+LIBRARY PMWIN
+EXPORTS
+  WinDestroyCursor     @725
+  WinShowCursor        @880
+  WinCreateCursor      @715
+  WinQueryCursorInfo   @812
+

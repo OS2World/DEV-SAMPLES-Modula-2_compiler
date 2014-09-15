@@ -1,0 +1,59 @@
+DEFINITION MODULE DOSPROFILE;
+
+(************************************************************************
+  OS/2 2.0 interface for DosProfile API.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF        IMPORT APIRET;
+
+(*** Perfview API support *)
+
+PROCEDURE DosTmrQueryFreq
+( VAR TmrFreq             : LONGCARD
+)                         : APIRET;
+
+PROCEDURE DosTmrQueryTime
+( VAR TmrTime             : SYSTEM.QWORD
+)                         : APIRET;
+
+PROCEDURE DosRegisterPerfCtrs
+( VAR DataBlk             : ARRAY OF SYSTEM.BYTE;
+  VAR TestBlk             : ARRAY OF SYSTEM.BYTE;
+  Flags                   : LONGCARD
+)                         : APIRET;
+
+CONST (* DosProfile ordinal number *)
+  PROF_ORDINAL     = 133;
+
+CONST (* DosProfile Type *)
+  PROF_SYSTEM      =   0;
+  PROF_USER        =   1;
+  PROF_USEDD       =   2;
+  PROF_KERNEL      =   4;
+  PROF_VERBOSE     =   8;
+  PROF_ENABLE      =  16;
+
+CONST (* DosProfile Func *)
+  PROF_ALLOC       = 0;
+  PROF_CLEAR       = 1;
+  PROF_ON          = 2;
+  PROF_OFF         = 3;
+  PROF_DUMP        = 4;
+  PROF_FREE        = 5;
+
+CONST (* DosProfile tic count granularity (DWORD) *)
+  PROF_SHIFT       = 2;
+
+CONST (* DosProfile module name string length *)
+  PROF_MOD_NAME_SIZE = 10;
+
+CONST (* DosProfile error code for end of data *)
+  PROF_END_OF_DATA   = 13;
+
+END DOSPROFILE.

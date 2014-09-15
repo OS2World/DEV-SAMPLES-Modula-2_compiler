@@ -1,0 +1,6 @@
+LIBRARY PMCTLS
+EXPORTS
+  WinFileDlg           @4
+  WinDefFileDlgProc    @5
+  WinFreeFileDlgList   @6
+

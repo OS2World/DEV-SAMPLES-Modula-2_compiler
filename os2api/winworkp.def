@@ -1,0 +1,196 @@
+DEFINITION MODULE WINWORKPLACE;
+
+(************************************************************************
+  OS/2 2.1 interface for Presentation Manager Workplace Shell.
+
+  Copyright (c) 1992,1994 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF      IMPORT HAB, HWND, HMODULE, HMQ, LHANDLE;
+FROM   OS2DEF      IMPORT TYPEPREFIX, POINTL, PSZ;
+FROM   OS2DEF      IMPORT ICONINFO;
+FROM   WINPOINTERS IMPORT HPOINTER;
+FROM   WINHELP     IMPORT PHELPSUBTABLE;
+FROM   WINDEF      IMPORT PFNWP;
+FROM   WINSTDCNR   IMPORT PMINIRECORDCORE;
+
+
+TYPE (* Common types *)
+  HOBJECT                = LHANDLE;
+  ULONG                  = LONGCARD;
+  PULONG                 = POINTER TO ULONG;
+
+CONST (* Standard object classes *)
+  CCHMAXCLASS            = 3;     (* Length of a classname     *)
+  QC_First               = 0;     (* Codes for OA_QueryContent *)
+  QC_Next                = 1;
+  QC_Last                = 2;
+
+TYPE (* An object's appearance (icon or bitmap or outline) *)
+  OBJECTIMAGE            = RECORD   (* oimg *)
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      hptrObject           : HPOINTER;
+    | FALSE                :
+      ObjectPointerHandle  : HPOINTER;
+    END;                   END;
+  POBJECTIMAGE           = POINTER TO OBJECTIMAGE;
+
+TYPE (* Class info structure returned by WinEnumObjectClasses *)
+  POBJCLASS              = POINTER TO OBJCLASS;
+  OBJCLASS               = RECORD       (* ocls *)
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      pNext                : POBJCLASS; (* Null for the last structure.. *)
+      pszClassName         : PSZ;       (* Class name *)
+      pszModName           : PSZ;       (* Module name *)
+    | FALSE                :
+      Next                 : POBJCLASS; (* Null for the last structure.. *)
+      ClassName            : PSZ;       (* Class name *)
+      ModName              : PSZ;       (* Module name *)
+    END;                   END;
+
+
+(*** Workplace object management functions *)
+
+PROCEDURE WinRegisterObjectClass
+( ClassName              : ARRAY OF CHAR;
+  ModName                : ARRAY OF CHAR
+)                        : BOOLEAN;
+
+PROCEDURE WinDeregisterObjectClass
+( ClassName              : ARRAY OF CHAR
+)                        : BOOLEAN;
+
+PROCEDURE WinReplaceObjectClass
+( OldClassName           : ARRAY OF CHAR;
+  NewClassName           : ARRAY OF CHAR;
+  Replace                : BOOLEAN
+)                        : BOOLEAN;
+
+PROCEDURE WinEnumObjectClasses
+( ObjClass               : POBJCLASS;
+  VAR Size               : LONGCARD
+)                        : BOOLEAN;
+
+PROCEDURE WinCreateObject
+( ClassName              : ARRAY OF CHAR;
+  Title                  : ARRAY OF CHAR;
+  SetupString            : ARRAY OF CHAR;
+  Location               : ARRAY OF CHAR;
+  Flags                  : LONGCARD
+)                        : HOBJECT;
+
+CONST (* for WinCreateObject() Flags *)
+  CO_FAILIFEXISTS        = 0;
+  CO_REPLACEIFEXISTS     = 1;
+  CO_UPDATEIFEXISTS      = 2;
+
+PROCEDURE WinSetObjectData
+( ObjectHandle           : HOBJECT;
+  SetupString            : ARRAY OF CHAR
+)                        : BOOLEAN;
+
+PROCEDURE WinDestroyObject
+( ObjectHandle           : HOBJECT
+)                        : BOOLEAN;
+
+PROCEDURE WinQueryObject
+( ObjectId               : ARRAY OF CHAR
+)                        : HOBJECT;
+
+TYPE (* Object settings notebook page insertion structure *)
+  PAGEINFO               = RECORD    (* pginf *)
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      cb                   : LONGCARD;
+      hwndPage             : HWND;
+      pfnwp                : PFNWP;
+      resid                : LONGCARD;
+      pCreateParams        : SYSTEM.ADDRESS;
+      dlgid                : CARDINAL;
+      usPageStyleFlags     : CARDINAL;
+      usPageInsertFlags    : CARDINAL;
+      usReserved           : CARDINAL;
+      pszName              : PSZ;
+      idDefaultHelpPanel   : CARDINAL;
+      usReserved2          : CARDINAL;
+      pszHelpLibraryName   : PSZ;
+      pHelpSubtable        : PHELPSUBTABLE;
+      hmodHelpSubtable     : HMODULE;
+      ulPageInsertId       : LONGCARD;
+    | FALSE                :
+      Count                : LONGCARD;
+      PageWinHandle        : HWND;
+      WinProc              : PFNWP;
+      ResourceId           : LONGCARD;
+      CreateParams         : SYSTEM.ADDRESS;
+      DialogId             : CARDINAL;
+      PageStyleFlags       : CARDINAL;
+      PageInsertFlags      : CARDINAL;
+      Reserved             : CARDINAL;
+      Name                 : PSZ;
+      DefaultHelpPanelId   : CARDINAL;
+      Reserved2            : CARDINAL;
+      HelpLibraryName      : PSZ;
+      HelpSubTable         : PHELPSUBTABLE;
+      HelpSubtableModHandle : HMODULE;
+      PageInsertId         : LONGCARD;
+    END;                   END;
+  PPAGEINFO              = POINTER TO PAGEINFO;
+
+TYPE
+  ICONPOS                = RECORD                  (* icp *)
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      ptlIcon              : POINTL;               (* Location *)
+      szIdentity           : ARRAY [0..0] OF CHAR; (* Object ID string *)
+    | FALSE                :
+      IconPoint            : POINTL;               (* Location *)
+      Identity             : ARRAY [0..0] OF CHAR; (* Object ID string *)
+    END;                   END;
+  PICONPOS               = POINTER TO ICONPOS;
+
+PROCEDURE WinSetFileIcon
+( FileName               : ARRAY OF CHAR;
+  VAR IconInfo           : ICONINFO
+)                        : BOOLEAN;
+
+PROCEDURE WinFreeFileIcon
+( PointerHandle          : HPOINTER
+)                        : BOOLEAN;
+
+PROCEDURE WinLoadFileIcon
+( FileName               : ARRAY OF CHAR;
+  Private                : BOOLEAN
+)                        : HPOINTER;
+
+PROCEDURE WinStoreWindowPos
+( AppName                : ARRAY OF CHAR;
+  KeyName                : ARRAY OF CHAR;
+  WinHandle              : HWND
+)                        : BOOLEAN;
+
+PROCEDURE WinRestoreWindowPos
+( AppName                : ARRAY OF CHAR;
+  KeyName                : ARRAY OF CHAR;
+  WinHandle              : HWND
+)                        : BOOLEAN;
+
+PROCEDURE WinShutdownSystem
+( AnchorBlockHandle      : HAB;
+  MsgQueueHandle         : HMQ
+)                        : BOOLEAN;
+
+PROCEDURE ShlGetUserWordPtr
+(
+  hwndCnr                : HWND;
+  prec                   : PMINIRECORDCORE
+)                        : PULONG;
+
+END WINWORKPLACE.

@@ -1,0 +1,121 @@
+DEFINITION MODULE DOSNLS;
+
+(************************************************************************
+  OS/2 2.0 Interface for national language support.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF IMPORT TYPEPREFIX, APIRET;
+
+TYPE (* country code record *)
+  COUNTRYCODE        = RECORD
+    CASE               : TYPEPREFIX OF
+    | TRUE             :
+      country          : LONGCARD;
+      codepage         : LONGCARD;
+    | FALSE            :
+      Country          : LONGCARD;
+      CodePage         : LONGCARD;
+    END;               END;
+
+TYPE (* country information record *)
+  COUNTRYINFO          = RECORD
+    CASE                 : TYPEPREFIX OF
+    | TRUE               :
+      country            : LONGCARD;
+      codepage           : LONGCARD;
+      fsDateFmt          : LONGCARD;
+      szCurrency         : ARRAY [0..4] OF CHAR;
+      szThousandsSeparator : ARRAY [0..1] OF CHAR;
+      szDecimal          : ARRAY [0..1] OF CHAR;
+      szDateSeparator    : ARRAY [0..1] OF CHAR;
+      szTimeSeparator    : ARRAY [0..1] OF CHAR;
+      fsCurrencyFmt      : SHORTCARD;
+      cDecimalPlace      : SHORTCARD;
+      fsTimeFmt          : SHORTCARD;
+      filler             : SYSTEM.BYTE;
+      abReserved1        : ARRAY [0..1] OF SYSTEM.WORD;
+      szDataSeparator    : ARRAY [0..1] OF CHAR;
+      abReserved2        : ARRAY [0..4] OF SYSTEM.WORD;
+    | FALSE              :
+      Country            : LONGCARD;
+      CodePage           : LONGCARD;
+      DateFmt            : LONGCARD;
+      Currency           : ARRAY [0..4] OF CHAR;
+      ThousandsSeparator : ARRAY [0..1] OF CHAR;
+      Decimal            : ARRAY [0..1] OF CHAR;
+      DateSeparator      : ARRAY [0..1] OF CHAR;
+      TimeSeparator      : ARRAY [0..1] OF CHAR;
+      CurrencyFmt        : SHORTCARD;
+      DecimalPlace       : SHORTCARD;
+      TimeFmt            : SHORTCARD;
+      Filler             : SYSTEM.BYTE;
+      Reserved1          : ARRAY [0..1] OF SYSTEM.WORD;
+      DataSeparator      : ARRAY [0..1] OF CHAR;
+      Reserved2          : ARRAY [0..4] OF SYSTEM.WORD;
+    END;                 END;
+  PCOUNTRYCODE         = POINTER TO COUNTRYCODE;
+  PCOUNTRYINFO         = POINTER TO COUNTRYINFO;
+
+CONST (* CodePage values *)
+  CP_UNITED_STATES       = 437;
+  CP_MULTILINGUAL        = 850;
+  CP_LATIN2              = 852;
+  CP_TURKISH             = 857;
+  CP_PORTUGUESE          = 860;
+  CP_ICELAND             = 861;
+  CP_CANADIAN_FRENCH     = 863;
+  CP_NORDIC              = 865;
+  CP_JAPAN               = 932;
+  CP_KOREA               = 934;
+  CP_CHINA               = 936;
+  CP_TAIWAN              = 938;
+  CP_JAPAN_SAA           = 942;
+  CP_KOREA_SAA           = 944;
+  CP_CHINA_SAA           = 946;
+  CP_TAIWAN_SAA          = 948;
+
+
+PROCEDURE DosQueryCtryInfo
+( Length               : LONGCARD;
+  VAR CountryCode      : COUNTRYCODE;
+  VAR CountryInfo      : COUNTRYINFO;
+  VAR ActualLength     : LONGCARD
+)                      : APIRET;
+
+PROCEDURE DosQueryDBCSEnv
+( Length               : LONGCARD;
+  VAR CountryCode      : COUNTRYCODE;
+  VAR MemoryBuffer     : ARRAY OF CHAR
+)                      : APIRET;
+
+PROCEDURE DosMapCase
+( Length               : LONGCARD;
+  VAR CountryCode      : COUNTRYCODE;
+  VAR BinaryString     : ARRAY OF SYSTEM.BYTE
+)                      : APIRET;
+
+PROCEDURE DosQueryCollate
+( Length               : LONGCARD;
+  VAR CountryCode      : COUNTRYCODE;
+  VAR CollateBuffer    : ARRAY OF SHORTCARD;
+  VAR AtualLength      : LONGCARD
+)                      : APIRET;
+
+PROCEDURE DosQueryCp
+( Length               : LONGCARD;
+  VAR CodePageList     : ARRAY OF LONGCARD;
+  VAR ActualLength     : LONGCARD
+)                      : APIRET;
+
+PROCEDURE DosSetProcessCp
+( CodePage             : LONGCARD
+)                      : APIRET;
+
+END DOSNLS.

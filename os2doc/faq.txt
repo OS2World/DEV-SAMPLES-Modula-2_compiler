@@ -1,0 +1,551 @@
+Frequently asked questions May-July 1995
+========================================
+
+This document is based upon releases 2.01F-2.01H of the Modula-2 compiler
+for OS/2. It contains a summary of frequently asked questions
+and the author's replies.
+
+
+Complex Numbers
+---------------
+
+I am testing your OS/2 compiler with some large Modula-2 process simulation
+applications that I have developed. The new version (2.01f) seem quite robust.
+I will let you know if I find any new bugs.
+The ISO Modula-2 standard includes support for complex numbers.
+I would very much like to see you include complex number support in a
+future release of your compiler. Except for ISO Modula-2, only Fortran
+directly supports complex numbers, but Fortran is far too archaic for any
+new software development. Of course, complex number arithmetic can be handled
+by function calls, but this is still very awkward.
+
+    Adding COMPLEX would of course involve some runtime functions like
+    PROCEDURE AddCOMPLEX( VAR lval:COMPLEX; rval1,rval2:COMPLEX );
+    that is, not just adding reals. However: COMPLEX arithmetic might become
+    more complicated if it also includes mixed mode operations with reals,
+    e.g. complex x + real y, or SQRT( x ). Sometimes the resulting type
+    cannot be determined during compilation, but only at runtime.
+    So the whole thing might end up using OOP classes...
+
+Complex numbers are always a superset of real numbers. A simple solution
+would be to require explicit type conversion of real numbers to complex,
+e.g. x = CMPLX(2.0,0)+y, where x and y are of type COMPLEX, so that the
+type of operation could be resolved at compile time. For the square root
+function, a separate function such as
+PROCEDURE CSQRT( x: COMPLEX) : COMPLEX; could be used.
+This would be a simple yet effective approach. Mixed mode arithmetic should
+not be any more difficult than mixing REAL and INTEGER variables.
+
+   I think the additional complexity with such an approach closely matches
+   the problem of returning structures (see my reply on the subject
+   "function procedures"). Do you have a COMPLEX Modula-2 source module where
+   all the basic COMPLEX operators and functions are implemented?
+
+The usefulness of being able to return function values of any type is that
+the result can be passed as a value parameter to another function or
+procedure (as in the case of complex numbers). Also, if source code reads
+x := CSQRT(y), then this is immediately identifiable as an assignment
+statement. The alternative would be to use a procedure call such as
+CSQRT(x,y) to assign the complex square root of y to x. However, in this
+case the code is much less transparent, and you would have to see the
+procedure definition to know what is being done. This applies to many
+different types of situations, and not just complex numbers. The best
+implementation may be to push the address of the return value on the stack
+before pushing any of the function parameters. In the case of an assignment
+statement, the address of the receiving variable would be pushed. In all
+other cases, the value would be returned on the stack by subtracting the
+type size from the stack pointer before calling the routine, and then pushing
+the address of this stack location.
+
+
+With regard to possible complex number support for operators + - / *
+in a future compiler release, it seems to be not too difficult to
+implement ... so if you ever have time to add it, many people would
+find it useful.
+
+
+OOP
+---
+
+I think that your OOP extensions (based on Oberon) are very elegant.
+However, only single inheritance is supported. I have previously used
+the 16-bit TopSpeed Modula-2 compiler and found that its multiple inheritance
+can sometimes be very useful and elegant for solving certain classes of
+problems. Are you considering support for multiple inheritance in the future?
+
+    At first glance multiple inheritance seems quite simple and natural.
+    On closer inspection, however, it suffers various problems. E.g.,
+    if class C inherits from A and B:
+    1) If A and B contain fields or methods with identical names,
+    a name clash results in C, the names are inherited from both superclasses
+    and become ambiguous. Hence some mechanism for resolving such name clashes
+    would be needed.
+    2) If A and B are extensions of a class D, the repeated inheritance may
+    result in a diamond structure:
+        D
+       / \
+       A  B
+       \ /
+        C
+    All methods of D are inherited from both A and B. This does not only lead
+    to name clashes, all data fields of D are present in both A and B objects.
+    Should they now be present twice or only once in C objects?
+    3) Multiple inheritance leads to class libraries that are not trees,
+    but directed acyclic graphs, thus resulting in greater overall complexity.
+    4) Multiple inheritance also leads to less efficient code. A method
+    invocation would cause addtitional runtime costs, even if the program
+    uses only single inheritance. Multiple inheritance will violate the
+    rule that any method name can keep its associated virtual method table
+    offset unchanged.
+    Most well known class libraries (e.g. Smalltalk's or SOM/WPS's) do
+    without multiple inheritance. Even the new Oberon-2 does not implement
+    multiple inheritance.
+    HOWEVER: There are work around solutions for implementing multiple
+    inheritances using single inheritance mechanisms only:
+    1)  In many cases a class hierarchy like
+          A         B
+          |         |
+          B   or    A
+          |         |
+          C         C
+    will do the same.
+    2) If above mentioned solution does not work, you can wrap B in C
+    and inherit only from A or vice versa.
+          A   B
+          |
+          C
+           b:B
+    A    = POINTER TO ARec;
+    Rec  = RECORD ...END;
+    C    = POINTER TO CRec;
+    CRec = RECORD( ARec ) b:B; ...END;
+    3) Or you can also extend A and B to subclasses CA and CB and link
+    these via data fields:
+          A      B
+          |      |
+          CA     CB
+           b:CB   a:CA
+    CA    = POINTER TO CARec;
+    CARec = RECORD( ARec ) b:CB; ...END;
+    CB    = POINTER TO CBRec;
+    CBRec = RECORD( BRec ) a:CA; ...END;
+
+Thank you for explaining the difficulties associated multiple inheritance.
+The small benefits of multiple inheritence for certain programming problems
+probably do not justify the increase in complexity.
+
+
+Oberon-2
+--------
+
+  I have "Programming in Oberon" by Reiser and Wirth. Is that a good reference
+book for your compiler? My old TopSpeed manuals contain too much TS specific
+stuff to be much use.
+
+  
+    It certainly is, because that's where I took my OOP-extensions from.
+    There is even a better book called "Object-Oriented Programming in
+    Oberon-2" by Hanspeter Moessenboeck, published by Springer-Verlag. In
+    my opinion it's the best introduction to OOP-pro
+    ramming, especially for those (like me) who do not like the messy 
+    C/C++ language. In fact, I might one day also write an Oberon-2
+    front-end for my compiler. Apart from language extensions, my compiler
+    is based upon N.Wirth's "Programming in Modula-2", 4th
+    edition.
+
+
+
+
+MathLib0
+--------
+
+I noticed in your Mathlib0 module that you use the FSINCOS instruction
+in both the sin and cos functions. You should be using FSIN and FCOS
+instead because unless you need sin and cos simultaneously,
+the FSINCOS instruction is a little slower and, according to Intel,
+may also be less precise.
+
+    The FSIN instruction takes the sine of ST(0). However: Instead of
+    simply replacing ST(0) with the answer, the 387 does a curious thing:
+    it pushes an extra slot onto the floating point-point stack, then it
+    replaces the input operand with two numbers Y = ST(1) and X = ST(0),
+    such that Y/X will give the correct answer. Hence, the FSIN would have
+    to be followed by a FDIVR ST, ST(1). The total execution time would be
+    slightly above the FSINCOS approach.
+
+    As regards the math libraries: Porting existing 287-inline code to
+    387-inline code shouldn't be too difficult. My compiler always assumes
+    the presence of an FPU. The only purpose of compiler switch -F
+    ( or directive (*$F+*) ) is to tell the inline assembler that it should
+    also accept FPU-instructions.
+
+I realize that the FSINCOS instruction appears more convenient than the
+FSIN and FCOS instructions, however, I am concerned by the following
+comment on page 371 in the book "Programming the 80386" by John H. Crawford
+and Patrick P. Gelsinger:
+
+"The sine result of FSINCOS may be less precise than the FSIN and FCOS
+instructions".
+
+I presume that this information originates from Intel. I have not done
+any tests myself to observe the difference in accuracy.
+With regard to instruction timings, FSIN requires 122 to 771 cycles for
+the 80387 or 193 to 279 cycles for the 80486.
+The FSINCOS instruction timings are 194 to 809 cycles for the 80387 or
+243 to 392 cycles for the 80486.
+Since sine calculation using the FSIN instruction requires an additional
+FDIV instruction (88 cycles on 80387 and 73 cycles on 80486), the
+FSIN + FDIV timing is roughly equivalent to the timing of the FSINCOS
+instruction. Therefore, there is no real penalty for using the FSIN
+instruction, but there may be a slight advantage in accuracy.
+For the sake of a potential slight increase in accuracy with no execution
+speed penalty, I think its best to use the FSIN+FDIV combination.
+There is no mention in the same book that the FSINCOS instruction is
+less accurate than FCOS+FDIV. However, the FCOS instruction has the same
+timing as the FSIN instruction, but it requires only an additional FSTP ST
+instruction  (12 cycles on 80387 and 3 cycles on 80486) instead of an FDIV
+instruction. Therefore, if you want to calculate a cosine, FCOS is always
+faster than using FSINCOS.
+
+    You have convinced me. The new MathLib0 now uses FSIN/FDIVP and
+    FCOS/FDIVP. I have also inserted some FWAITs into sqrt and exp,
+    just to be on the safe side. These are normally produced automatically
+    by the code generator after FST or FSTP, if the next instruction is
+    not a FPU-instruction, unless writing explicit INLINE instructions.
+    The updated Mathlib0 will be uploaded with my next compiler release.
+
+
+
+Debugging
+---------
+
+Do you have a compiler option to output assembler code? I would be interested
+in seeing and commenting on the type of code the compiler generates.
+
+      No, I haven't. But the new compiler release supports the SD386 source
+      level debugger (source level lines, full symbols and types in a few
+      weeks time). Here is a SD386 debug sample (combined assembly and
+      source view):
+
+          File  Run  Breakpoints  Search  Data  View  Settings  Misc  Help
+        PROCEDURE WriteLn();
+        CONST
+          cr = CHR( 13 );
+          lf = CHR( 10 );
+        VAR
+          buffer       : ARRAY [0..1] OF CHAR;
+          rc           : APIRET;
+          BytesWritten : LONGCARD;
+        BEGIN
+        178B01B7  C80C0001        ENTER      000CH,01H
+        178B01BB  51              PUSH       ECX
+        178B01BC  52              PUSH       EDX
+        178B01BD  53              PUSH       EBX
+        178B01BE  56              PUSH       ESI
+        178B01BF  57              PUSH       EDI
+        178B01C0  06              PUSH       ES
+          buffer[ 0 ] := cr;
+        178B01C1  C645FA0D        MOV        BYTE_[-6H+EBP],0DH
+          buffer[ 1 ] := lf;
+        178B01C5  C645FB0A        MOV        BYTE_[-5H+EBP],0AH
+          rc := DosWrite( ScreenHandle, buffer, 2, BytesWritten );
+        178B01C9  8D7DFA          LEA        EDI,[-6H+EBP]
+        E:\TERMINAL.DLL <C:\CLIB\MOD32\OS2MOD\TERMINAL.MOD>          Thread 1
+        Instruction Step
+
+      The debugger works fine for my compiler. I haven't yet tested IPMD.
+      As far as I know IPMD uses the same internal debug formats.
+      You can also source-debug DLLs with SD386. I'll test SD386 a little bit
+      further, just to see, whether it will also handle PM applications and
+      SOM/WPS classes.
+
+
+Foreign definition modules
+--------------------------
+
+I notice you have DEF and LIB files in the os2lib and the corresponding 
+Modula DEF modules in os2api when you have proc declarations and a 
+standalone DEF module (e.g. os2def.def) for types and constants. 
+Is this correct?
+
+      Yes, it is! The DEF-files in the OS2LIB directory are not needed for
+      the compiler. I only used them for creating import library files (*.LIB).
+      Any DEF-file in the OS2LIB-directory is basically a linker definition file,
+      containing the target DLL-name and its exported names, along with their
+      ordinals. Such a linker definition file is read by the IMPLIB utility
+      which then creates an import LIB-file for the target DLL. Unfortunately,
+      the *.DEF file name extensions are also used by Modula's definition files,
+      hence I had to place them into separate directories, e.g. OS2API and
+      OS2MOD. It is only for the linker response files where I use *.LDF
+      instead of *.DEF for the compiler-generated linker definition files,
+      which are referenced in the linker response file *.RSP.
+
+Also, I am planning on making heavy use of the MMPM and DIVE API's (and
+possibly the OpenGL API's) so if you aren't planning on creating your own
+series of Modula DEF modules for them, do you have any suggestions on the
+easiest way to create my own?
+
+      At the moment I am busy writing IPMD debugger support, so I am afraid
+      it will take some time before writing additional API definition modules.
+      But you can write your own definition modules for *.LIB and *.DLL files.
+      You will always find the corresponding *.H files for the C-language.
+      I've manually translated almost all *.H files from the OS/2 Developers
+      Toolkit 2.x to the *.DEF files. The name of the definition module must
+      match the DLL-name or LIB-name (except for the different file extensions).
+      While porting from a *.H file you will find many function prototypes using
+      pointer paramaters. These can be expressed either as VAR-parameters
+      (passed by reference) or as pointer-parameters (passed by value ) in
+      Modula. C-language makes no distinction between a pointer to array
+      and pointer to type.
+
+      For instance, a C-prototype like
+        void <proc-id>( char* s );
+      may be expressed as
+        PROCEDURE <proc-id>( VAR s : CHAR );
+      or (if it is an input/output string)
+        PROCEDURE <proc-id>( VAR s : ARRAY OF CHAR );
+      or (if it is an input string)
+        PROCEDURE <proc-id>( s : ARRAY OF CHAR );
+
+      The procedure-headings must be preceded by a (*CDECL+*) comment embedded
+      directive because C uses different parameter-passing order and different
+      return sequence (callee clears stack). An open array parameter is always
+      passed as a pointer. If it is declared to be passed by value (not a
+      VAR-param) the procedure makes a local stack copy (unless procedure is
+      C-style declared).
+
+
+
+Workframe/2 integration
+-----------------------
+
+Your latest readme says something about a future IDE and Debugger. I'm using
+your compiler right now with WF/2 ver 2.1. The automatic dependency checking
+of your compiler takes care of 90% of the work ... I have the rest of the
+link, rc, etc commands in a CMD file that I edit (I haven't figured out how to
+get MakeMake to deal with RSP files yet). I was also pleasantly surprised to
+find that I could compile in a WF Monitor window and drag my errors to my
+editor and have them highlighted.
+
+      Congratulations! You are the first one who has integrated my compiler
+      into Workframe/2. How do you do this? I have never used Workframe/2,
+      only Multi-Edit from American Cybernetics. There are many users who'd
+      like to adopt my M2 into WF/2 but don't know how. Maybe you can E-mail
+      me a summary on how to do it, and I'll put it into the *.INF-files.
+      As regards the IDE (other than WF/2): Someone has offered me a sample
+      IDE. However, it will take some time to port it into Modula-2.
+
+My Modula-2 Settings for IBM's WorkFrame/2 ver2.1
+
+Composite Project Folder - Cribbage (substitute your own here)
+  Notebook Settings - Relevant Pages (set the following items after creating
+  the contents)
+     Page 1 - Target, Target Project = Cribbage Project
+     Page 2 - Sequence, Add Cribbage Project to Project Sequence
+  Composite Project Contents
+  1) Cribbage Log     - a WF/2 Actions Log
+       No settings needed ... just drag the Actions Log Template inside
+       the Composite Project and give it a name.
+  2) Cribbage Profile - a WF/2 Actions Profile
+       Drag the Actions Profile Template inside the Composte Project and
+       name it. Settings as follows :
+         Page 1
+           The only thing different here from the regular settings given
+           the tutorial is the compiler. Select Add. Select COMPILE as
+           class, give it a name like Modula-2 Compiler and enter
+           c:\mod32\os2bin\mod.exe (or whatever the path you actually
+           have mod.exe) in the "Command" field. The path is not necessary
+           but I like to know where all my tools are coming from.
+           Select the "Monitor", "Regular Popup" and "Files" buttons. You
+           may want to mess with the latter 2 to suit your organizational
+           needs but the first needs to be selected if you want your
+           compiler output to go to a WF/2 monitored session. (i.e., you
+           want to be able to go directly to source errors in your WF/2
+           enabled editor).
+         Page 2
+           In the "Source masks/types" field, enter *.def and *.mod, each
+           on its own line. In the "target masks.types", enter *.obj and
+           *.rsp
+           each on its own line. If you've added all of this stuff in your
+           Default Actions Profile, then these masks will appear in the
+           "Available Types" window and you can simply select them from
+           there.
+         Page 3
+           Press Reset. This will enter DDE3DEF2 in the Options DLL name
+           field and DEFAULT in the Entrypoint Class. Scroll down and select
+           COMPILE as the entrypoint.
+         Page 4
+           In the "Command" field, enter view c:\mod32\os2doc\mod-us.inf (or
+           whatever your path and preferred help file).
+         Now click on Add and the COMPILE class should be added to your
+         Actions Profile.
+  3) Cribbage Project - a WF/2 Project
+       Open the Settings notebook
+         Page 1 - Source
+           Enter all directory paths that contain your source code in the
+           "Source directories" window. Enter *.* in the "File Masks".
+         Page 2 subpage 1 - Target
+           Make the Working Directory the same as the main source directory.
+           Ignore the Make File entry unless you have figured out how to
+           write Make files ... I haven't and IBM's MakeMake doesn't
+           understand RSP files. (Or I haven't figured out how to do it).
+         Page 2 subpage 2 - Target
+           If your main module is called Main.mod then enter Main.exe in the
+           "Target program file name" field and select the Monitored button
+           so
+           that errors get directed to the WF/2 monitor. If your program
+           requires
+           command line parameters, put them in the "Parameters" field.
+         Page 3 - Profile
+           Drag and drop your Actions Profile object into the "Actions
+           Profile"
+           field. It will then fill in the Title automatically.
+         Page 4 - Actions subpage 1
+           Select the Modula compiler and click on Options. The Compile
+           Options
+           page will come up. Click on default and then add after the %f, any
+           compiler switches exactly as you would on the command line. Leave
+           the Error Template in its default state. Click Ok. Repeat this
+           with
+           your WF/2 enabled editor and insure that Send Errors to Editor is
+           clicked on. For me, I just Clicked Default and it worked fine. I'm
+           using EPM 6.0C Beta as my editor but Preditor and Rimstar both
+           work.
+         Page 4 - Actions subpages 2 and 3
+           I ignored these since the RSP files tell the linker what files to
+           get
+           and what to do with them and also contain the switches passed from
+           the
+           compiler settings (e.g. stacksize, VIO or PM, etc)
+         Page 5 - Monitor
+           Try Multiple concurrent monitors on or off and see what you like
+           the
+           best. I like a single monitor to avoid screen clutter.
+         Page 6 - Access
+           Click Default.
+       The rest of the pages are just standard folder stuff.
+
+Now when I open the Composite Project folder I see the above 3 objects. If I
+open the Project Folder, I see all of the files in my source directory(s).
+If I right click on a file with a MOD or DEF extension, COMPILE should be
+one of the menu options. If I set rc.exe up also in my actions profile,
+then I will see a COMPILE on all *.rc files as well. Since you specified the
+source masks for each compiler, WF/2 knows what to invoke.
+The modula compiler then handles the compilation of all dependent modules
+so a DEP file is not needed. You can see how powerful this can be especially
+if you are compiling some DLL's as well. You can group them in another Project
+Folder within the Composite folder and specify different compiler switches
+for them. Then a COMPILE on one of the objects in the DLL folder will behave
+differently than the COMPILE in the "EXE" folder. The ability to group files
+based on their actions or output is a nice WF/2 ver2 feature
+
+I use the "right click" method to compile my modula source, resource files,
+help files etc. Then I have an OS/2 cmd file that contains the rest.
+See the Hello.Mod instructions for what to put in it. In that case I
+selected COMPILE from hello.mod's and hello.rc's menus, and placed the
+LINK386 @HELLO.RSP and RC HELLO.RC HELLO.EXE commands in the cmd
+file and selected Run/Monitored from its menu. The cmd file solution is a
+little messy because you have to manually add in all RSP, RC, etc files to
+insure a good link. If you compile a new source module but forget to add its
+RSP to your cmd file then the link will fail. If I can figure out how to
+create a proper Make file or get MakeMake to create a valid one then I can
+eliminate this manual step. In any event, having the ability to
+direct the editor to my compile errors is a big plus.
+
+If your editor is WF enabled, compile errors that show up in a monitored
+session can be either double clicked on to bring up the editor with those
+line numbers highlighted or you can drag them to your editor and get the same
+result. You can then step through the errors getting a description of each one.
+
+Hope this helps others get their modula going with WF/2. It's working nicely
+for me. If anyone out there gets MakeMake working here then I'd like to hear
+about it.
+
+
+
+FCOS/FSIN mysteries
+-------------------
+
+The sin(x) and cos(x) functions in MathLib0 do not work. Corrected versions
+are given below. ...
+
+    Why not? The book "The 80386/387 Architecture" by Stephen P.Morse says
+    that FSIN causes an extra slot to be pushed onto the floating-point stack
+    and that it then replaces the input operand with 2 numbers y=ST(1) and
+    x=ST(0), such that y/x will give the correct answer. That's why I put
+    an FDIVP ST(1),ST after FSIN. I'll test it again with the SD386 tomorrow
+    and let you know what I get.
+
+I too was surprised that your original coding using FSIN did not work.
+According to the book "Programming the 80386" by J.H. Crawford and
+P.P. Gelsinger, the effect of the FSIN instruction is to set the registers
+ST=1.0 and ST(1)=sin(x), where x was the original value in ST. However,
+I also have "Microsoft's 80386/80486 Programming Guide", 2nd edition
+by R.P. Nelson, which says that FSIN simply replaces ST with sin(ST).
+(The FCOS instruction has the same discrepancy.) To answer the question,
+I ran some tests on my Pentium 90 MHz machine. I used Borland C++ for OS/2
+version 1.5, which has an integrated debugger that allows one to track the
+numeric coprocessor contents step-by-step. I found that the FSIN and FCOS
+instructions DO NOT push 1.0 into ST. They return the result directly in ST.
+Any attempt to carry out FSTP ST(1),ST resulted in an error, since ST(1) was
+empty. So I conclude that the earlier 80386 information is incorrect and may
+be based on early design information, but not production releases of the math
+coprocessors. I corrected the sin() and cos() functions in MathLib0 and they
+now work correctly (except for the bug in FCOS instruction coding).
+If you get different results, then there may be a difference between different
+math coprocessord (80387 vs. Pentium), but I will be further surprised to see
+this.
+
+    I've just done some testing on my 486DX-2 66 machine, with the same
+    results than yours. It seems Intel has changed the 80x87 architecture,
+    at least for 487 and 587. Maybe someone else will read this forum message
+    and let us know how the 387 processes the FSIN and FCOS instructions.
+    For the time being I've changed the MathLib0 as you have suggested.
+    As far as I remember Intel has its own CompuServe forum, hope to get
+    some official information from there.
+
+
+Typed constants
+---------------
+
+I can not get the following structured "CONST" to compile in definition module. 
+It compiles fine in implementation module.
+CONST CoreXlate : ARRAY OF INTEGER = [1,2,3,4,5];
+
+    Currently typed constants are only supported for implementation modules, 
+    not for definition modules. The reason is, that definition modules only 
+    describe the externals of variables or procedures, not their 
+    implementational details. You can get around this problem when you declare 
+    a pointer to the array and set that pointer to the initialized array 
+    variable in the implementation module.
+
+
+REXX support
+------------
+
+Are you aware of GPF'S 3GL GUI designer ? We are considering it  
+as a front end to develope user interface and make calls to process 
+control software developed with your compiler. It generates "C" code  or
+"REXX" for user interface but has support for hooking to DLL'S and 
+static library's  from other languages.  Any comments you have in 
+requards to this would be appreciated.
+
+
+    You can develop REXX DLLs using this Modula-2 compiler. Tony Busigin
+    has done some pioneering work on this. Any DLL called from REXX
+    requires a certain API suitable for REXX. My latest upload will 
+    include a code sample illustrating how to develop DLLs for REXX.
+
+    REXX has by default a very small stack only, hence it is often useful
+    to switch to another bigger stack within the DLL by using
+    SYSTEM.NEWPROCESS and SYSTEM.TRANSFER.
+
+    I do not not recommend static libraries, because every programming
+    language has its own runtime library. Mixing 2 different runtime
+    libraries might cause more work than necessary. Use dynamic linking
+    instead with DLLs developed in Modula-2. This compiler
+    supports DLL interfaces for Pascal-style, C-style, and REXX-style
+    APIs, all of which is simply a matter of writing corresponding
+    definition modules.
+
+

@@ -1,0 +1,12 @@
+LIBRARY PMWIN
+EXPORTS
+  WinQuerySystemAtomTable  @830
+  WinCreateAtomTable       @714
+  WinDestroyAtomTable      @724
+  WinAddAtom               @700
+  WinFindAtom              @744
+  WinDeleteAtom            @721
+  WinQueryAtomUsage        @803
+  WinQueryAtomLength       @801
+  WinQueryAtomName         @802
+

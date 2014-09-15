@@ -1,0 +1,42 @@
+DEFINITION MODULE WINTHUNKAPI;
+
+(************************************************************************
+  OS/2 2.x/3.0 interface for Presentation Manager Thunk Procedure API.
+
+  Copyright (c) 1992, 1995 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM   OS2DEF  IMPORT HWND, PFN;
+IMPORT WINHOOKS;
+
+PROCEDURE WinSetClassThunkProc
+( ClassName              : ARRAY OF CHAR;
+  ThunkProc              : PFN
+)                        : BOOLEAN;
+
+PROCEDURE WinQueryClassThunkProc
+( ClassName              : ARRAY OF CHAR
+)                        : PFN;
+
+PROCEDURE WinSetWindowThunkProc
+( WinHandle              : HWND;
+  ThunkProc              : PFN
+)                        : BOOLEAN;
+
+PROCEDURE WinQueryWindowThunkProc
+( WinHandle              : HWND
+)                        : PFN;
+
+PROCEDURE WinQueryWindowModel
+( WinHandle              : HWND
+)                        : LONGINT;
+
+CONST (* WinQueryWindowModel return values *)
+  PM_MODEL_1X = WINHOOKS.PM_MODEL_1X;  (* 16-bit memory model *)
+  PM_MODEL_2X = WINHOOKS.PM_MODEL_2X;  (* 32-bit memory model *)
+
+END WINTHUNKAPI.

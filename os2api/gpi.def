@@ -1,0 +1,28 @@
+DEFINITION MODULE GPI;
+
+(************************************************************************
+  OS/2 2.x/3.0 toplevel interface for all components of 
+               Graphics Program Interface
+
+  Copyright (c) 1995 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+ language extensions: '_' for identifiers, extended import syntax *)
+
+IMPORT FROM GPIDEF             ;
+IMPORT FROM GPIBITMAPS         ;
+IMPORT FROM GPICONTROL         ;
+IMPORT FROM GPICORRELATION     ;
+IMPORT FROM GPIDEFAULTS        ;
+IMPORT FROM GPILCIDS           ;
+IMPORT FROM GPILOGCOLORTABLE   ;
+IMPORT FROM GPIMETAFILES       ;
+IMPORT FROM GPIPATHS           ;
+IMPORT FROM GPIPOLYGON         ;
+IMPORT FROM GPIPRIMITIVES      ;
+IMPORT FROM GPIREGIONS         ;
+IMPORT FROM GPISEGEDITING      ;
+IMPORT FROM GPISEGMENTS        ;
+IMPORT FROM GPITRANSFORMS      ;
+
+END GPI.

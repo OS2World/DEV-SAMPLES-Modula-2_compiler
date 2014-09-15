@@ -1,0 +1,6 @@
+LIBRARY WPCONFIG
+EXPORTS
+  WPSchemePaletteClassData         @0x0029
+  WPSchemePaletteNewClass          @0x002A
+  M_WPSchemePaletteClassData       @0x008D
+  M_WPSchemePaletteNewClass        @0x008E

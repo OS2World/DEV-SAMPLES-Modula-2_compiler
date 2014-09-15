@@ -1,0 +1,52 @@
+DEFINITION MODULE DOSMVDM;
+
+(************************************************************************
+  OS/2 2.0 interface for multiple virutual DOS machines.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF        IMPORT APIRET, LHANDLE, SGID;
+
+TYPE
+  HVDD        = LHANDLE;
+  PHVDD       = POINTER TO HVDD;
+
+PROCEDURE DosOpenVDD
+( VDDName           : ARRAY OF CHAR;
+  VAR VDDHandle     : LONGCARD
+)                   : APIRET;
+
+PROCEDURE DosRequestVDD
+( VDDHandle         : HVDD;
+  SessionId         : SGID;
+  Command           : LONGCARD;
+  InputBufferLen    : LONGCARD;
+  VAR InputBuffer   : ARRAY OF SYSTEM.BYTE;
+  OutPutBufferLen   : LONGCARD;
+  VAR OutputBuffer  : ARRAY OF SYSTEM.BYTE
+)                   : APIRET;
+
+PROCEDURE DosCloseVDD
+( VDDHandle         : HVDD
+)                   : APIRET;
+
+PROCEDURE DosQueryDOSProperty
+( SessionId         : SGID;
+  Name              : ARRAY OF CHAR;
+  Size              : LONGCARD;
+  VAR Buffer        : ARRAY OF CHAR
+)                   : APIRET;
+
+PROCEDURE DosSetDOSProperty
+( SessionId         : SGID;
+  Name              : ARRAY OF CHAR;
+  Size              : LONGCARD;
+  VAR Buffer        : ARRAY OF CHAR
+)                   : APIRET;
+
+END DOSMVDM.

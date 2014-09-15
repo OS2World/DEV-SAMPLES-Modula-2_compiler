@@ -1,0 +1,36 @@
+DEFINITION MODULE WINSTATICS;
+
+(************************************************************************
+  OS/2 2.0 interface for window static controls.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+
+CONST
+  (* Static control styles:
+  *
+  * NOTE: the top 9 bits of the LOWORD of the window flStyle are used for
+  * DT_* flags.  The lower 7 bits are for SS_* styles.  This gives us up
+  * to 128 distinct static control types (we currently use 11 of them).
+  *)
+  SS_TEXT             = 00000001H;
+  SS_GROUPBOX         = 00000002H;
+  SS_ICON             = 00000003H;
+  SS_BITMAP           = 00000004H;
+  SS_FGNDRECT         = 00000005H;
+  SS_HALFTONERECT     = 00000006H;
+  SS_BKGNDRECT        = 00000007H;
+  SS_FGNDFRAME        = 00000008H;
+  SS_HALFTONEFRAME    = 00000009H;
+  SS_BKGNDFRAME       = 0000000AH;
+  SS_SYSICON          = 0000000BH;
+  SS_AUTOSIZE         = 00000040H;
+
+CONST (* Static control messages *)
+  SM_SETHANDLE        = 0100H;
+  SM_QUERYHANDLE      = 0101H;
+
+END WINSTATICS.
+

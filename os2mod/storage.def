@@ -1,0 +1,25 @@
+DEFINITION MODULE Storage;
+
+(**************************************************************************
+   OS/2 2.x  Modula-2 standard utility for local heap management.
+
+   Copyright (c) 1993 by Juergen Neuhoff
+**************************************************************************)
+
+FROM SYSTEM IMPORT ADDRESS;
+
+PROCEDURE ALLOCATE
+( VAR a  : ADDRESS;
+  size   : LONGCARD
+);
+
+PROCEDURE DEALLOCATE
+( VAR a  : ADDRESS;
+  size   : LONGCARD
+);
+
+PROCEDURE Available
+( size   : LONGCARD
+)        : BOOLEAN;
+
+END Storage.

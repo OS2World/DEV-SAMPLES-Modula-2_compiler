@@ -1,0 +1,154 @@
+DEFINITION MODULE WPPOWER;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPPower;
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPABS;
+IMPORT OS2DEF;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPPower               = POINTER TO WPPower;
+TYPE PM_WPPower             = POINTER TO M_WPPower;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPPower
+*************************************************************************)
+
+TYPE HWND                   = OS2DEF.HWND;
+
+(*************************************************************************
+  SOM class API for WPPower, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPPower_MajorVersion     = 1;
+  WPPower_MinorVersion     = 2;
+
+TYPE
+  WPPowerClassDataStructure   = RECORD
+    classObject                 : PSOMClass;
+    wpChangePowerState          : somMToken;
+    wpSetPowerManagement        : somMToken;
+    wpQueryPowerManagement      : somMToken;
+    wpSetPowerConfirmation      : somMToken;
+    wpQueryPowerConfirmation    : somMToken;
+    wpAddPowerPage              : somMToken;
+    wpAddPowerViewPage          : somMToken;
+    wpSetAutoRefresh            : somMToken;
+    wpQueryAutoRefresh          : somMToken;
+    wpQueryRefreshRate          : somMToken;
+    wpSetRefreshRate            : somMToken;
+    wpQueryEventSemaphore       : somMToken;
+    wpSetEventSemaphore         : somMToken;
+    wpQueryDefStatusView        : somMToken;
+    wpSetDefStatusView          : somMToken;
+                                END;
+
+VAR
+  WPPowerClassData : WPPowerClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPPower = RECORD( WPABS.WPAbstract ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPPowerNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+PROCEDURE( Self : PWPPower ) wpAddPowerPage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPPower ) wpAddPowerViewPage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPPower ) wpChangePowerState
+(
+  ulParm1       : LONGCARD;
+  ulParm2       : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPPower ) wpQueryAutoRefresh( ) : BOOLEAN;
+
+PROCEDURE( Self : PWPPower ) wpQueryDefStatusView( ) : LONGCARD;
+
+PROCEDURE( Self : PWPPower ) wpQueryPowerConfirmation( ) : BOOLEAN;
+
+PROCEDURE( Self : PWPPower ) wpQueryPowerManagement( ) : BOOLEAN;
+
+PROCEDURE( Self : PWPPower ) wpQueryRefreshRate( ) : LONGCARD;
+
+PROCEDURE( Self : PWPPower ) wpSetAutoRefresh
+(
+  fAutoRefresh  : BOOLEAN
+);
+
+PROCEDURE( Self : PWPPower ) wpSetDefStatusView
+(
+  ulDefStatus   : LONGCARD
+);
+
+PROCEDURE( Self : PWPPower ) wpSetPowerConfirmation
+(
+  fConfirm      : BOOLEAN
+);
+
+PROCEDURE( Self : PWPPower ) wpSetPowerManagement
+(
+  fPower        : BOOLEAN
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPPower ) wpSetRefreshRate
+(
+  ulRefreshRate : LONGCARD
+)               : BOOLEAN;
+
+
+(*************************************************************************
+  SOM class API for M_WPPower, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPPower_MajorVersion   = 1;
+  M_WPPower_MinorVersion   = 2;
+
+TYPE
+  M_WPPowerClassDataStructure   = RECORD
+    classObject                   : PSOMClass;
+                                  END;
+
+VAR
+  M_WPPowerClassData : M_WPPowerClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPPower = RECORD( WPABS.M_WPAbstract ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPPowerNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+END WPPOWER.

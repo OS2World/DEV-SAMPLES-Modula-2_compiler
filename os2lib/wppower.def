@@ -1,0 +1,6 @@
+LIBRARY WPCONFIG
+EXPORTS
+  WPPowerClassData         @0x002F
+  WPPowerNewClass          @0x0030
+  M_WPPowerClassData       @0x0094
+  M_WPPowerNewClass        @0x0095

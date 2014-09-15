@@ -1,0 +1,247 @@
+DEFINITION MODULE WINHOOKS;
+
+(************************************************************************
+  OS/2 2.1 interface for Presentation Manager hook manager.
+
+  Copyright (c) 1992,1994 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF        IMPORT HAB, HWND, HMQ,  HDC, HMODULE;
+FROM   OS2DEF        IMPORT TYPEPREFIX, BOOL32, RECTL, PFN;
+FROM   WINDEF        IMPORT MPARAM, PFNWP;
+FROM   WINMESSAGEMGR IMPORT QMSG;
+FROM   WINLOAD       IMPORT HLIB;
+
+PROCEDURE WinSetHook
+( AnchorBlockHandle         : HAB;
+  MsgQueueHandle            : HMQ;
+  HookType                  : LONGINT;
+  HookProc                  : PFN;
+  ModHandle                 : HMODULE
+)                           : BOOLEAN;
+
+PROCEDURE WinReleaseHook
+( AnchorBlockHandle         : HAB;
+  MsgQueueHandle            : HMQ;
+  HookType                  : LONGINT;
+  HookProc                  : PFN;
+  ModHandle                 : HMODULE
+)                           : BOOLEAN;
+
+PROCEDURE WinCallMsgFilter
+( AnchorBlockHandle         : HAB;
+  VAR QueueMsg              : QMSG;
+  Filter                    : LONGCARD
+)                           : BOOLEAN;
+
+CONST (* hook procedure type codes *)
+  HK_SENDMSG                = 0;
+  HK_INPUT                  = 1;
+  HK_MSGFILTER              = 2;
+  HK_JOURNALRECORD          = 3;
+  HK_JOURNALPLAYBACK        = 4;
+  HK_HELP                   = 5;
+  HK_LOADER                 = 6;
+  HK_REGISTERUSERMSG        = 7;
+  HK_MSGCONTROL             = 8;
+  HK_PLIST_ENTRY            = 9;
+  HK_PLIST_EXIT             = 10;
+  HK_FINDWORD               = 11;
+  HK_CODEPAGECHANGED        = 12;
+  HK_WINDOWDC               = 15;
+  HK_DESTROYWINDOW          = 16;
+  HK_CHECKMSGFILTER         = 20;
+  HK_MSGINPUT               = 21;
+  HK_LOCKUP                 = 23;
+  HK_FLUSHBUF               = 24;
+
+TYPE (* send-message structure *)
+  SMHSTRUCT                 = RECORD (* smhs *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      mp2                     : MPARAM;
+      mp1                     : MPARAM;
+      msg                     : LONGCARD;
+      hwnd                    : HWND;
+      model                   : LONGCARD;
+    | FALSE                   :
+      MParam1                 : MPARAM;
+      MParam2                 : MPARAM;
+      Msg                     : LONGCARD;
+      WinHandle               : HWND;
+      Model                   : LONGCARD;
+    END;                      END;
+  PSMHSTRUCT                = POINTER TO SMHSTRUCT;
+
+CONST (* constant values for SMHSTRUCT.Model *)
+  PM_MODEL_1X               = 0;
+  PM_MODEL_2X               = 1;
+
+
+TYPE (* Hook procedure types according to HK_... *)
+
+  SendMsgHookT = PROCEDURE          (* HK_SENDMSG        *)
+  ( HAB,                            (* AnchorBlockHandle *) 
+    VAR SMHSTRUCT,                  (* SendMsg           *) 
+    BOOLEAN                         (* InterTask         *) 
+  );
+
+  InputHookT = PROCEDURE            (* HK_INPUT          *)
+  ( HAB,                            (* AnchorBlockHandle *) 
+    VAR QMSG,                       (* QueueMsg          *) 
+    LONGCARD                        (* RemoveFlag        *) 
+  ) : BOOLEAN;
+
+  MsgFilterHookT = PROCEDURE        (* HK_MSGFILTER      *)
+  ( HAB,                            (* AnchorBlockHandle *) 
+    VAR QMSG,                       (* QueueMsg          *) 
+    LONGCARD                        (* FilterFlag        *) 
+  ) : BOOLEAN;
+
+  JournalRecordHookT = PROCEDURE    (* HK_JOURNALRECORD  *)
+  ( HAB,                            (* AnchorBlockHandle *) 
+    VAR QMSG                        (* QueueMsg          *) 
+  );
+
+  JournalPlaybackHookT = PROCEDURE  (* HK_JOURNALPLAYBACK *)
+  ( HAB,                            (* AnchorBlockHandle  *) 
+    BOOLEAN,                        (* MsgSkip            *) 
+    VAR  QMSG                       (* QueueMsg           *)
+  ) : LONGCARD;
+
+  HelpHookT = PROCEDURE             (* HK_HELP           *)
+  ( HAB,                            (* AnchorBlockHandle *) 
+    LONGCARD,                       (* Mode              *) 
+    LONGCARD,                       (* MainTopic         *) 
+    LONGCARD,                       (* SubTopic          *) 
+    VAR RECTL                       (* Position          *)     
+  ) : BOOLEAN;
+
+  LoaderHookT = PROCEDURE           (* HK_LOADER         *)
+  ( HAB,                            (* AnchorBlockHandle *) 
+    LONGINT,                        (* ContextId         *) 
+    ARRAY OF CHAR,                  (* LibName           *) 
+    VAR HLIB,                       (* LibHandle         *) 
+    ARRAY OF CHAR,                  (* ProcName          *) 
+    PFNWP                           (* WinProc           *) 
+  ) : BOOLEAN;
+
+  RegisterUserHookT = PROCEDURE     (* HK_REGISTERUSERMSG *)
+  ( HAB,                            (* AnchorBlockHandle  *) 
+    LONGCARD,                       (* RMPCount           *) 
+    VAR  ARRAY OF LONGCARD,         (* RMP                *)    
+    VAR  ARRAY OF BOOL32            (* Registered         *)    
+  ) : BOOLEAN;
+
+  MsgControlHookT = PROCEDURE       (* HK_MSGCONTROL     *)
+  ( HAB,                            (* AnchorBlockHandle *) 
+    LONGINT,                        (* ContextId         *) 
+    HWND,                           (* SEIWinHandle      *) 
+    ARRAY OF CHAR,                  (* ClassName         *) 
+    LONGCARD,                       (* MsgClass          *) 
+    LONGINT,  (* SMI_... *)         (* ControlId         *) 
+    VAR BOOL32                      (* Success           *) 
+  ) : BOOLEAN;
+
+  ProgramListEntryHookT = PROCEDURE (* HK_PLIST_ENTRY    *)
+  ( HAB,                            (* AnchorBlockHandle *) 
+    VAR ARRAY OF SYSTEM.BYTE,       (* ProfileHkParm     *)    
+    VAR BOOL32                      (* NoExecute         *)    
+  ) : BOOLEAN;
+
+  ProgramListExitHookT = PROCEDURE  (* HK_PLIST_EXIT     *)
+  ( HAB,                            (* AnchorBlockHandle *)
+    VAR ARRAY OF SYSTEM.BYTE        (* ProfileHkParm     *) 
+  ) : BOOLEAN;
+
+  FindWordHookT = PROCEDURE         (* HK_FINDWORD   *)
+  ( CARDINAL,                       (* CodePage      *) 
+    VAR ARRAY OF CHAR,              (* Text          *)
+    LONGCARD,                       (* TextMax       *) 
+    LONGCARD,                       (* BreakPos      *) 
+    VAR LONGCARD,                   (* BreakStarted  *)  
+    VAR LONGCARD,                   (* BreakEnded    *)  
+    VAR LONGCARD                    (* NextWordPos   *)  
+  ) : BOOLEAN;
+
+  CodePageChangedHookT = PROCEDURE  (* HK_CODEPAGECHANGED *)
+  ( HMQ,                            (* MsgQueueHandle     *) 
+    LONGCARD,                       (* OldCodePage        *) 
+    LONGCARD                        (* NewCodePage        *) 
+  );
+
+  WindowDCHookT = PROCEDURE         (* HK_WINDOWDC        *)
+  ( HAB,                            (* AnchorBlockHandle  *)
+    HDC,                            (* DevContextHandle   *)
+    HWND,                           (* WinHandle          *)
+    BOOLEAN                         (* Association        *)
+  ) : BOOLEAN;
+
+  DestroyWindowHookT = PROCEDURE    (* HK_DESTROYWINDOW  *)
+  ( HAB,                            (* AnchorBlockHandle *) 
+    HWND,                           (* WinHandle         *) 
+    LONGCARD                        (* Reserved          *) 
+  ) : BOOLEAN;
+
+  CheckMsgFilteHookT = PROCEDURE    (* HK_CHECKMSGFILTER *)
+  ( HAB,                            (* AnchorBlockHandle *)
+    VAR QMSG,                       (* QueueMsg          *)
+    LONGCARD,                       (* FirstMsg          *)
+    LONGCARD,                       (* LastMsg           *)
+    LONGCARD                        (* Options           *)
+  ) : BOOLEAN;
+
+  MsgInputHookT = PROCEDURE         (* HK_MSGINPUT       *)
+  ( HAB,                            (* AnchorBlockHandle *)
+    VAR QMSG,                       (* QueueMsg          *)
+    BOOLEAN,                        (* SkipFlag          *)
+    VAR BOOLEAN                     (* NoRecordFlag      *)
+  ) : BOOLEAN;
+
+  LockupHookT = PROCEDURE           (* HK_LOCKUP         *)
+  ( HAB,                            (* AnchorBlockHandle *)
+    HWND                            (* LockupFrame       *)
+  ) : BOOLEAN;
+
+  FlushBufHookT = PROCEDURE         (* HK_FLUSHBUF       *)
+  ( HAB                             (* AnchorBlockHandle *)
+  ) : BOOLEAN;
+
+
+
+CONST (* Current message queue constant *)
+  HMQ_CURRENT            = HMQ( 1 );
+
+CONST (* WH_MSGFILTER context codes *)
+  MSGF_DIALOGBOX         = 1;
+  MSGF_MESSAGEBOX        = 2;
+  MSGF_TRACK             = 8;
+  MSGF_DDEPOSTMSG        = 3;
+
+CONST (* HK_HELP Help modes *)
+  HLPM_FRAME             = -1;
+  HLPM_WINDOW            = -2;
+  HLPM_MENU              = -3;
+
+CONST (* HK_LOADER context codes *)
+  LHK_DELETEPROC         = 1;
+  LHK_DELETELIB          = 2;
+  LHK_LOADPROC           = 3;
+  LHK_LOADLIB            = 4;
+
+CONST (* HK_MSGCONTROL context codes *)
+  MCHK_MSGINTEREST       = 1;
+  MCHK_CLASSMSGINTEREST  = 2;
+  MCHK_SYNCHRONISATION   = 3;
+  MCHK_MSGMODE           = 4;
+
+CONST (* HK_REGISTERUSERMSG conext codes *)
+  RUMHK_DATATYPE         = 1;
+  RUMHK_MSG              = 2;
+
+END WINHOOKS.

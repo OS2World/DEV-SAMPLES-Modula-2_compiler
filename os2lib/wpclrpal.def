@@ -1,0 +1,6 @@
+LIBRARY WPCONFIG
+EXPORTS
+  WPColorPaletteClassData         @0x0023
+  WPColorPaletteNewClass          @0x0024
+  M_WPColorPaletteClassData       @0x0087
+  M_WPColorPaletteNewClass        @0x0088

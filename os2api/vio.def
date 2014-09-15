@@ -1,0 +1,687 @@
+DEFINITION MODULE VIO;
+
+(*************************************************************************
+  OS/2 2.x or 3.0  Video Kernel API.
+
+  (c) 1995 by Juergen Neuhoff
+**************************************************************************)
+
+(*$XL+    Modula-2 language extensions: '_' allowed for symbol names     *)
+(*$A      default alignment scheme for record fields                     *)
+(*$API16+ 32 to 16 bit thunking for API functions                        *)
+
+
+IMPORT SYSTEM;
+
+TYPE
+  HVIO             = CARDINAL;
+  PHVIO            = POINTER TO HVIO;
+  APIRET16         = CARDINAL;
+  TYPEPREFIX       = BOOLEAN;
+  SEL              = CARDINAL;
+
+PROCEDURE VioRegister
+(
+  ModName          : ARRAY OF CHAR;
+  EntryName        : ARRAY OF CHAR;
+  Fun1             : LONGCARD;
+  Fun2             : LONGCARD
+)                  : APIRET16;
+
+PROCEDURE VioGlobalReg
+(
+  ModName          : ARRAY OF CHAR;
+  EntryName        : ARRAY OF CHAR;
+  Fun1             : LONGCARD;
+  Fun2             : LONGCARD;
+  Return           : CARDINAL
+)                  : APIRET16;
+
+CONST (* first parameter registration constants   *)
+  VR_VIOGETCURPOS            = 00000001H;
+  VR_VIOGETCURTYPE           = 00000002H;
+  VR_VIOGETMODE              = 00000004H;
+  VR_VIOGETBUF               = 00000008H;
+  VR_VIOGETPHYSBUF           = 00000010H;
+  VR_VIOSETCURPOS            = 00000020H;
+  VR_VIOSETCURTYPE           = 00000040H;
+  VR_VIOSETMODE              = 00000080H;
+  VR_VIOSHOWBUF              = 00000100H;
+  VR_VIOREADCHARSTR          = 00000200H;
+  VR_VIOREADCELLSTR          = 00000400H;
+  VR_VIOWRTNCHAR             = 00000800H;
+  VR_VIOWRTNATTR             = 00001000H;
+  VR_VIOWRTNCELL             = 00002000H;
+  VR_VIOWRTTTY               = 00004000H;
+  VR_VIOWRTCHARSTR           = 00008000H;
+  VR_VIOWRTCHARSTRATT        = 00010000H;
+  VR_VIOWRTCELLSTR           = 00020000H;
+  VR_VIOSCROLLUP             = 00040000H;
+  VR_VIOSCROLLDN             = 00080000H;
+  VR_VIOSCROLLLF             = 00100000H;
+  VR_VIOSCROLLRT             = 00200000H;
+  VR_VIOSETANSI              = 00400000H;
+  VR_VIOGETANSI              = 00800000H;
+  VR_VIOPRTSC                = 01000000H;
+  VR_VIOSCRLOCK              = 02000000H;
+  VR_VIOSCRUNLOCK            = 04000000H;
+  VR_VIOSAVREDRAWWAIT        = 08000000H;
+  VR_VIOSAVREDRAWUNDO        = 10000000H;
+  VR_VIOPOPUP                = 20000000H;
+  VR_VIOENDPOPUP             = 40000000H;
+  VR_VIOPRTSCTOGGLE          = 80000000H;
+
+CONST (* second parameter registration constants  *)
+  VR_VIOMODEWAIT             = 00000001H;
+  VR_VIOMODEUNDO             = 00000002H;
+  VR_VIOGETFONT              = 00000004H;
+  VR_VIOGETCONFIG            = 00000008H;
+  VR_VIOSETCP                = 00000010H;
+  VR_VIOGETCP                = 00000020H;
+  VR_VIOSETFONT              = 00000040H;
+  VR_VIOGETSTATE             = 00000080H;
+  VR_VIOSETSTATE             = 00000100H;
+
+PROCEDURE VioDeRegister
+( )                : APIRET16;
+
+PROCEDURE VioGetBuf
+(
+  VAR LVB          : ARRAY OF SYSTEM.BYTE;
+  VAR LVBSize      : CARDINAL;
+  Handle           : HVIO
+)                  : APIRET16;
+
+PROCEDURE VioGetCurPos
+(
+  VAR Row          : CARDINAL;
+  VAR Column       : CARDINAL;
+  Handle           : HVIO
+)                  : APIRET16;
+
+PROCEDURE VioSetCurPos
+(
+  Row              : CARDINAL;
+  Column           : CARDINAL;
+  Handle           : HVIO
+)                  : APIRET16;
+
+TYPE (* structure for VioSetCurType() or GetCurType() *)
+  VIOCURSORINFO   = RECORD  (* vioci *)
+    CASE            : TYPEPREFIX OF
+    | FALSE         :
+      Start         : CARDINAL;
+      End           : CARDINAL;
+      Width         : CARDINAL;
+      Attr          : CARDINAL;
+    | TRUE          :
+      yStart        : CARDINAL;
+      cEnd          : CARDINAL;
+      cx            : CARDINAL;
+      attr          : CARDINAL;
+    END;            END;
+  PVIOCURSORINFO  = POINTER TO VIOCURSORINFO;
+
+PROCEDURE VioGetCurType
+(
+  VAR CursorInfo    : VIOCURSORINFO;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioSetCurType
+(
+  VAR CursorInfo    : VIOCURSORINFO;
+  Handle            : HVIO
+)                   : APIRET16;
+
+CONST (* VIOMODEINFO.color constants *)
+  COLORS_2        = 0001H;
+  COLORS_4        = 0002H;
+  COLORS_16       = 0004H;
+
+(*$A1  from now on byte alignment for record fields *)
+
+TYPE (* structure for VioSetMode() or VioGetMode() *)
+  VIOMODEINFO     = RECORD (* viomi *)
+    CASE            : TYPEPREFIX OF
+    | FALSE         :
+      Size          : CARDINAL;
+      Type          : SHORTCARD;
+      Color         : SHORTCARD;
+      Col           : CARDINAL;
+      Row           : CARDINAL;
+      HRes          : CARDINAL;
+      VRes          : CARDINAL;
+      Fmt_ID        : SHORTCARD;
+      Attrib        : SHORTCARD;
+      Buf_Addr      : LONGCARD;  (* 16:16 *)
+      Buf_Length    : LONGCARD;
+      Full_Length   : LONGCARD;
+      Partial_Length: LONGCARD;
+      Ext_Data_Addr : POINTER TO ARRAY [0..0] OF CHAR; (* 16:16 *)
+    | TRUE          :
+      cb            : CARDINAL;
+      fbType        : SHORTCARD;
+      color         : SHORTCARD;
+      col           : CARDINAL;
+      row           : CARDINAL;
+      hres          : CARDINAL;
+      vres          : CARDINAL;
+      fmt_ID        : SHORTCARD;
+      attrib        : SHORTCARD;
+      buf_addr      : LONGCARD;
+      buf_length    : LONGCARD;
+      full_length   : LONGCARD;
+      partial_length: LONGCARD;
+      ext_data_addr : POINTER TO ARRAY [0..0] OF CHAR; (* 16:16! *)
+    END;            END;
+  PVIOMODEINFO    = POINTER TO VIOMODEINFO;
+
+CONST
+  VGMT_OTHER                 = 01H;
+  VGMT_GRAPHICS              = 02H;
+  VGMT_DISABLEBURST          = 04H;
+
+PROCEDURE VioGetMode
+(
+  VAR ModeInfo      : VIOMODEINFO;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioSetMode
+(
+  VAR ModeInfo      : VIOMODEINFO;
+  Handle            : HVIO
+)                   : APIRET16;
+
+TYPE (* structure for VioGetPhysBuf() *)
+  VIOPHYSBUF        = RECORD (* viopb *)
+    CASE            : TYPEPREFIX OF
+    | FALSE         :
+      Buffer        : POINTER TO ARRAY [0..0] OF SYSTEM.BYTE; (* 0:32 *)
+      Size          : LONGCARD;
+      Selector      : ARRAY [0..0] OF SEL;
+    | TRUE          :
+      pBuf          : POINTER TO ARRAY [0..0] OF SYSTEM.BYTE; (* 0:32 *)
+      cb            : LONGCARD;
+      asel          : ARRAY [0..0] OF SEL;
+    END;            END;
+  PVIOPHYSBUF     = POINTER TO VIOPHYSBUF;
+
+PROCEDURE VioGetPhysBuf
+(
+  VAR PhysBuf       : VIOPHYSBUF;
+  Reserved          : CARDINAL
+)                   : APIRET16;
+
+PROCEDURE VioReadCellStr
+(
+  VAR CellStr       : ARRAY OF SYSTEM.BYTE;
+  VAR Size          : CARDINAL;
+  Row               : CARDINAL;
+  Column            : CARDINAL;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioReadCharStr
+(
+  VAR CharStr       : ARRAY OF CHAR;
+  VAR Size          : CARDINAL;
+  Row               : CARDINAL;
+  Column            : CARDINAL;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioWrtCellStr
+(
+  VAR CellStr       : ARRAY OF SYSTEM.BYTE;
+  Size              : CARDINAL;
+  Row               : CARDINAL;
+  Column            : CARDINAL;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioWrtCharStr
+(
+  CharStr           : ARRAY OF CHAR;
+  Size              : CARDINAL;
+  Row               : CARDINAL;
+  Column            : CARDINAL;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioScrollDn
+(
+  TopRow            : CARDINAL;
+  LeftCol           : CARDINAL;
+  BotRow            : CARDINAL;
+  RightCol          : CARDINAL;
+  Lines             : CARDINAL;
+  VAR Cell          : ARRAY OF SYSTEM.BYTE;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioScrollUp
+(
+  TopRow            : CARDINAL;
+  LeftCol           : CARDINAL;
+  BotRow            : CARDINAL;
+  RightCol          : CARDINAL;
+  Lines             : CARDINAL;
+  VAR Cell          : ARRAY OF SYSTEM.BYTE;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioScrollLf
+(
+  TopRow            : CARDINAL;
+  LeftCol           : CARDINAL;
+  BotRow            : CARDINAL;
+  RightCol          : CARDINAL;
+  Columns           : CARDINAL;
+  VAR Cell          : ARRAY OF SYSTEM.BYTE;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioScrollRt
+(
+  TopRow            : CARDINAL;
+  LeftCol           : CARDINAL;
+  BotRow            : CARDINAL;
+  RightCol          : CARDINAL;
+  Columns           : CARDINAL;
+  VAR Cell          : ARRAY OF SYSTEM.BYTE;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioWrtNAttr
+(
+  VAR Attr          : ARRAY OF SYSTEM.BYTE;
+  RepeatCount       : CARDINAL;
+  Row               : CARDINAL;
+  Column            : CARDINAL;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioWrtNCell
+(
+  VAR Cell          : ARRAY OF SYSTEM.BYTE;
+  RepeatCount       : CARDINAL;
+  Row               : CARDINAL;
+  Column            : CARDINAL;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioWrtNChar
+(
+  VAR Character     : CHAR;
+  RepeatCount       : CARDINAL;
+  Row               : CARDINAL;
+  Column            : CARDINAL;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioWrtTTY
+(
+  CharStr           : ARRAY OF CHAR;
+  Count             : CARDINAL;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioWrtCharStrAtt
+(
+  CharStr           : ARRAY OF CHAR;
+  Count             : CARDINAL;
+  Row               : CARDINAL;
+  Column            : CARDINAL;
+  VAR Attr          : ARRAY OF SYSTEM.BYTE;
+  Handle            : HVIO
+)                   : APIRET16;
+
+CONST
+  VCC_SBCSCHAR      = 0;
+  VCC_DBCSFULLCHAR  = 1;
+  VCC_DBCS1STHALF   = 2;
+  VCC_DBCS2NDHALF   = 3;
+
+PROCEDURE VioCheckCharType
+(
+  VAR Type          : CARDINAL;
+  Row               : CARDINAL;
+  Column            : CARDINAL;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioShowBuf
+(
+  LVBOffset         : CARDINAL;
+  Size              : CARDINAL;
+  Handle            : HVIO
+)                   : APIRET16;
+
+CONST
+  ANSI_ON           = 1;
+  ANSI_OFF          = 0;
+
+PROCEDURE VioSetAnsi
+(
+  Ansi              : CARDINAL;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioGetAnsi
+(
+  VAR Ansi          : CARDINAL;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioPrtSc
+(
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioPrtScToggle
+(
+  Handle            : HVIO
+)                   : APIRET16;
+
+CONST
+  VSRWI_SAVEANDREDRAW  = 0;
+  VSRWI_REDRAW         = 1;
+  VSRWN_SAVE           = 0;
+  VSRWN_REDRAW         = 1;
+  UNDOI_GETOWNER       = 0;
+  UNDOI_RELEASEOWNER   = 1;
+  UNDOK_ERRORCODE      = 0;
+  UNDOK_TERMINATE      = 1;
+
+
+(**** nowhere found in OS/2 DLLs ..
+PROCEDURE VioRedrawSize
+(
+  VAR Redraw        : LONGCARD
+)                   : APIRET16;
+****)
+
+PROCEDURE VioSavRedrawWait
+(
+  RedrawInd         : CARDINAL;
+  VAR NotifyType    : CARDINAL;
+  Reserved          : CARDINAL
+)                   : APIRET16;
+
+PROCEDURE VioSavRedrawUndo
+(
+  OwnerInd          : CARDINAL;
+  KillInd           : CARDINAL;
+  Reserved          : CARDINAL
+)                   : APIRET16;
+
+CONST
+  VMWR_POPUP        = 0;
+  VMWN_POPUP        = 0;
+
+PROCEDURE VioModeWait
+(
+  ReqType           : CARDINAL;
+  VAR NotifyType    : CARDINAL;
+  Reserved          : CARDINAL
+)                   : APIRET16;
+
+PROCEDURE VioModeUndo
+(
+  OwnerInd          : CARDINAL;
+  KillInd           : CARDINAL;
+  Reserved          : CARDINAL
+)                   : APIRET16;
+
+CONST
+  LOCKIO_NOWAIT     = 0;
+  LOCKIO_WAIT       = 1;
+  LOCK_SUCCESS      = 0;
+  LOCK_FAIL         = 1;
+
+PROCEDURE VioScrLock
+(
+  Wait              : CARDINAL;
+  VAR NotLocked     : CARDINAL;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioScrUnLock
+(
+  Handle            : HVIO
+)                   : APIRET16;
+
+CONST
+  VP_NOWAIT         = 0000H;
+  VP_WAIT           = 0001H;
+  VP_OPAQUE         = 0000H;
+  VP_TRANSPARENT    = 0002H;
+
+PROCEDURE VioPopUp
+(
+  VAR Wait          : CARDINAL;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioEndPopUp
+(
+  Handle            : HVIO
+)                   : APIRET16;
+
+CONST (* VIOCONFIGINFO.adapter constants *)
+  DISPLAY_MONOCHROME      = 0000H;
+  DISPLAY_CGA             = 0001H;
+  DISPLAY_EGA             = 0002H;
+  DISPLAY_VGA             = 0003H;
+  DISPLAY_8514A           = 0007H;
+  DISPLAY_IMAGEADAPTER    = 0008H;
+  DISPLAY_XGA             = 0009H;
+
+CONST (* VIOCONFIGINFO.display constants *)
+  MONITOR_MONOCHROME      = 0000H;
+  MONITOR_COLOR           = 0001H;
+  MONITOR_ENHANCED        = 0002H;
+  MONITOR_8503            = 0003H;
+  MONITOR_851X_COLOR      = 0004H;
+  MONITOR_8514            = 0009H;
+  MONITOR_FLATPANEL       = 000AH;
+  MONITOR_8507_8604       = 000BH;
+  MONITOR_8515            = 000CH;
+  MONITOR_9515            = 000FH;
+  MONITOR_9517            = 0011H;
+  MONITOR_9518            = 0012H;
+
+(*$A2  from now on WORD alignment for record fields >= 2 bytes *)
+
+TYPE (* structure for VioGetConfig() *)
+  VIOCONFIGINFO        = RECORD (* vioin *)
+    CASE                 : TYPEPREFIX OF
+    | FALSE              :
+      Size               : CARDINAL;
+      Adapter            : CARDINAL;
+      Sisplay            : CARDINAL;
+      MemorySize         : LONGCARD;
+    | TRUE               :
+      cb                 : CARDINAL;
+      adapter            : CARDINAL;
+      display            : CARDINAL;
+      cbMemory           : LONGCARD;
+      Configuration      : CARDINAL;
+      VDHVersion         : CARDINAL;
+      Flags              : CARDINAL;
+      HWBufferSize       : LONGCARD;
+      FullSaveSize       : LONGCARD;
+      PartSaveSize       : LONGCARD;
+      EMAdaptersOFF      : CARDINAL;
+      EMDisplaysOFF      : CARDINAL;
+    END;                 END;
+  PVIOCONFIGINFO       = POINTER TO VIOCONFIGINFO;
+
+CONST
+  VIO_CONFIG_CURRENT   = 0;
+  VIO_CONFIG_PRIMARY   = 1;
+  VIO_CONFIG_SECONDARY = 2;
+
+PROCEDURE VioGetConfig
+(
+  ConfigId          : CARDINAL;
+  VAR ConfigInfo    : VIOCONFIGINFO;
+  Handle            : HVIO
+)                   : APIRET16;
+
+TYPE (* structure for VioGetFont() or VioSetFont() *)
+  VIOFONTINFO       = RECORD (* viofi *)
+    CASE              : TYPEPREFIX OF
+    | FALSE           :
+      Size            : CARDINAL;
+      Type            : CARDINAL;
+      CellWidth       : CARDINAL;
+      CellHight       : CARDINAL;
+      Data            : SYSTEM.ADDRESS; (* 16:16 *)
+      DataSize        : CARDINAL;
+    | TRUE            :
+      cb              : CARDINAL;
+      type            : CARDINAL;
+      cxCell          : CARDINAL;
+      cyCell          : CARDINAL;
+      pbData          : SYSTEM.ADDRESS; (* 16:16 *)
+      cbData          : CARDINAL;
+    END;              END;
+  PVIOFONTINFO      = POINTER TO VIOFONTINFO;
+
+CONST
+  VGFI_GETCURFONT   = 0;
+  VGFI_GETROMFONT   = 1;
+
+PROCEDURE VioGetFont
+(
+  VAR FontInfo      : VIOFONTINFO;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioSetFont
+(
+  VAR FontInfo      : VIOFONTINFO;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioGetCp
+(
+  Reserved          : CARDINAL;
+  VAR CodePage      : CARDINAL;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioSetCp
+(
+  Reserved          : CARDINAL;
+  CodePage          : CARDINAL;
+  Handle            : HVIO
+)                   : APIRET16;
+
+TYPE
+  VIOPALSTATE       = RECORD (* viopal *)
+    CASE              : TYPEPREFIX OF
+    | FALSE           :
+      Size            : CARDINAL;
+      Type            : CARDINAL;
+      First           : CARDINAL;
+      Color           : ARRAY [0..0] OF CARDINAL;
+    | TRUE            :
+      cb              : CARDINAL;
+      type            : CARDINAL;
+      iFirst          : CARDINAL;
+      acolor          : ARRAY [0..0] OF CARDINAL;
+    END;              END;
+  PVIOPALSTATE      = POINTER TO VIOPALSTATE;
+
+TYPE
+  VIOOVERSCAN       = RECORD (* vioos *)
+    CASE              : TYPEPREFIX OF
+    | FALSE           :
+      Size            : CARDINAL;
+      Type            : CARDINAL;
+      Color           : CARDINAL;
+    | TRUE            :
+      cb              : CARDINAL;
+      type            : CARDINAL;
+      color           : CARDINAL;
+    END;              END;
+  PVIOOVERSCAN      = POINTER TO VIOOVERSCAN;
+
+TYPE
+  VIOINTENSITY      = RECORD (* vioint *)
+    CASE              : TYPEPREFIX OF
+    | FALSE           :
+      Size            : CARDINAL;
+      Type            : CARDINAL;
+      Switch          : CARDINAL;
+    | TRUE            :
+      cb              : CARDINAL;
+      type            : CARDINAL;
+      fs              : CARDINAL;
+    END;              END;
+  PVIOINTENSITY     = POINTER TO VIOINTENSITY;
+
+TYPE
+  VIOCOLORREG       = RECORD (* viocreg *)
+    CASE              : TYPEPREFIX OF
+    | FALSE           :
+      Size            : CARDINAL;
+      Type            : CARDINAL;
+      FirstColorReg   : CARDINAL;
+      NumColorRegs    : CARDINAL;
+      ColorRegAddr    : POINTER TO ARRAY [0..0] OF SHORTCARD; (* 16:16 *)
+    | TRUE            :
+      cb              : CARDINAL;
+      type            : CARDINAL;
+      firstcolorreg   : CARDINAL;
+      numcolorregs    : CARDINAL;
+      colorregaddr    : POINTER TO ARRAY [0..0] OF SHORTCARD; (* 16:16 *)
+    END;              END;
+  PVIOCOLORREG      = POINTER TO VIOCOLORREG;
+
+TYPE
+  VIOSETULINELOC    = RECORD (* viouline *)
+    CASE              : TYPEPREFIX OF
+    | FALSE           :
+      Size            : CARDINAL;
+      Type            : CARDINAL;
+      ScanLine        : CARDINAL;
+    | TRUE            :
+      cb              : CARDINAL;
+      type            : CARDINAL;
+      scanline        : CARDINAL;
+    END;              END;
+  PVIOSETULINELOC   = POINTER TO VIOSETULINELOC;
+
+TYPE
+  VIOSETTARGET       = RECORD (* viosett *)
+    CASE               : TYPEPREFIX OF
+    | FALSE            :
+      Size             : CARDINAL;
+      Type             : CARDINAL;
+      DefaultAlgorithm : CARDINAL;
+    | TRUE             :
+      cb               : CARDINAL;
+      type             : CARDINAL;
+      defaultalgorithm : CARDINAL;
+    END;               END;
+  PVIOSETTARGET      = POINTER TO VIOSETTARGET;
+
+PROCEDURE VioGetState
+(
+  VAR State         : ARRAY OF SYSTEM.BYTE;
+  Handle            : HVIO
+)                   : APIRET16;
+
+PROCEDURE VioSetState
+(
+  VAR State         : ARRAY OF SYSTEM.BYTE;
+  Handle            : HVIO
+)                   : APIRET16;
+
+
+END VIO.

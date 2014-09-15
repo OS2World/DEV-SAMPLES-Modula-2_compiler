@@ -1,0 +1,6 @@
+LIBRARY PMWP
+EXPORTS
+  WPAbstractClassData         @0x1A
+  WPAbstractNewClass          @0x1B
+  M_WPAbstractClassData       @0x146
+  M_WPAbstractNewClass        @0x147

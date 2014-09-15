@@ -1,0 +1,57 @@
+DEFINITION MODULE THUNK;
+
+(*************************************************************************
+  32-bit OS/2 thunking layer support for 16-bit OS/2 kernel APIs.
+
+  Copyright (c) 1995 by Juergen Neuhoff
+**************************************************************************)
+
+
+(*$XL+   Language extensions: '_' for symbol names *)
+(*$A1    Byte alignment for record fields          *)
+
+IMPORT SYSTEM;
+IMPORT OS2DEF;
+
+TYPE
+  HMODULE   = OS2DEF.HMODULE;
+
+
+PROCEDURE Flat32ToFar16( Flat32 : SYSTEM.ADDRESS ) : SYSTEM.LONGWORD;
+
+PROCEDURE Far16ToFlat32( Far16 : SYSTEM.DWORD ) : SYSTEM.ADDRESS;
+
+PROCEDURE FindProc
+(
+  VAR PFunc : SYSTEM.LONGWORD;
+  ORDFunc   : LONGCARD;
+  DLLHandle : HMODULE
+);
+
+PROCEDURE StackAlign( pESP : SYSTEM.ADDRESS );
+
+PROCEDURE StackAlign2048();
+
+PROCEDURE StackAlignWORD();
+
+PROCEDURE StackAlignDWORD();
+
+PROCEDURE StackGrow( Count : LONGCARD );
+
+PROCEDURE StackTop() : SYSTEM.ADDRESS;
+
+PROCEDURE PushDWORD( StackItem : SYSTEM.DWORD );
+
+PROCEDURE PushWORD( StackItem : SYSTEM.WORD );
+
+PROCEDURE Stack32To16();
+
+PROCEDURE Stack16To32();
+
+TYPE
+  REGSAVE = ARRAY [0..8] OF SYSTEM.DWORD;
+
+PROCEDURE CallFar16( Target : SYSTEM.DWORD; ParmSize : LONGCARD ) : CARDINAL;
+
+
+END THUNK.

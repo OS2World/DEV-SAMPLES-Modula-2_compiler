@@ -1,0 +1,12 @@
+LIBRARY DOSCALLS
+EXPORTS
+  DosSetExceptionHandler        @354
+  DosUnsetExceptionHandler      @355
+  DosRaiseException             @356
+  DosSendSignalException        @379
+  DosUnwindException            @357
+  DosSetSignalExceptionFocus    @378
+  DosEnterMustComplete          @380
+  DosExitMustComplete           @381
+  DosAcknowledgeSignalException @418
+

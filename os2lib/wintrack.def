@@ -1,0 +1,5 @@
+LIBRARY PMWIN
+EXPORTS
+  WinTrackRect       @890
+  WinShowTrackRect   @882
+

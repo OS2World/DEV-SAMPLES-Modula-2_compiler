@@ -1,0 +1,135 @@
+DEFINITION MODULE WPCNRVW;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPCnrView
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPTRANS;
+IMPORT WPOBJECT;
+IMPORT OS2DEF;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPCnrView             = POINTER TO WPCnrView;
+TYPE PM_WPCnrView           = POINTER TO M_WPCnrView;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPCnrView
+*************************************************************************)
+
+TYPE PWPObject              = WPOBJECT.PWPObject;
+TYPE HWND                   = OS2DEF.HWND;
+TYPE PSZ                    = OS2DEF.PSZ;
+
+(*************************************************************************
+  SOM class API for WPCnrView, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPCnrView_MajorVersion     = 1;
+  WPCnrView_MinorVersion     = 2;
+
+TYPE
+  WPCnrViewClassDataStructure     = RECORD
+    classObject                     : PSOMClass;
+    wpFirst                         : somMToken;
+    wpQueryViewAttr                 : somMToken;
+    wpQueryFont                     : somMToken;
+    wpQueryCnrObject                : somMToken;
+    wpQueryView                     : somMToken;
+    wpOpenView                      : somMToken;
+    wpInitView                      : somMToken;
+    wpQueryViewBkgnd                : somMToken;
+    wpQueryDetailsClass             : somMToken;
+    wpQueryCnrWindow                : somMToken;
+    wpQueryViewTitle                : somMToken;
+    wpQueryUseItem                  : somMToken;
+    wpQueryViewItem                 : somMToken;
+    wpSetDetailsInfo                : somMToken;
+    wpSetDetailsColumns             : somMToken;
+    wpInsertRecord                  : somMToken;
+    wpRemoveRecord                  : somMToken;
+    wpFillWithChildren              : somMToken;
+    wpDeleteChildren                : somMToken;
+    wpAddObject                     : somMToken;
+    wpFillFolder                    : somMToken;
+    wpPopulateTree                  : somMToken;
+    wpEmphasis                      : somMToken;
+    wpCollectAndInsertObjects       : somMToken;
+                                    END;
+
+VAR
+  WPCnrViewClassData : WPCnrViewClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPCnrView = RECORD( WPTRANS.WPTransient ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPCnrViewNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+PROCEDURE( Self : PWPCnrView ) wpFirst() : PWPObject;
+
+PROCEDURE( Self : PWPCnrView ) wpQueryViewAttr( ) : LONGCARD;
+
+PROCEDURE( Self : PWPCnrView ) wpQueryCnrWindow( ) : HWND;
+
+PROCEDURE( Self : PWPCnrView ) wpQueryViewTitle( ) : PSZ;
+
+PROCEDURE( Self : PWPCnrView ) wpQueryFont( ) : PSZ;
+
+PROCEDURE( Self : PWPCnrView ) wpQueryCnrObject( ) : PWPObject;
+
+
+(*************************************************************************
+  SOM class API for M_WPCnrView, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPCnrView_MajorVersion   = 1;
+  M_WPCnrView_MinorVersion   = 2;
+
+TYPE
+  M_WPCnrViewClassDataStructure   = RECORD
+    classObject                     : PSOMClass;
+    wpclsNewView                    : somMToken;
+                                    END;
+
+VAR
+  M_WPCnrViewClassData : M_WPCnrViewClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPCnrView = RECORD( WPTRANS.M_WPTransient ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPCnrViewNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+PROCEDURE( Self : PM_WPCnrView ) wpclsNewView
+(
+  Object        : PWPObject;
+  ulView        : LONGCARD
+)               : PWPCnrView;
+
+
+END WPCNRVW.

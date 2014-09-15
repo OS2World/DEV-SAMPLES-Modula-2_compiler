@@ -1,0 +1,233 @@
+DEFINITION MODULE DOSNMPIPES;
+
+(************************************************************************
+  OS/2 2.0 interface for named pipe support.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF     IMPORT TYPEPREFIX, APIRET, LHANDLE, HSEM;
+
+TYPE
+  HPIPE        = LHANDLE;
+  PHPIPE       = POINTER TO HPIPE;
+  AVAILDATA    = RECORD
+    CASE         : TYPEPREFIX OF
+    | TRUE       :
+      cbpipe     : CARDINAL;   (* bytes left in the pipe *)
+      cbmessage  : CARDINAL;   (* bytes left in the current message *)
+    | FALSE      :
+      Pipe       : CARDINAL;   (* bytes left in the pipe *)
+      Message    : CARDINAL;   (* bytes left in the current message *)
+    END;         END;
+  PAVAILDATA   = POINTER TO AVAILDATA;
+  PIPEINFO     = RECORD
+    CASE         : TYPEPREFIX OF
+    | TRUE       :
+      cbOut      : CARDINAL;             (* length of outgoing I/O buffer *)
+      cbIn       : CARDINAL;             (* length of incoming I/O buffer *)
+      cbMaxInst  : SHORTCARD;            (* maximum number of instances   *)
+      cbCurInst  : SHORTCARD;            (* current number of instances   *)
+      cbName     : SHORTCARD;            (* length of pipe name           *)
+      szName     : ARRAY [0..0] OF CHAR; (* start of name                 *)
+    | FALSE      :
+      OutLen     : CARDINAL;             (* length of outgoing I/O buffer *)
+      InLen      : CARDINAL;             (* length of incoming I/O buffer *)
+      MaxInst    : SHORTCARD;            (* maximum number of instances   *)
+      CurInst    : SHORTCARD;            (* current number of instances   *)
+      NameLen    : SHORTCARD;            (* length of pipe name           *)
+      Name       : ARRAY [0..0] OF CHAR; (* start of name                 *)
+    END;         END;
+  PPIPEINFO    = POINTER TO PIPEINFO;
+  PIPESEMSTATE = RECORD
+    CASE         : TYPEPREFIX OF
+    | TRUE       :
+      fStatus    : SHORTCARD;  (* type of record, 0 = EOI, 1 = read ok, *)
+                               (* 2 = write ok, 3 = pipe closed         *)
+      fFlag      : SHORTCARD;  (* additional info, 01 = waiting thread  *)
+      usKey      : CARDINAL;   (* user's key value                      *)
+      usAvail    : CARDINAL;   (* available data/space if status = 1/2  *)
+    | FALSE      :
+      Status     : SHORTCARD;  (* type of record, 0 = EOI, 1 = read ok, *)
+                               (* 2 = write ok, 3 = pipe closed         *)
+      Flag       : SHORTCARD;  (* additional info, 01 = waiting thread  *)
+      Key        : CARDINAL;   (* user's key value                      *)
+      Avail      : CARDINAL;   (* available data/space if status = 1/2  *)
+    END;         END;
+  PPIPESEMSTATE = POINTER TO PIPESEMSTATE;
+
+CONST
+  NP_INDEFINITE_WAIT    = -1;
+  NP_DEFAULT_WAIT       =  0;
+
+CONST (* DosPeekNmPipe() pipe states *)
+  NP_STATE_DISCONNECTED = 0001H;
+  NP_STATE_LISTENING    = 0002H;
+  NP_STATE_CONNECTED    = 0003H;
+  NP_STATE_CLOSING      = 0004H;
+
+CONST(* DosCreateNPipe open modes *)
+  NP_ACCESS_INBOUND     = 0000H;
+  NP_ACCESS_OUTBOUND    = 0001H;
+  NP_ACCESS_DUPLEX      = 0002H;
+  NP_INHERIT            = 0000H;
+  NP_NOINHERIT          = 0080H;
+  NP_WRITEBEHIND        = 0000H;
+  NP_NOWRITEBEHIND      = 4000H;
+
+CONST (* DosCreateNPipe and DosQueryNPHState state *)
+  NP_READMODE_BYTE       = 0000H;
+  NP_READMODE_MESSAGE    = 0100H;
+  NP_TYPE_BYTE           = 0000H;
+  NP_TYPE_MESSAGE        = 0400H;
+  NP_END_CLIENT          = 0000H;
+  NP_END_SERVER          = 4000H;
+  NP_WAIT                = 0000H;
+  NP_NOWAIT              = 8000H;
+  NP_UNLIMITED_INSTANCES = 00FFH;
+
+PROCEDURE DosCallNPipe
+( FileName               : ARRAY OF CHAR;
+  Buffer                 : ARRAY OF SYSTEM.BYTE;
+  BufferLen              : LONGCARD;
+  VAR OutBuffer          : ARRAY OF SYSTEM.BYTE;
+  OutBufferLen           : LONGCARD;
+  VAR BytesOut           : LONGCARD;
+  TimeOut                : LONGCARD
+)                        : APIRET;
+
+PROCEDURE DosConnectNPipe
+( PipeHandle             : HPIPE
+)                        : APIRET;
+
+PROCEDURE DosDisConnectNPipe
+( PipeHandle             : HPIPE
+)                        : APIRET;
+
+PROCEDURE DosCreateNPipe
+( FileName               : ARRAY OF CHAR;
+  VAR PipeHandle         : HPIPE;
+  OpenMode               : LONGCARD;
+  PipeMode               : LONGCARD;
+  OutBufSize             : LONGCARD;
+  InBufSize              : LONGCARD;
+  TimeOut                : LONGCARD
+)                        : APIRET;
+
+PROCEDURE DosPeekNPipe
+( PipeHandle             : HPIPE;
+  VAR Buffer             : ARRAY OF SYSTEM.BYTE;
+  BufferLen              : LONGCARD;
+  VAR BytesRead          : LONGCARD;
+  VAR BytesAvail         : AVAILDATA;
+  VAR PipeState          : LONGCARD
+)                        : APIRET;
+
+PROCEDURE DosQueryNPHState
+( PipeHandle             : HPIPE;
+  VAR PipeHandleState    : LONGCARD
+)                        : APIRET;
+
+PROCEDURE DosQueryNPipeInfo
+( PipeHandle             : HPIPE;
+  InfoLevel              : LONGCARD;
+  VAR InfoBuf            : ARRAY OF SYSTEM.BYTE;
+  InfoBufSize            : LONGCARD
+)                        : APIRET;
+
+PROCEDURE DosQueryNPipeSemState
+( SemHandle              : HSEM;
+  VAR InfoBuf            : PIPESEMSTATE;
+  InfoBufSize            : LONGCARD
+)                        : APIRET;
+
+PROCEDURE DosRawReadNPipe
+( PipeName               : ARRAY OF CHAR;
+  BufferLen              : LONGCARD;
+  VAR BytesRead          : LONGCARD;
+  VAR Buffer             : ARRAY OF SYSTEM.BYTE
+)                        : APIRET;
+
+PROCEDURE DosRawWriteNPipe
+( PipeName               : ARRAY OF CHAR;
+  BufferLen              : LONGCARD
+)                        : APIRET;
+
+PROCEDURE DosSetNPHState
+( PipeHandle             : HPIPE;
+  PipeHandleState        : LONGCARD
+)                        : APIRET;
+
+PROCEDURE DosSetNPipeSem
+( PipeHandle             : HPIPE;
+  SemHandle              : HSEM;
+  KeyHandle              : LONGCARD
+)                        : APIRET;
+
+PROCEDURE DosTransactNPipe
+( PipeHandle             : HPIPE;
+  VAR OutBuffer          : ARRAY OF SYSTEM.BYTE;
+  OutBufferLen           : LONGCARD;
+  VAR InBuffer           : ARRAY OF SYSTEM.BYTE;
+  InBufferLen            : LONGCARD;
+  VAR BytesRead          : LONGCARD
+)                        : APIRET;
+
+PROCEDURE DosWaitNPipe
+( FileName               : ARRAY OF CHAR;
+  TimeOut                : LONGCARD
+)                        : APIRET;
+
+CONST (* values in PIPESEMSTATE.Status *)
+  NPSS_EOI               = 0;     (* End Of Information    *)
+  NPSS_RDATA             = 1;     (* read data available   *)
+  NPSS_WSPACE            = 2;     (* write space available *)
+  NPSS_CLOSE             = 3;     (* pipe in CLOSING state *)
+
+CONST (* values in npss_flag *)
+  NPSS_WAIT              = 01H;  (* waiting thread on end of pipe *)
+
+CONST (* defined bits in pipe mode *)
+  NP_NBLK                = 8000H; (* non-blocking read/write *)
+  NP_SERVER              = 4000H; (* set if server end       *)
+  NP_WMESG               = 0400H; (* write messages          *)
+  NP_RMESG               = 0100H; (* read as messages        *)
+  NP_ICOUNT              = 00FFH; (* instance count field    *)
+
+CONST
+  (*      Named pipes may be in one of several states depending on the actions
+   *      that have been taken on it by the server end and client end.  The
+   *      following state/action table summarizes the valid state transitions:
+   *
+   *      Current state           Action                  Next state
+   *
+   *       <none>             server DosMakeNmPipe        DISCONNECTED
+   *       DISCONNECTED       server connect              LISTENING
+   *       LISTENING          client open                 CONNECTED
+   *       CONNECTED          server disconn              DISCONNECTED
+   *       CONNECTED          client close                CLOSING
+   *       CLOSING            server disconn              DISCONNECTED
+   *       CONNECTED          server close                CLOSING
+   *       <any other>        server close                <pipe deallocated>
+   *
+   *      If a server disconnects his end of the pipe, the client end will enter a
+   *      special state in which any future operations (except close) on the file
+   *      descriptor associated with the pipe will return an error.
+   *)
+
+  (*
+   *      Values for named pipe state
+   *)
+
+   NP_DISCONNECTED    =  1;        (* after pipe creation or Disconnect *)
+   NP_LISTENING       =  2;        (* after DosNmPipeConnect            *)
+   NP_CONNECTED       =  3;        (* after Client open                 *)
+   NP_CLOSING         =  4;        (* after Client or Server close      *)
+
+
+END DOSNMPIPES.

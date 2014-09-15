@@ -1,0 +1,375 @@
+DEFINITION MODULE DOSEXCEPTIONS;
+
+(************************************************************************
+  OS/2 2.0 interface for exception management support.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF     IMPORT TYPEPREFIX, APIRET, PID;
+
+CONST (* DosSetSigExceptionFocus() codes *)
+  SIG_UNSETFOCUS = 0;
+  SIG_SETFOCUS   = 1;
+
+CONST (* User Exception Handler Return Codes *)
+  XCPT_CONTINUE_SEARCH    =  00000000H;     (* exception not handled   *)
+  XCPT_CONTINUE_EXECUTION = 0FFFFFFFFH;     (* exception handled       *)
+  XCPT_CONTINUE_STOP      =  00716668H;     (* exception handled by    *)
+                                            (* debugger (VIA DosDebug) *)
+
+CONST (* HandlerFlags values (see ExceptionReportRecord) *)
+      (* The user may only set (but not clear) the EH_NONCONTINUABLE flag. *)
+      (* All other flags are set by the system. *)
+  EH_NONCONTINUABLE = 1H;          (* Noncontinuable exception *)
+  EH_UNWINDING      = 2H;          (* Unwind is in progress *)
+  EH_EXIT_UNWIND    = 4H;          (* Exit unwind is in progress *)
+  EH_STACK_INVALID  = 8H;          (* Stack out of limits or unaligned *)
+  EH_NESTED_CALL    = 10H;         (* Nested exception handler call *)
+
+
+CONST (* Unwind all exception handlers (see DosUnwindException API) *)
+  UNWIND_ALL        = 0;
+
+
+(*
+ *   Exception values are 32 bit values layed out as follows:
+ *
+ *   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
+ *   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
+ *   +---+-+-------------------------+-------------------------------+
+ *   |Sev|C|       Facility          |               Code            |
+ *   +---+-+-------------------------+-------------------------------+
+ *
+ *   where
+ *
+ *       Sev - is the severity code
+ *           00 - Success
+ *           01 - Informational
+ *           10 - Warning
+ *           11 - Error
+ *
+ *       C - is the Customer code flag
+ *
+ *       Facility - is the facility code
+ *
+ *       Code - is the facility's status code
+ *
+ *   Exceptions specific to OS/2 2.0 (e.g. XCPT_SIGNAL) will be marked
+ *   with a facility code of 1.
+ *
+ *   System defined exceptions have a facility code of zero.
+ *
+ *   Each exception may also have several pieces of additional information.
+ *   These are stored in the ExceptionInfo fields of the
+ *   ExceptionReportRecord. They are documented here with the exceptions
+ *   only for ease of reference.
+ *)
+
+CONST
+  XCPT_FATAL_EXCEPTION = 0C0000000H;
+  XCPT_SEVERITY_CODE   = 0C0000000H;
+  XCPT_CUSTOMER_CODE   =  20000000H;
+  XCPT_FACILITY_CODE   =  1FFF0000H;
+  XCPT_EXCEPTION_CODE  =  0000FFFFH;
+
+  (* Violation flags in ExceptionInfo *)
+  XCPT_UNKNOWN_ACCESS  =  00000000H;    (* Unknown access *)
+  XCPT_READ_ACCESS     =  00000001H;    (* Read access    *)
+  XCPT_WRITE_ACCESS    =  00000002H;    (* Write access   *)
+  XCPT_EXECUTE_ACCESS  =  00000004H;    (* Execute access *)
+  XCPT_SPACE_ACCESS    =  00000008H;    (* Address space access *)
+  XCPT_LIMIT_ACCESS    =  00000010H;    (* Address space limit violation *)
+  XCPT_DATA_UNKNOWN    = 0FFFFFFFFH;
+
+  (* Signal numbers for XCPT_SIGNAL *)
+  XCPT_SIGNAL_INTR     = 1;
+  XCPT_SIGNAL_KILLPROC = 3;
+  XCPT_SIGNAL_BREAK    = 4;
+
+  (* Portable non-fatal software generated exceptions   *)
+  (* ExceptionInfo[ 0 ] - Access Code: XCPT_READ_ACCESS *)
+  (* ExceptionInfo[ 1 ] - FaultAddr                     *)
+  XCPT_GUARD_PAGE_VIOLATION  = 80000001H;
+
+  XCPT_UNABLE_TO_GROW_STACK  = 80010001H;
+
+  (* Portable fatal hardware generated exceptions *)
+  XCPT_DATATYPE_MISALIGNMENT = 0C000009EH;
+    (* ExceptionInfo[ 0 ] - Access Code:      *)
+    (*   XCPT_READ_ACCESS                     *)
+    (*   XCPT_WRITE_ACCESS                    *)
+    (* ExceptionInfo[ 1 ] - Alignment         *)
+    (* ExceptionInfo[ 2 ] - FaultAddr         *)
+
+  XCPT_BREAKPOINT            = 0C000009FH;
+  XCPT_SINGLE_STEP           = 0C00000A0H;
+  XCPT_ACCESS_VIOLATION      = 0C0000005H;
+    (* ExceptionInfo[ 0 ] - Access Code:      *)
+    (*   XCPT_READ_ACCESS                     *)
+    (*   XCPT_WRITE_ACCESS                    *)
+    (*   XCPT_SPACE_ACCESS                    *)
+    (*   XCPT_LIMIT_ACCESS                    *)
+    (*   XCPT_UNKNOWN_ACCESS                  *)
+    (* ExceptionInfo[ 1 ] - FaultAddr         *)
+    (*   (XCPT_READ_ACCESS/XCPT_WRITE_ACCESS) *)
+    (*   Selector  (XCPT_SPACE_ACCESS)        *)
+    (*   -1        (XCPT_LIMIT_ACCESS)        *)
+
+  XCPT_ILLEGAL_INSTRUCTION      = 0C000001CH;
+  XCPT_FLOAT_DENORMAL_OPERAND   = 0C0000094H;
+  XCPT_FLOAT_DIVIDE_BY_ZERO     = 0C0000095H;
+  XCPT_FLOAT_INEXACT_RESULT     = 0C0000096H;
+  XCPT_FLOAT_INVALID_OPERATION  = 0C0000097H;
+  XCPT_FLOAT_OVERFLOW           = 0C0000098H;
+  XCPT_FLOAT_STACK_CHECK        = 0C0000099H;
+  XCPT_FLOAT_UNDERFLOW          = 0C000009AH;
+  XCPT_INTEGER_DIVIDE_BY_ZERO   = 0C000009BH;
+  XCPT_INTEGER_OVERFLOW         = 0C000009CH;
+  XCPT_PRIVILEGED_INSTRUCTION   = 0C000009DH;
+
+  (* Portable fatal software generated exceptions *)
+  XCPT_IN_PAGE_ERROR            = 0C0000006H;
+    (* ExceptionInfo[ 0 ] - FaultAddr *)
+  XCPT_PROCESS_TERMINATE        = 0C0010001H;
+  XCPT_ASYNC_PROCESS_TERMINATE  = 0C0010002H;
+    (* ExceptionInfo[ 0 ] - TID of 'terminator' thread *)
+  XCPT_NONCONTINUABLE_EXCEPTION = 0C0000024H;
+  XCPT_INVALID_DISPOSITION      = 0C0000025H;
+
+  (* Non-portable fatal exceptions *)
+  XCPT_INVALID_LOCK_SEQUENCE    = 0C000001DH;
+  XCPT_ARRAY_BOUNDS_EXCEEDED    = 0C0000093H;
+  XCPT_B1NPX_ERRATA_02          = 0C0010004H;
+
+  (* Misc exceptions *)
+  XCPT_UNWIND                   = 0C0000026H;
+  XCPT_BAD_STACK                = 0C0000027H;
+  XCPT_INVALID_UNWIND_TARGET    = 0C0000028H;
+
+  (* Signal Exceptions *)
+  XCPT_SIGNAL                   = 0C0010003H;
+    (* ExceptionInfo[ 0 ] - Signal Number *)
+
+
+(*
+ * ContextRecord
+ *
+ * This is the machine specific register contents for the thread
+ * at the time of the exception. Note that only the register sets
+ * specified by ContextFlags contain valid data. Conversely, only
+ * registers specified in ContextFlags will be restored if an exception
+ * is handled.
+ *)
+
+
+CONST
+  (* The following flags control the contents of the CONTEXT structure. *)
+
+  CONTEXT_CONTROL        = 000000001H;    (* SS:ESP, CS:EIP, EFLAGS,   *)
+                                          (* EBP                       *)
+  CONTEXT_INTEGER        = 000000002H;    (* EAX, EBX, ECX, EDX, ESI,  *)
+                                          (* EDI                       *)
+  CONTEXT_SEGMENTS       = 000000004H;    (* DS, ES, FS, GS            *)
+  CONTEXT_FLOATING_POINT = 000000008H;    (* numeric coprocessor state *)
+
+  CONTEXT_FULL           = ( CONTEXT_CONTROL  OR CONTEXT_INTEGER        OR
+                             CONTEXT_SEGMENTS OR CONTEXT_FLOATING_POINT
+                           );
+
+
+TYPE (* coprocessor stack register element *)
+  FPREG     = RECORD
+    CASE      : TYPEPREFIX OF
+    | TRUE    :
+      losig   : LONGCARD;
+      hisig   : LONGCARD;
+      signexp : CARDINAL;
+      filler  : SYSTEM.WORD;
+    | FALSE   :
+      LoSig   : LONGCARD;
+      HiSig   : LONGCARD;
+      SignExp : CARDINAL;
+      Filler  : SYSTEM.WORD;
+    END;      END;
+  PFPREG    = POINTER TO FPREG;
+
+TYPE
+  CONTEXTRECORD  = RECORD
+    (*
+     * The flags values within this flag control the contents of
+     * a ContextRecord.
+     *
+     * If the ContextRecord is used as an input parameter, then
+     * for each portion of the ContextRecord controlled by a flag
+     * whose value is set, it is assumed that that portion of the
+     * ContextRecord contains valid context. If the ContextRecord
+     * is being used to modify a thread's context, then only that
+     * portion of the thread's context will be modified.
+     *
+     * If the ContextRecord is used as an Input/Output parameter to
+     * capture the context of a thread, then only those portions of the
+     * thread's context corresponding to set flags will be returned.
+     *)
+    ContextFlags   : LONGCARD;
+    CASE           : TYPEPREFIX OF
+    | FALSE        :
+      (*
+       * This section is specified/returned if the ContextFlags
+       * contains the flag CONTEXT_FLOATING_POINT.
+       *)
+      env          : ARRAY [0..6] OF LONGCARD;
+      stack        : ARRAY [0..7] OF FPREG;
+      (*
+       * This section is specified/returned if the ContextFlags
+       * contains the flag CONTEXT_SEGMENTS.
+       *)
+      SegGs        : LONGCARD;
+      SegFs        : LONGCARD;
+      SegEs        : LONGCARD;
+      SegDs        : LONGCARD;
+      (*
+       * This section is specified/returned if the ContextFlags
+       * contains the flag CONTEXT_INTEGER.
+       *)
+      RegEdi       : LONGCARD;
+      RegEsi       : LONGCARD;
+      RegEax       : LONGCARD;
+      RegEbx       : LONGCARD;
+      RegEcx       : LONGCARD;
+      RegEdx       : LONGCARD;
+      (*
+       * This section is specified/returned if the ContextFlags
+       * contains the flag CONTEXT_CONTROL.
+       *)
+      RegEbp       : LONGCARD;
+      RegEip       : LONGCARD;
+      SegCs        : LONGCARD;
+      EFlags       : LONGCARD;
+      RegEsp       : LONGCARD;
+      SegSs        : LONGCARD;
+    | TRUE         :
+      ctx_env      : ARRAY [0..6] OF LONGCARD;
+      ctx_stack    : ARRAY [0..7] OF FPREG;
+      ctx_SegGs    : LONGCARD;
+      ctx_SegFs    : LONGCARD;
+      ctx_SegEs    : LONGCARD;
+      ctx_SegDs    : LONGCARD;
+      ctx_RegEdi   : LONGCARD;
+      ctx_RegEsi   : LONGCARD;
+      ctx_RegEax   : LONGCARD;
+      ctx_RegEbx   : LONGCARD;
+      ctx_RegEcx   : LONGCARD;
+      ctx_RegEdx   : LONGCARD;
+      ctx_RegEbp   : LONGCARD;
+      ctx_RegEip   : LONGCARD;
+      ctx_SegCs    : LONGCARD;
+      ctx_EFlags   : LONGCARD;
+      ctx_RegEsp   : LONGCARD;
+      ctx_SegSs    : LONGCARD;
+    END;           END;
+  PCONTEXTRECORD = POINTER TO CONTEXTRECORD;
+
+
+TYPE
+(*
+ * ExceptionReportRecord
+ *
+ * This structure contains machine independant information about an
+ * exception/unwind. No system exception will ever have more than
+ * EXCEPTION_MAXIMUM_PARAMETERS parameters. User exceptions are not
+ * bound to this limit.
+ *)
+CONST
+  EXCEPTION_MAXIMUM_PARAMETERS = 4;  (* Enough for all system exceptions. *)
+TYPE
+  EXCEPTIONREPORTRECORD  = RECORD
+    ExceptionNum           : LONGCARD; (* exception number *)
+    CASE                   : TYPEPREFIX OF
+    | FALSE                :
+      HandlerFlags         : LONGCARD;
+    | TRUE                 :
+      fHandlerFlags        : LONGCARD;
+    END;
+    NestedExceptionReportRecord : POINTER TO EXCEPTIONREPORTRECORD;
+    ExceptionAddress       : SYSTEM.ADDRESS;
+    CASE                   : TYPEPREFIX OF
+    | FALSE                :
+      ParametersSize       : LONGCARD; (* Size of Exception Specific Info *)
+    | TRUE                 :
+      cParameters          : LONGCARD; (* Size of Exception Specific Info *)
+    END;
+    ExceptionInfo          : ARRAY [0..EXCEPTION_MAXIMUM_PARAMETERS-1]
+                             OF LONGCARD; (* Exception Specfic Info *)
+                           END;
+  PEXCEPTIONREPORTRECORD = POINTER TO EXCEPTIONREPORTRECORD;
+
+
+TYPE
+(*
+ * ExceptionRegistrationRecord
+ *
+ * These are linked together to form a chain of exception handlers that
+ * will be dispatched to upon receipt of an exception.
+ *
+ *)
+TYPE
+  PEXCEPTIONREGISTRATIONRECORD = POINTER TO EXCEPTIONREGISTRATIONRECORD;
+  ERR = PROCEDURE
+  ( PEXCEPTIONREPORTRECORD,
+    PEXCEPTIONREGISTRATIONRECORD,
+    PCONTEXTRECORD,
+    SYSTEM.ADDRESS
+  );
+  EXCEPTIONREGISTRATIONRECORD = RECORD
+    prev_structure   : POINTER TO EXCEPTIONREGISTRATIONRECORD;
+    ExceptionHandler : ERR;
+  END;
+
+
+PROCEDURE DosSetExceptionHandler
+( VAR ERegRec               : EXCEPTIONREGISTRATIONRECORD
+)                           : APIRET;
+
+PROCEDURE DosUnsetExceptionHandler
+( VAR ERegRec               : EXCEPTIONREGISTRATIONRECORD
+)                           : APIRET;
+
+PROCEDURE DosRaiseException
+( VAR ExceptionReportRecord : EXCEPTIONREPORTRECORD
+)                           : APIRET;
+
+PROCEDURE DosSendSignalException
+( ProcessId                 : PID;
+  Exception                 : LONGCARD
+)                           : APIRET;
+
+PROCEDURE DosUnwindException
+( HandlerAddr               : PEXCEPTIONREGISTRATIONRECORD;
+  TargetIP                  : SYSTEM.LONGWORD;
+  ERepRec                   : PEXCEPTIONREPORTRECORD
+)                           : APIRET;
+
+PROCEDURE DosSetSignalExceptionFocus
+( Flag                      : BOOLEAN;
+  VAR Times                 : LONGCARD
+)                           : APIRET;
+
+PROCEDURE DosEnterMustComplete
+( VAR Nesting               : LONGCARD
+)                           : APIRET;
+
+PROCEDURE DosExitMustComplete
+( VAR Nesting               : LONGCARD
+)                           : APIRET;
+
+PROCEDURE DosAcknowledgeSignalException
+( SignalNumber              : LONGCARD
+)                           : APIRET;
+
+END DOSEXCEPTIONS.

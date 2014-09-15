@@ -1,0 +1,102 @@
+DEFINITION MODULE WPSHADOW;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPShadow;
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPABS;
+IMPORT WPOBJECT;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPShadow              = POINTER TO WPShadow;
+TYPE PM_WPShadow            = POINTER TO M_WPShadow;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPShadow
+*************************************************************************)
+
+TYPE PWPObject              = WPOBJECT.PWPObject;
+
+(*************************************************************************
+  SOM class API for WPShadow, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPShadow_MajorVersion     = 1;
+  WPShadow_MinorVersion     = 2;
+
+TYPE
+  WPShadowClassDataStructure   = RECORD
+    classObject                  : PSOMClass;
+    wpSetLinkToObject            : somMToken;
+    withdrawn                    : somMToken;
+    wpSetShadowTitle             : somMToken;
+    wpQueryShadowedObject        : somMToken;
+                                 END;
+
+VAR
+  WPShadowClassData : WPShadowClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPShadow = RECORD( WPABS.WPAbstract ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPShadowNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+PROCEDURE( Self : PWPShadow ) wpQueryShadowedObject
+(
+  fLock         : BOOLEAN
+)               : PWPObject;
+
+PROCEDURE( Self : PWPShadow ) wpSetShadowTitle
+(
+  szNewTitle    : ARRAY OF CHAR
+)               : BOOLEAN;
+
+
+(*************************************************************************
+  SOM class API for M_WPShadow, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPShadow_MajorVersion   = 1;
+  M_WPShadow_MinorVersion   = 2;
+
+TYPE
+  M_WPShadowClassDataStructure   = RECORD
+    classObject                    : PSOMClass;
+                                   END;
+
+VAR
+  M_WPShadowClassData : M_WPShadowClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPShadow = RECORD( WPABS.M_WPAbstract ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPShadowNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+END WPSHADOW.

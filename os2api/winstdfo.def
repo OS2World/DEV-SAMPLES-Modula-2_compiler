@@ -1,0 +1,285 @@
+DEFINITION MODULE WINSTDFONT;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager
+           CUA standard font dialog.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM OS2DEF        IMPORT TYPEPREFIX, HPS, PSZ, HMODULE, FATTRS, HWND;
+FROM WINDEF        IMPORT PFNWP, MPARAM, MRESULT;
+FROM GPIDEF        IMPORT FIXED;
+FROM WINDIALOGS    IMPORT DID_OK, DID_CANCEL;
+FROM WINMESSAGEMGR IMPORT WM_USER;
+
+(*************************************************************************)
+(*    Font Dialog Creation Structure                                     *)
+(*************************************************************************)
+TYPE
+  FONTDLG                = RECORD    (* fntdlg *)
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      cbSize               : LONGCARD; (* sizeof(FONTDLG)                 *)
+      hpsScreen            : HPS;      (* Screen presentation space       *)
+      hpsPrinter           : HPS;      (* Printer presentation space      *)
+      pszTitle             : PSZ;      (* Application supplied title      *)
+      pszPreview           : PSZ;      (* String to print in preview wndw *)
+      pszPtSizeList        : PSZ;      (* Application provided size list  *)
+      pfnDlgProc           : PFNWP;    (* Dialog subclass procedure       *)
+      pszFamilyname        : PSZ;      (* Family name of font             *)
+      fxPointSize          : FIXED;    (* Point size the user selected    *)
+      fl                   : LONGCARD; (* FNTS_* flags - dialog styles    *)
+      flFlags              : LONGCARD; (* FNTF_* state flags              *)
+      flType               : LONGCARD; (* Font type option bits           *)
+      flTypeMask           : LONGCARD; (* Mask of which font types to use *)
+      flStyle              : LONGCARD; (* The selected style bits         *)
+      flStyleMask          : LONGCARD; (* Mask of which style bits to use *)
+      clrFore              : LONGINT;  (* Selected foreground color       *)
+      clrBack              : LONGINT;  (* Selected background color       *)
+      ulUser               : LONGCARD; (* Blank field for application     *)
+      lReturn              : LONGINT;  (* Return Value of the Dialog      *)
+      lSRC                 : LONGINT;  (* System return code.             *)
+      lEmHeight            : LONGINT;  (* Em height of the current font   *)
+      lXHeight             : LONGINT;  (* X height of the current font    *)
+      lExternalLeading     : LONGINT;  (* External Leading of font        *)
+      hMod                 : HMODULE;  (* Module to load custom template  *)
+      fAttrs               : FATTRS;   (* Font attribute structure        *)
+      sNominalPointSize    : INTEGER;  (* Nominal Point Size of font      *)
+      usWeight             : CARDINAL; (* The boldness of the font        *)
+      usWidth              : CARDINAL; (* The width of the font           *)
+      x                    : INTEGER;  (* X coordinate of the dialog      *)
+      y                    : INTEGER;  (* Y coordinate of the dialog      *)
+      usDlgId              : CARDINAL; (* ID of a custom dialog template  *)
+      usFamilyBufLen       : CARDINAL; (* Length of family buffer provided*)
+      usReserved           : CARDINAL; (* reserved                        *)
+    | FALSE                :
+      Size                 : LONGCARD; (* sizeof(FONTDLG)                 *)
+      ScreenPresHandle     : HPS;      (* Screen presentation space       *)
+      PrinterPresHandle    : HPS;      (* Printer presentation space      *)
+      Title                : PSZ;      (* Application supplied title      *)
+      Preview              : PSZ;      (* String to print in preview wndw *)
+      PtSizeList           : PSZ;      (* Application provided size list  *)
+      DlgProc              : PFNWP;    (* Dialog subclass procedure       *)
+      Familyname           : PSZ;      (* Family name of font             *)
+      PointSize            : FIXED;    (* Point size the user selected    *)
+      StyleFlags           : LONGCARD; (* FNTS_* flags - dialog styles    *)
+      StateFlags           : LONGCARD; (* FNTF_* state flags              *)
+      Type                 : LONGCARD; (* Font type option bits           *)
+      TypeMask             : LONGCARD; (* Mask of which font types to use *)
+      Style                : LONGCARD; (* The selected style bits         *)
+      StyleMask            : LONGCARD; (* Mask of which style bits to use *)
+      ForeColor            : LONGINT;  (* Selected foreground color       *)
+      BackColor            : LONGINT;  (* Selected background color       *)
+      User                 : LONGCARD; (* Blank field for application     *)
+      Return               : LONGINT;  (* Return Value of the Dialog      *)
+      SRC                  : LONGINT;  (* System return code.             *)
+      EmHeight             : LONGINT;  (* Em height of the current font   *)
+      XHeight              : LONGINT;  (* X height of the current font    *)
+      ExternalLeading      : LONGINT;  (* External Leading of font        *)
+      ModHandle            : HMODULE;  (* Module to load custom template  *)
+      Attrs                : FATTRS;   (* Font attribute structure        *)
+      NominalPointSize     : INTEGER;  (* Nominal Point Size of font      *)
+      Weight               : CARDINAL; (* The boldness of the font        *)
+      Width                : CARDINAL; (* The width of the font           *)
+      xPos                 : INTEGER;  (* X coordinate of the dialog      *)
+      yPos                 : INTEGER;  (* Y coordinate of the dialog      *)
+      DlgId                : CARDINAL; (* ID of a custom dialog template  *)
+      FamilyBufLen         : CARDINAL; (* Length of family buffer provided*)
+      Reserved             : CARDINAL; (* reserved                        *)
+    END;                   END;
+  PFONTDLG               = POINTER TO FONTDLG;
+
+(*************************************************************************)
+(*    Font Dialog Style Flags                                            *)
+(*************************************************************************)
+CONST
+  FNTS_CENTER               = 00000001H; (* Center in owner dialog*)
+  FNTS_CUSTOM               = 00000002H; (* Use custom template   *)
+  FNTS_OWNERDRAWPREVIEW     = 00000004H; (* Allow app to draw     *)
+  FNTS_HELPBUTTON           = 00000008H; (* Display Help button   *)
+  FNTS_APPLYBUTTON          = 00000010H; (* Display Apply button  *)
+  FNTS_RESETBUTTON          = 00000020H; (* Display Reset button  *)
+  FNTS_MODELESS             = 00000040H; (* Make dialog modeless  *)
+  FNTS_INITFROMFATTRS       = 00000080H; (* Initialize from FATTRs*)
+  FNTS_BITMAPONLY           = 00000100H; (* Only allow bitmap font*)
+  FNTS_VECTORONLY           = 00000200H; (* Only allow vector font*)
+  FNTS_FIXEDWIDTHONLY       = 00000400H; (* Only allow monospaced *)
+  FNTS_PROPORTIONALONLY     = 00000800H; (* Only proportional font*)
+  FNTS_NOSYNTHESIZEDFONTS   = 00001000H; (* Don't synthesize fonts*)
+
+(*************************************************************************)
+(*    Font Dialog Flags                                                  *)
+(*************************************************************************)
+CONST
+  FNTF_NOVIEWSCREENFONTS    = 1;
+  FNTF_NOVIEWPRINTERFONTS   = 2;
+  FNTF_SCREENFONTSELECTED   = 4;
+  FNTF_PRINTERFONTSELECTED  = 8;
+
+(*************************************************************************)
+(*    Color code definitions                                             *)
+(*************************************************************************)
+CONST
+  CLRC_FOREGROUND           = 1;
+  CLRC_BACKGROUND           = 2;
+
+(*************************************************************************)
+(*    Filter List message string identifiers                             *)
+(*************************************************************************)
+CONST
+  FNTI_BITMAPFONT           = 0001H;
+  FNTI_VECTORFONT           = 0002H;
+  FNTI_FIXEDWIDTHFONT       = 0004H;
+  FNTI_PROPORTIONALFONT     = 0008H;
+  FNTI_SYNTHESIZED          = 0010H;
+  FNTI_DEFAULTLIST          = 0020H;
+  FNTI_FAMILYNAME           = 0100H;
+  FNTI_STYLENAME            = 0200H;
+  FNTI_POINTSIZE            = 0400H;
+
+(*************************************************************************)
+(*    Error Return Codes from dialog (self defining)                     *)
+(*************************************************************************)
+CONST
+  FNTS_SUCCESSFUL            =  0;
+  FNTS_ERR_INVALID_DIALOG    =  3;
+  FNTS_ERR_ALLOC_SHARED_MEM  =  4;
+  FNTS_ERR_INVALID_PARM      =  5;
+  FNTS_ERR_OUT_OF_MEMORY     =  7;
+  FNTS_ERR_INVALID_VERSION   = 10;
+  FNTS_ERR_DIALOG_LOAD_ERROR = 12;
+
+(*************************************************************************)
+(*    Font Dialog Messages                                               *)
+(*************************************************************************)
+CONST
+  FNTM_FACENAMECHANGED       = WM_USER+50;    (* mp1 = PSZ pszFacename   *)
+  FNTM_POINTSIZECHANGED      = WM_USER+51;    (* mp1 = PSZ pszPointSize, *)
+                                              (* mp2 = FIXED fxPointSize *)
+  FNTM_STYLECHANGED          = WM_USER+52;    (* mp1 = PSTYLECHANGE pstyc*)
+  FNTM_COLORCHANGED          = WM_USER+53;    (* mp1 = LONG clr          *)
+                                              (* mp2 = USHORT codeClr    *)
+  FNTM_UPDATEPREVIEW         = WM_USER+54;    (* mp1 = HWND hWndPreview  *)
+  FNTM_FILTERLIST            = WM_USER+55;    (* mp1 = PSZ pszFacename   *)
+                                              (* mp2 = USHORT usStrStyle *)
+                                              (* mr=TRUE(Add),FALSE(Dont)*)
+
+(*************************************************************************)
+(*    Stylechange message parameter structure                            *)
+(*************************************************************************)
+TYPE
+  STYLECHANGE                = RECORD         (* stylc *)
+    CASE                       : TYPEPREFIX OF
+    | TRUE                     :
+      usWeight                 : CARDINAL;
+      usWeightOld              : CARDINAL;
+      usWidth                  : CARDINAL;
+      usWidthOld               : CARDINAL;
+      flType                   : LONGCARD;
+      flTypeOld                : LONGCARD;
+      flTypeMask               : LONGCARD;
+      flTypeMaskOld            : LONGCARD;
+      flStyle                  : LONGCARD;
+      flStyleOld               : LONGCARD;
+      flStyleMask              : LONGCARD;
+      flStyleMaskOld           : LONGCARD;
+    | FALSE                    :
+      Weight                   : CARDINAL;
+      WeightOld                : CARDINAL;
+      Width                    : CARDINAL;
+      WidthOld                 : CARDINAL;
+      Type                     : LONGCARD;
+      TypeOld                  : LONGCARD;
+      TypeMask                 : LONGCARD;
+      TypeMaskOld              : LONGCARD;
+      Style                    : LONGCARD;
+      StyleOld                 : LONGCARD;
+      StyleMask                : LONGCARD;
+      StyleMaskOld             : LONGCARD;
+    END;                       END;
+  PSTYLECHANGE               = POINTER TO STYLECHANGE;
+
+(*************************************************************************)
+(*    Font Dialog Function Prototypes                                    *)
+(*************************************************************************)
+
+PROCEDURE WinFontDlg
+( ParentWinHandle            : HWND;
+  OwnerWinHandle             : HWND;
+  VAR FontDlg                : FONTDLG
+)                            : HWND;
+
+PROCEDURE WinDefFontDlgProc
+( DlgWinHandle               : HWND;
+  MsgId                      : LONGCARD;
+  Param1                     : MPARAM;
+  Param2                     : MPARAM
+)                            : MRESULT;
+
+(*************************************************************************)
+(*    font dialog and control id's                                       *)
+(*************************************************************************)
+CONST
+  DID_FONT_DIALOG          = 300;
+  DID_NAME                 = 301;
+  DID_STYLE                = 302;
+  DID_DISPLAY_FILTER       = 303;
+  DID_PRINTER_FILTER       = 304;
+  DID_SIZE                 = 305;
+  DID_SAMPLE               = 306;
+  DID_OUTLINE              = 307;
+  DID_UNDERSCORE           = 308;
+  DID_STRIKEOUT            = 309;
+  DID_HELP_BUTTON          = 310;
+  DID_APPLY_BUTTON         = 311;
+  DID_RESET_BUTTON         = 312;
+  DID_OK_BUTTON            = DID_OK;
+  DID_CANCEL_BUTTON        = DID_CANCEL;
+  DID_NAME_PREFIX          = 313;
+  DID_STYLE_PREFIX         = 314;
+  DID_SIZE_PREFIX          = 315;
+  DID_SAMPLE_GROUPBOX      = 316;
+  DID_EMPHASIS_GROUPBOX    = 317;
+
+(*************************************************************************)
+(*    Stringtable id's                                                   *)
+(*************************************************************************)
+CONST
+  IDS_FONT_SAMPLE          = 350;
+  IDS_FONT_BLANK           = 351;
+  IDS_FONT_KEY_0           = 352;
+  IDS_FONT_KEY_9           = 353;
+  IDS_FONT_KEY_SEP         = 354;
+  IDS_FONT_DISP_ONLY       = 355;
+  IDS_FONT_PRINTER_ONLY    = 356;
+  IDS_FONT_COMBINED        = 357;
+  IDS_FONT_WEIGHT1         = 358;
+  IDS_FONT_WEIGHT2         = 359;
+  IDS_FONT_WEIGHT3         = 360;
+  IDS_FONT_WEIGHT4         = 361;
+  IDS_FONT_WEIGHT5         = 362;
+  IDS_FONT_WEIGHT6         = 363;
+  IDS_FONT_WEIGHT7         = 364;
+  IDS_FONT_WEIGHT8         = 365;
+  IDS_FONT_WEIGHT9         = 366;
+  IDS_FONT_WIDTH1          = 367;
+  IDS_FONT_WIDTH2          = 368;
+  IDS_FONT_WIDTH3          = 369;
+  IDS_FONT_WIDTH4          = 370;
+  IDS_FONT_WIDTH5          = 371;
+  IDS_FONT_WIDTH6          = 372;
+  IDS_FONT_WIDTH7          = 373;
+  IDS_FONT_WIDTH8          = 374;
+  IDS_FONT_WIDTH9          = 375;
+  IDS_FONT_OPTION0         = 376;
+  IDS_FONT_OPTION1         = 377;
+  IDS_FONT_OPTION2         = 378;
+  IDS_FONT_OPTION3         = 379;
+  IDS_FONT_POINT_SIZE_LIST = 380;
+
+END WINSTDFONT.

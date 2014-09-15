@@ -1,0 +1,36 @@
+LIBRARY PMDRAG
+EXPORTS
+  DrgAcceptDroppedFiles       @66
+  DrgAllocDraginfo            @34
+  DrgAllocDragtransfer        @35
+  DrgDrag                     @38
+  DrgDragFiles                @65
+  DrgPostTransferMsg          @42
+  DrgQueryDragitem            @44
+  DrgQueryDragitemCount       @45
+  DrgQueryDragitemPtr         @46
+  DrgQueryNativeRMF           @47
+  DrgQueryNativeRMFLen        @48
+  DrgQueryStrName             @49
+  DrgQueryStrNameLen          @50
+  DrgQueryTrueType            @51
+  DrgQueryTrueTypeLen         @52
+  DrgSendTransferMsg          @53
+  DrgSetDragitem              @57
+  DrgSetDragImage             @56
+  DrgVerifyTypeSet            @62
+  DrgAccessDraginfo           @32
+  DrgAddStrHandle             @33
+  DrgDeleteDraginfoStrHandles @36
+  DrgDeleteStrHandle          @37
+  DrgFreeDraginfo             @39
+  DrgFreeDragtransfer         @40
+  DrgGetPS                    @41
+  DrgPushDraginfo             @43
+  DrgReleasePS                @53
+  DrgSetDragPointer           @55
+  DrgVerifyNativeRMF          @58
+  DrgVerifyRMF                @59
+  DrgVerifyTrueType           @60
+  DrgVerifyType               @61
+

@@ -1,0 +1,13 @@
+LIBRARY PMWIN
+EXPORTS
+  WinSetFocus              @860
+  WinFocusChange           @746
+  WinSetCapture            @852
+  WinQueryCapture          @804
+  WinCheckInput            @998
+  WinQueryFocus            @817
+  WinGetKeyState           @752
+  WinGetPhysKeyState       @758
+  WinEnablePhysInput       @734
+  WinIsPhysInputEnabled    @769
+  WinSetKeyboardStateTable @921

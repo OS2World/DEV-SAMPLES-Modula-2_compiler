@@ -1,0 +1,48 @@
+DEFINITION MODULE WINSEI;
+
+(************************************************************************
+  OS/2 2.0 Presentation Manager SetErrorInfo constants
+           and function declaration.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF  IMPORT ERRORID;
+
+PROCEDURE WinSetErrorInfo
+( ErrorId             : ERRORID;
+  Option              : LONGCARD;
+  VAR ErrorInfo       : ARRAY OF SYSTEM.BYTE
+)                     : ERRORID;
+
+CONST
+  SEI_BREAKPOINT   = 8000H; (* Always enter an INT 3 breakpt            *)
+  SEI_NOBEEP       = 4000H; (* Do not call DosBeep                      *)
+  SEI_NOPROMPT     = 2000H; (* Do not prompt the user                   *)
+  SEI_DBGRSRVD     = 1000H; (* Reserved for debug use                   *)
+  SEI_STACKTRACE   = 0001H; (* save the stack trace                     *)
+  SEI_REGISTERS    = 0002H; (* save the registers                       *)
+  SEI_ARGCOUNT     = 0004H; (* first CARDINAL in args is arg count      *)
+  SEI_DOSERROR     = 0008H; (* first CARDINAL in args is OS2 error code *)
+  SEI_RESERVED     = 0FE0H; (* Reserved for future use                  *)
+  SEI_DEBUGONLY    = SEI_BREAKPOINT OR SEI_NOBEEP    OR
+                     SEI_NOPROMPT   OR SEI_RESERVED;
+
+(************************************************************************
+* Note that when SEI_ARGCOUNT, SEI_DOSERROR are specified
+* together, then the implied order of the parameters is:
+*
+*
+*  WinSetErrorInfo( MAKEERRORID( .... ),
+*                   SEI_ARGCOUNT | SEI_DOSERROR,
+*                   argCount,
+*                   dosErrorCode);
+*
+*************************************************************************)
+
+END WINSEI.

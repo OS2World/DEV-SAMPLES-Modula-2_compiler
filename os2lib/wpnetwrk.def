@@ -1,0 +1,6 @@
+LIBRARY PMWP
+EXPORTS
+  WPNetworkClassData         @0x019A
+  WPNetworkNewClass          @0x019B
+  M_WPNetworkClassData       @0x0185
+  M_WPNetworkNewClass        @0x0186

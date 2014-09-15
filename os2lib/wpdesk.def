@@ -1,0 +1,6 @@
+LIBRARY PMWP
+EXPORTS
+  WPDesktopClassData         @0x0038
+  WPDesktopNewClass          @0x0039
+  M_WPDesktopClassData       @0x0164
+  M_WPDesktopNewClass        @0x0165

@@ -1,0 +1,23 @@
+LIBRARY DOSCALLS
+EXPORTS
+  DosCreateEventSem         @324
+  DosOpenEventSem           @325
+  DosCloseEventSem          @326
+  DosResetEventSem          @327
+  DosPostEventSem           @328
+  DosWaitEventSem           @329
+  DosQueryEventSem          @330
+  DosCreateMutexSem         @331
+  DosOpenMutexSem           @332
+  DosCloseMutexSem          @333
+  DosRequestMutexSem        @334
+  DosReleaseMutexSem        @335
+  DosQueryMutexSem          @336
+  DosCreateMuxWaitSem       @337
+  DosOpenMuxWaitSem         @338
+  DosCloseMuxWaitSem        @339
+  DosWaitMuxWaitSem         @340
+  DosAddMuxWaitSem          @341
+  DosDeleteMuxWaitSem       @342
+  DosQueryMuxWaitSem        @343
+

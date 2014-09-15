@@ -1,0 +1,11 @@
+LIBRARY PMGPI
+EXPORTS
+  GpiCopyMetaFile         @365
+  GpiDeleteMetaFile       @375
+  GpiLoadMetaFile         @401
+  GpiPlayMetaFile         @411
+  GpiQueryMetaFileBits    @465
+  GpiQueryMetaFileLength  @466
+  GpiSaveMetaFile         @500
+  GpiSetMetaFileBits      @536
+

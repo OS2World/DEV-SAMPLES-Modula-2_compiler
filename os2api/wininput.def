@@ -1,0 +1,305 @@
+DEFINITION MODULE WININPUT;
+
+(************************************************************************
+  OS/2 2.1 interface for window mouse and keyboard input.
+
+  Copyright (c) 1992,1994 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF  IMPORT TYPEPREFIX, HWND, HAB;
+
+PROCEDURE WinSetFocus
+( DesktopWinHandle      : HWND;
+  NewFocusWinHandle     : HWND
+)                       : BOOLEAN;
+
+PROCEDURE WinFocusChange
+( DesktopWinHandle      : HWND;
+  NewFocusWinHandle     : HWND;
+  FocusChangeFlags      : LONGCARD
+)                       : BOOLEAN;
+
+CONST (* WinFocusChange() flags *)
+  FC_NOSETFOCUS            = 0001H;
+  FC_NOBRINGTOTOP          = FC_NOSETFOCUS;
+  FC_NOLOSEFOCUS           = 0002H;
+  FC_NOBRINGTOPFIRSTWINDOW = FC_NOLOSEFOCUS;
+  FC_NOSETACTIVE           = 0004H;
+  FC_NOLOSEACTIVE          = 0008H;
+  FC_NOSETSELECTION        = 0010H;
+  FC_NOLOSESELECTION       = 0020H;
+
+CONST
+  QFC_NEXTINCHAIN          = 0001H;
+  QFC_ACTIVE               = 0002H;
+  QFC_FRAME                = 0003H;
+  QFC_SELECTACTIVE         = 0004H;
+  QFC_PARTOFCHAIN          = 0005H;
+
+PROCEDURE WinLockupSystem
+( AnchorBlockHandle     : HAB
+)                       : BOOLEAN;
+
+PROCEDURE WinUnlockSystem
+( AnchorBlockHandle     : HAB;
+  Password              : ARRAY OF CHAR
+)                       : BOOLEAN;
+
+PROCEDURE WinSetCapture
+( DesktopWinHandle      : HWND;
+  WinHandle             : HWND
+)                       : BOOLEAN;
+
+PROCEDURE WinQueryCapture
+( DesktopWinHandle      : HWND
+)                       : HWND;
+
+PROCEDURE WinCheckInput
+( AnchorBlockHandle     : HAB
+)                       : BOOLEAN;
+
+CONST (* Mouse input messages *)
+  WM_MOUSEFIRST         = 0070H;
+  WM_MOUSELAST          = 0079H;
+  WM_BUTTONCLICKFIRST   = 0071H;
+  WM_BUTTONCLICKLAST    = 0079H;
+  WM_MOUSEMOVE          = 0070H;
+  WM_BUTTON1DOWN        = 0071H;
+  WM_BUTTON1UP          = 0072H;
+  WM_BUTTON1DBLCLK      = 0073H;
+  WM_BUTTON2DOWN        = 0074H;
+  WM_BUTTON2UP          = 0075H;
+  WM_BUTTON2DBLCLK      = 0076H;
+  WM_BUTTON3DOWN        = 0077H;
+  WM_BUTTON3UP          = 0078H;
+  WM_BUTTON3DBLCLK      = 0079H;
+  WM_MOUSEMAP           = 007DH;
+  WM_EXTMOUSEFIRST      = 0410H;
+  WM_EXTMOUSELAST       = 0419H;
+  WM_CHORD              = 0410H;
+  WM_BUTTON1MOTIONSTART = 0411H;
+  WM_BUTTON1MOTIONEND   = 0412H;
+  WM_BUTTON1CLICK       = 0413H;
+  WM_BUTTON2MOTIONSTART = 0414H;
+  WM_BUTTON2MOTIONEND   = 0415H;
+  WM_BUTTON2CLICK       = 0416H;
+  WM_BUTTON3MOTIONSTART = 0417H;
+  WM_BUTTON3MOTIONEND   = 0418H;
+  WM_BUTTON3CLICK       = 0419H;
+  WM_MOUSETRANSLATEFIRST= 0420H; (* 041AH - 041FH are reserved *)
+  WM_MOUSETRANSLATELAST = 0428H;
+  WM_BEGINDRAG          = 0420H;
+  WM_ENDDRAG            = 0421H;
+  WM_SINGLESELECT       = 0422H;
+  WM_OPEN               = 0423H;
+  WM_CONTEXTMENU        = 0424H;
+  WM_CONTEXTHELP        = 0425H;
+  WM_TEXTEDIT           = 0426H;
+  WM_BEGINSELECT        = 0427H;
+  WM_ENDSELECT          = 0428H;
+
+PROCEDURE WinQueryFocus
+( DesktopWinHandle      : HWND
+)                       : HWND;
+
+TYPE
+ (*
+  * The following structures can be used to access the
+  * WM_MOUSEMOVE, WM_BUTTON or WM_CHAR message parameters, e.g.:
+  *
+  *   PROCEDURE MyWindowProc
+  *   ( WinHandle:HWND; MsgId:LONGCARD; Param1,Param2:MPARAM ):MRESULT;
+  *   ...
+  *   VAR MouseMsg : POINTER TO MOUSEMSG;
+  *   VAR CharMsg  : POINTER TO CHARMSG;
+  *   ...
+  *   BEGIN
+  *     CASE MsgId OF
+  *       WM_MOUSEMOVE:
+  *       WM_BUTTON:
+  *         MouseMsg := SYSTEM.ADR( Param1 );
+  *         ...
+  *         RETURN ...;
+  *       WM_CHAR:
+  *         CharMsg := SYSTEM.ADR( Param1 );
+  *         ...
+  *         RETURN ...;
+  *       ELSE
+  *         RETURN WinDefWindowProc( WinHandle, MsgId, Param1, Param2 );
+  *     END;
+  *   END MyWindowProc;
+  *)
+  MOUSEMSG              = RECORD
+    x                     : INTEGER;   (* message parameter 1 *)
+    y                     : INTEGER;
+    CASE                  : TYPEPREFIX OF
+    | TRUE                :
+      codeHitTest         : CARDINAL;  (* message parameter 2 *)
+      fsInp               : CARDINAL;  (* input flags *)
+    | FALSE               :
+      HitTest             : CARDINAL;  (* message parameter 2 *)
+      InpFlags            : CARDINAL;  (* input flags *)
+    END;                  END;
+  PMOUSEMSG             = POINTER TO MOUSEMSG;
+  MSEMSG                = MOUSEMSG;
+  PMSEMSG               = POINTER TO MSEMSG;
+  (*$A1 BYTE alignment for record fields *)
+  CHARMSG               = RECORD
+    CASE                  : TYPEPREFIX OF
+    | TRUE                :
+      fs                  : CARDINAL;  (* message paramter 1 *)
+      cRepeat             : SHORTCARD;
+      scancode            : SHORTCARD;
+      chr                 : CARDINAL;  (* message paramter 2 *)
+      vkey                : CARDINAL;
+    | FALSE               :
+      Flag                : CARDINAL;  (* message paramter 1 *)
+      RepeatCount         : SHORTCARD;
+      ScanCode            : SHORTCARD;
+      CharCode            : CARDINAL;  (* message paramter 2 *)
+      VirtualKeyCode      : CARDINAL;
+    END;                  END;
+  (*$A restore default alignment for record fields *)
+  PCHARMSG              = POINTER TO CHARMSG;
+  CHRMSG                = CHARMSG;
+  PCHRMSG               = POINTER TO CHRMSG;
+
+CONST (* Key/Character input messages *)
+  WM_CHAR               = 007AH;
+  WM_VIOCHAR            = 007BH;
+
+CONST (* WM_CHAR CHARMSG.Flag bits *)
+  KC_NONE               = 0000H;   (* Reserved *)
+  KC_CHAR               = 0001H;
+  KC_VIRTUALKEY         = 0002H;
+  KC_SCANCODE           = 0004H;
+  KC_SHIFT              = 0008H;
+  KC_CTRL               = 0010H;
+  KC_ALT                = 0020H;
+  KC_KEYUP              = 0040H;
+  KC_PREVDOWN           = 0080H;
+  KC_LONEKEY            = 0100H;
+  KC_DEADKEY            = 0200H;
+  KC_COMPOSITE          = 0400H;
+  KC_INVALIDCOMP        = 0800H;
+  KC_TOGGLE             = 1000H;
+  KC_INVALIDCHAR        = 2000H;
+  KC_DBCSRSRVD1         = 4000H;
+  KC_DBCSRSRVD2         = 8000H;
+
+CONST
+  INP_NONE              = 0000H;
+  INP_KBD               = 0001H;
+  INP_MULT              = 0002H;
+  INP_RES2              = 0004H;
+  INP_SHIFT             = 0008H;
+  INP_CTRL              = 0010H;
+  INP_ALT               = 0020H;
+  INP_RES3              = 0040H;
+  INP_RES4              = 0080H;
+  INP_IGNORE            = 0FFFFH;
+
+CONST (* Virtual key values *)
+  VK_BUTTON1            = 01H;
+  VK_BUTTON2            = 02H;
+  VK_BUTTON3            = 03H;
+  VK_BREAK              = 04H;
+  VK_BACKSPACE          = 05H;
+  VK_TAB                = 06H;
+  VK_BACKTAB            = 07H;
+  VK_NEWLINE            = 08H;
+  VK_SHIFT              = 09H;
+  VK_CTRL               = 0AH;
+  VK_ALT                = 0BH;
+  VK_ALTGRAF            = 0CH;
+  VK_PAUSE              = 0DH;
+  VK_CAPSLOCK           = 0EH;
+  VK_ESC                = 0FH;
+  VK_SPACE              = 10H;
+  VK_PAGEUP             = 11H;
+  VK_PAGEDOWN           = 12H;
+  VK_END                = 13H;
+  VK_HOME               = 14H;
+  VK_LEFT               = 15H;
+  VK_UP                 = 16H;
+  VK_RIGHT              = 17H;
+  VK_DOWN               = 18H;
+  VK_PRINTSCRN          = 19H;
+  VK_INSERT             = 1AH;
+  VK_DELETE             = 1BH;
+  VK_SCRLLOCK           = 1CH;
+  VK_NUMLOCK            = 1DH;
+  VK_ENTER              = 1EH;
+  VK_SYSRQ              = 1FH;
+  VK_F1                 = 20H;
+  VK_F2                 = 21H;
+  VK_F3                 = 22H;
+  VK_F4                 = 23H;
+  VK_F5                 = 24H;
+  VK_F6                 = 25H;
+  VK_F7                 = 26H;
+  VK_F8                 = 27H;
+  VK_F9                 = 28H;
+  VK_F10                = 29H;
+  VK_F11                = 2AH;
+  VK_F12                = 2BH;
+  VK_F13                = 2CH;
+  VK_F14                = 2DH;
+  VK_F15                = 2EH;
+  VK_F16                = 2FH;
+  VK_F17                = 30H;
+  VK_F18                = 31H;
+  VK_F19                = 32H;
+  VK_F20                = 33H;
+  VK_F21                = 34H;
+  VK_F22                = 35H;
+  VK_F23                = 36H;
+  VK_F24                = 37H;
+  VK_ENDDRAG            = 38H;
+  VK_MENU               = VK_F10;
+  VK_DBCSFIRST          = 0080H;
+  VK_DBCSLAST           = 00FFH;
+  VK_USERFIRST          = 0100H;
+  VK_USERLAST           = 01FFH;
+
+PROCEDURE WinGetKeyState
+( DesktopWinHandle      : HWND;
+  VirtualKey            : LONGINT
+)                       : LONGINT;
+
+PROCEDURE WinGetPhysKeyState
+( DesktopWinHandle      : HWND;
+  ScanCode              : LONGINT
+)                       : LONGINT;
+
+PROCEDURE WinEnablePhysInput
+( DesktopWinHandle      : HWND;
+  NewInputState         : BOOLEAN
+)                       : BOOLEAN;
+
+PROCEDURE WinIsPhysInputEnabled
+( DesktopWinHandle      : HWND
+)                       : BOOLEAN;
+
+TYPE (* array indexed by virtual key value; for WinSetKeyboardStateTable() *)
+  STATEARRAY            = ARRAY SHORTCARD OF SHORTCARD;
+
+PROCEDURE WinSetKeyboardStateTable
+( DesktopWinHandle      : HWND;
+  VAR KeyStateTable     : STATEARRAY;
+  Set                   : BOOLEAN
+)                       : BOOLEAN;
+
+CONST (* Journal Notification messages  *)
+  WM_JOURNALNOTIFY      = 007CH;
+
+CONST (* Define the valid commands (Param1) for journal notify message *)
+  JRN_QUEUESTATUS       = 00000001H;
+  JRN_PHYSKEYSTATE      = 00000002H;
+
+END WININPUT.

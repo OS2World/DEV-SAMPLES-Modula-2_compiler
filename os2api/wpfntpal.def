@@ -1,0 +1,104 @@
+DEFINITION MODULE WPFNTPAL;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPFontPalette;
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPPALET;
+IMPORT OS2DEF;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPFontPalette        = POINTER TO WPFontPalette;
+TYPE PM_WPFontPalette      = POINTER TO M_WPFontPalette;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPFontPalette
+*************************************************************************)
+
+TYPE CELL                   = WPPALET.CELL;
+TYPE FATTRS                 = OS2DEF.FATTRS;
+
+CONST
+  CCHFONTNAME   = 80;
+
+TYPE  (* Fontpot structure *)
+  FONTPOT       = RECORD
+   cell           : CELL;     (* Size of the data that follows *)
+   fAttrs         : FATTRS;   (* fattrs from WinFontDlg/wpfattrsfrompsz *)
+   szFont         : ARRAY [0..CCHFONTNAME] OF CHAR;
+                  END;
+  PFONTPOT      = POINTER TO FONTPOT;
+
+
+
+(*************************************************************************
+  SOM class API for WPFontPalette, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPFontPalette_MajorVersion     = 1;
+  WPFontPalette_MinorVersion     = 2;
+
+TYPE
+  WPFontPaletteClassDataStructure   = RECORD
+    classObject                       : PSOMClass;
+    wpGetFattrsFromPsz                : somMToken;
+                                      END;
+
+VAR
+  WPFontPaletteClassData : WPFontPaletteClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPFontPalette = RECORD( WPPALET.WPPalette ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPFontPaletteNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+
+(*************************************************************************
+  SOM class API for M_WPFontPalette, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPFontPalette_MajorVersion   = 1;
+  M_WPFontPalette_MinorVersion   = 2;
+
+TYPE
+  M_WPFontPaletteClassDataStructure   = RECORD
+    classObject                         : PSOMClass;
+                                        END;
+
+VAR
+  M_WPFontPaletteClassData : M_WPFontPaletteClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPFontPalette = RECORD( WPPALET.M_WPPalette ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPFontPaletteNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+
+END WPFNTPAL.

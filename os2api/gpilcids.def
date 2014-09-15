@@ -1,0 +1,240 @@
+DEFINITION MODULE GPILCIDS;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager
+           GPI Phyical and Logical Fonts with Lcids.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF  IMPORT TYPEPREFIX, HAB, HPS, FACESIZE, STR8, FATTRS, FONTMETRICS;
+FROM   GPIDEF  IMPORT GPI_ALTERROR;
+
+CONST (* return codes from GpiCreateLogFont *)
+  FONT_DEFAULT                   = 1;
+  FONT_MATCH                     = 2;
+
+CONST (* lcid type for GpiQuerySetIds *)
+  LCIDT_FONT                     = 6;
+  LCIDT_BITMAP                   = 7;
+
+CONST (* constant used to delete all lcids by GpiDeleteSetId *)
+  LCID_ALL                       = -1;
+
+TYPE (* kerning data returned by GpiQueryKerningPairs *)
+  KERNINGPAIRS                   = RECORD    (* krnpr *)
+    CASE                           : TYPEPREFIX OF
+    | TRUE                         :
+      sFirstChar                   : INTEGER;
+      sSecondChar                  : INTEGER;
+      lKerningAmount               : LONGINT;
+    | FALSE                        :
+      FirstChar                    : INTEGER;
+      SecondChar                   : INTEGER;
+      KerningAmount                : LONGINT;
+    END;                           END;
+  PKERNINGPAIRS                  = POINTER TO KERNINGPAIRS;
+
+TYPE (* data required by GpiQueryFaceString *)
+  FACENAMEDESC                   = RECORD    (* fnd *)
+    CASE                           : TYPEPREFIX OF
+    | TRUE                         :
+      usSize                       : CARDINAL;
+      usWeightClass                : CARDINAL;
+      usWidthClass                 : CARDINAL;
+      usReserved                   : CARDINAL;
+      flOptions                    : LONGCARD;
+    | FALSE                        :
+      Size                         : CARDINAL;
+      WeightClass                  : CARDINAL;
+      WidthClass                   : CARDINAL;
+      Reserved                     : CARDINAL;
+      Options                      : LONGCARD;
+    END;                           END;
+  PFACENAMEDESC                  = POINTER TO FACENAMEDESC;
+
+CONST (* FACENAMEDESC 'WeightClass' options for GpiQueryFaceString *)
+  FWEIGHT_DONT_CARE              = 0;
+  FWEIGHT_ULTRA_LIGHT            = 1;
+  FWEIGHT_EXTRA_LIGHT            = 2;
+  FWEIGHT_LIGHT                  = 3;
+  FWEIGHT_SEMI_LIGHT             = 4;
+  FWEIGHT_NORMAL                 = 5;
+  FWEIGHT_SEMI_BOLD              = 6;
+  FWEIGHT_BOLD                   = 7;
+  FWEIGHT_EXTRA_BOLD             = 8;
+  FWEIGHT_ULTRA_BOLD             = 9;
+
+CONST (* FACENAMEDESC 'WidthClass' options for GpiQueryFaceString *)
+  FWIDTH_DONT_CARE               = 0;
+  FWIDTH_ULTRA_CONDENSED         = 1;
+  FWIDTH_EXTRA_CONDENSED         = 2;
+  FWIDTH_CONDENSED               = 3;
+  FWIDTH_SEMI_CONDENSED          = 4;
+  FWIDTH_NORMAL                  = 5;
+  FWIDTH_SEMI_EXPANDED           = 6;
+  FWIDTH_EXPANDED                = 7;
+  FWIDTH_EXTRA_EXPANDED          = 8;
+  FWIDTH_ULTRA_EXPANDED          = 9;
+
+CONST (* FACENAMEDESC 'options' for GpiQueryFaceString *)
+  FTYPE_ITALIC                   = 0001H;
+  FTYPE_ITALIC_DONT_CARE         = 0002H;
+  FTYPE_OBLIQUE                  = 0004H;
+  FTYPE_OBLIQUE_DONT_CARE        = 0008H;
+  FTYPE_ROUNDED                  = 0010H;
+  FTYPE_ROUNDED_DONT_CARE        = 0020H;
+
+CONST (* actions for GpiQueryFontAction *)
+  QFA_PUBLIC                     = 1;
+  QFA_PRIVATE                    = 2;
+  QFA_ERROR                      = GPI_ALTERROR;
+
+CONST (* options for GpiQueryFonts *)
+  QF_PUBLIC                      = 0001H;
+  QF_PRIVATE                     = 0002H;
+  QF_NO_GENERIC                  = 0004H;
+  QF_NO_DEVICE                   = 0008H;
+
+TYPE (* font file descriptions for GpiQueryFontFileDescriptions *)
+  FFDESCS   = ARRAY [0..1], [0..FACESIZE-1] OF CHAR; (* ffdescs *)
+  PFFDESCS  = POINTER TO FFDESCS;
+  FFDESCS2  = RECORD                                (* ffdescs2 *)
+    CASE                           : TYPEPREFIX OF
+    | TRUE                         :
+      cbLength                     : LONGCARD;
+      cbFacenameOffset             : LONGCARD;
+      abFamilyName                 : ARRAY [0..0] OF CHAR;
+    | FALSE                        :
+      Length                       : LONGCARD;
+      FaceNameOffset               : LONGCARD;
+      FamilyName                   : ARRAY [0..0] OF CHAR;
+    END;                           END;
+  PFFDESCS2                      = POINTER TO FFDESCS2;
+
+
+(*** physical and logical font functions *)
+
+PROCEDURE GpiCreateLogFont
+( PresSpaceHandle                : HPS;
+  VAR Name                       : STR8;
+  LocalId                        : LONGINT;
+  VAR FontAttrs                  : FATTRS
+)                                : LONGINT;
+
+PROCEDURE GpiDeleteSetId
+( PresSpaceHandle                : HPS;
+  LocalId                        : LONGINT
+)                                : BOOLEAN;
+
+PROCEDURE GpiLoadFonts
+( AnchorBlockHandle              : HAB;
+  FileName                       : ARRAY OF CHAR
+)                                : BOOLEAN;
+
+PROCEDURE GpiUnloadFonts
+( AnchorBlockHandle              : HAB;
+  FileName                       : ARRAY OF CHAR
+)                                : BOOLEAN;
+
+PROCEDURE GpiQueryFonts
+( PresSpaceHandle                : HPS;
+  Options                        : LONGCARD;
+  VAR FaceName                   : ARRAY OF CHAR;
+  VAR ReqFonts                   : LONGINT;
+  MetricsLength                  : LONGINT;
+  VAR Metrics                    : FONTMETRICS
+)                                : LONGINT;
+
+PROCEDURE GpiQueryFontMetrics
+( PresSpaceHandle                : HPS;
+  MetricsLength                  : LONGINT;
+  VAR Metrics                    : FONTMETRICS
+)                                : BOOLEAN;
+
+PROCEDURE GpiQueryKerningPairs
+( PresSpaceHandle                : HPS;
+  Count                          : LONGINT;
+  VAR Data                       : ARRAY OF KERNINGPAIRS
+)                                : LONGINT;
+
+PROCEDURE GpiQueryWidthTable
+( PresSpaceHandle                : HPS;
+  FirstChar                      : LONGINT;
+  Count                          : LONGINT;
+  VAR Data                       : ARRAY OF LONGINT
+)                                : BOOLEAN;
+
+PROCEDURE GpiQueryNumberSetIds
+( PresSpaceHandle                : HPS
+)                                : LONGINT;
+
+PROCEDURE GpiQuerySetIds
+( PresSpaceHandle                : HPS;
+  Count                          : LONGINT;
+  VAR Types                      : ARRAY OF LONGINT;
+  VAR Names                      : ARRAY OF STR8;
+  VAR LocalIds                   : ARRAY OF LONGINT
+)                                : BOOLEAN;
+
+PROCEDURE GpiQueryFaceString
+( PresSpaceHandle                : HPS;
+  FamilyName                     : ARRAY OF CHAR;
+  VAR FaceAttrs                  : FACENAMEDESC;
+  Length                         : LONGINT;
+  VAR CompoundFaceName           : ARRAY OF CHAR
+)                                : LONGCARD;
+
+PROCEDURE GpiQueryLogicalFont
+( PresSpaceHandle                : HPS;
+  LocalId                        : LONGINT;
+  VAR Name                       : STR8;
+  VAR FontAttrs                  : FATTRS;
+  AttrsLength                    : LONGINT
+)                                : BOOLEAN;
+
+PROCEDURE GpiQueryFontAction
+( AnchorBlockHandle              : HAB;
+  Options                        : LONGCARD
+)                                : LONGCARD;
+
+PROCEDURE GpiLoadPublicFonts
+( AnchorBlockHandle              : HAB;
+  FileName                       : ARRAY OF CHAR
+)                                : BOOLEAN;
+
+PROCEDURE GpiUnloadPublicFonts
+( AnchorBlockHandle              : HAB;
+  FileName                       : ARRAY OF CHAR
+)                                : BOOLEAN;
+
+PROCEDURE GpiSetCp
+( PresSpaceHandle                : HPS;
+  CodePage                       : LONGCARD
+)                                : BOOLEAN;
+
+PROCEDURE GpiQueryCp
+( PresSpaceHandle                : HPS
+)                                : LONGCARD;
+
+PROCEDURE GpiQueryFontFileDescriptions
+( AnchorBlockHandle              : HAB;
+  FileName                       : ARRAY OF CHAR;
+  VAR Count                      : LONGINT;
+  VAR Names                      : ARRAY OF FFDESCS
+)                                : LONGINT;
+
+PROCEDURE GpiQueryFullFontFileDescs
+( AnchorBlockHandle              : HAB;
+  FileName                       : ARRAY OF CHAR;
+  VAR Count                      : LONGINT;
+  VAR Names                      : ARRAY OF SYSTEM.BYTE;
+  VAR NamesBuffLength            : LONGINT
+)                                : LONGINT;
+
+END GPILCIDS.

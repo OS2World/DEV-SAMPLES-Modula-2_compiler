@@ -1,0 +1,115 @@
+DEFINITION MODULE WINENTRYFIELDS;
+
+(************************************************************************
+  OS/2 2.0 interface for window entry fields controls.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$A         default alignment for record fields                        *)
+
+FROM OS2DEF IMPORT TYPEPREFIX;
+
+CONST (* Entry field  styles *)
+  ES_LEFT               = 00000000H;
+  ES_CENTER             = 00000001H;
+  ES_RIGHT              = 00000002H;
+  ES_AUTOSCROLL         = 00000004H;
+  ES_MARGIN             = 00000008H;
+  ES_AUTOTAB            = 00000010H;
+  ES_READONLY           = 00000020H;
+  ES_COMMAND            = 00000040H;
+  ES_UNREADABLE         = 00000080H;
+  ES_AUTOSIZE           = 00000200H;
+  ES_ANY                = 00000000H;
+  ES_SBCS               = 00001000H;
+  ES_DBCS               = 00002000H;
+  ES_MIXED              = 00003000H;
+
+CONST (* combo box styles *)
+  CBS_SIMPLE            = 0001H;
+  CBS_DROPDOWN          = 0002H;
+  CBS_DROPDOWNLIST      = 0004H;
+ (*
+  * Use this bit for drop down combo boxes that do not want to
+  * receive a CBN_ENTER on a single click in their list boxes.
+  * This is for compatibility with releases prior to OS/2 2.0 which
+  * did not send this message
+  *)
+  CBS_COMPATIBLE        = 0008H;
+
+CONST
+  (*
+  * The following edit and listbox styles may be used in conjunction
+  * with CBS_ styles
+  * ES_AUTOTAB ES_ANY ES_SBCS ES_DBCS ES_MIXED LS_HORZSCROLL
+  *)
+
+  (*
+  * IDs of combobox entry field and listbox.
+  *)
+  CBID_LIST             = 029AH;
+  CBID_EDIT             = 029BH;
+
+  CBM_SHOWLIST          = 0170H;
+  CBM_HILITE            = 0171H;
+  CBM_ISLISTSHOWING     = 0172H;
+
+  CBN_EFCHANGE          = 1;
+  CBN_EFSCROLL          = 2;
+  CBN_MEMERROR          = 3;
+  CBN_LBSELECT          = 4;
+  CBN_LBSCROLL          = 5;
+  CBN_SHOWLIST          = 6;
+  CBN_ENTER             = 7;
+
+TYPE
+  (* Binary resources may be bound into application executables or *)
+  (* passed as a parameter when creating a window or dialog        *)
+  (* Currently they must be the same for both 16-bit and 32-bit    *)
+  (* so we pack the structures.                                    *)
+  (*                                                               *)
+  (*$A2 WORD alignemnt for record fields                           *)
+  ENTRYFDATA            = RECORD
+    CASE                  : TYPEPREFIX OF
+    | TRUE                :
+      cb                  : CARDINAL;
+      cchEditLimit        : CARDINAL;
+      ichMinSel           : CARDINAL;
+      ichMaxSel           : CARDINAL;
+    | FALSE               :
+      Count               : CARDINAL;
+      EditLimit           : CARDINAL;
+      MinSel              : CARDINAL;
+      MaxSel              : CARDINAL;
+    END;                  END;
+  PENTRYFDATA           = POINTER TO ENTRYFDATA;
+  (*$A restore record field packing to default                     *)
+
+CONST (* Entry Field  messages *)
+  EM_QUERYCHANGED       = 0140H;
+  EM_QUERYSEL           = 0141H;
+  EM_SETSEL             = 0142H;
+  EM_SETTEXTLIMIT       = 0143H;
+  EM_CUT                = 0144H;
+  EM_COPY               = 0145H;
+  EM_CLEAR              = 0146H;
+  EM_PASTE              = 0147H;
+  EM_QUERYFIRSTCHAR     = 0148H;
+  EM_SETFIRSTCHAR       = 0149H;
+  EM_QUERYREADONLY      = 014AH;
+  EM_SETREADONLY        = 014BH;
+  EM_SETINSERTMODE      = 014CH;
+
+CONST (* Entry Field notification messages *)
+  EN_SETFOCUS           = 0001H;
+  EN_KILLFOCUS          = 0002H;
+  EN_CHANGE             = 0004H;
+  EN_SCROLL             = 0008H;
+  EN_MEMERROR           = 0010H;
+  EN_OVERFLOW           = 0020H;
+  EN_INSERTMODETOGGLE   = 0040H;
+
+END WINENTRYFIELDS.
+

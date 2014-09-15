@@ -1,0 +1,90 @@
+DEFINITION MODULE WINCOUNTRY;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager country support.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM   OS2DEF  IMPORT HAB, HMQ, PSZ;
+
+PROCEDURE WinQueryCp
+( MsgQueueHandle        : HMQ
+)                       : LONGCARD;
+
+PROCEDURE WinSetCp
+( MsgQueueHandle        : HMQ;
+  CodePage              : LONGCARD
+)                       : BOOLEAN;
+
+PROCEDURE WinQueryCpList
+( AnchorBlockHandle     : HAB;
+  MaxCount              : LONGCARD;
+  VAR CodePage          : ARRAY OF LONGCARD
+)                       : LONGCARD;
+
+PROCEDURE WinCpTranslateString
+( AnchorBlockHandle     : HAB;
+  SourceCodePage        : LONGCARD;
+  VAR Source            : ARRAY OF CHAR;
+  DestCodePage          : LONGCARD;
+  DestMax               : LONGCARD;
+  VAR Dest              : ARRAY OF CHAR
+)                       : BOOLEAN;
+
+PROCEDURE WinCpTranslateChar
+( AnchorBlockHandle     : HAB;
+  SourceCodePage        : LONGCARD;
+  SourceChar            : CHAR;
+  DestCodePage          : LONGCARD
+)                       : CHAR;
+
+PROCEDURE WinUpper
+( AnchorBlockHandle     : HAB;
+  CodePage              : LONGCARD;
+  Country               : LONGCARD;
+  VAR String            : ARRAY OF CHAR
+)                       : LONGCARD;
+
+PROCEDURE WinUpperChar
+( AnchorBlockHandle     : HAB;
+  CodePage              : LONGCARD;
+  Country               : LONGCARD;
+  InChar                : LONGCARD
+)                       : LONGCARD;
+
+PROCEDURE WinNextChar
+( AnchorBlockHandle     : HAB;
+  CodePage              : LONGCARD;
+  Country               : LONGCARD;
+  VAR CurrentChar       : CHAR
+)                       : PSZ;
+
+PROCEDURE WinPrevChar
+( AnchorBlockHandle     : HAB;
+  CodePage              : LONGCARD;
+  Country               : LONGCARD;
+  VAR Start             : CHAR;
+  VAR CurrentChar       : CHAR
+)                       : PSZ;
+
+PROCEDURE WinCompareStrings
+( AnchorBlockHandle     : HAB;
+  CodePage              : LONGCARD;
+  CountryCode           : LONGCARD;
+  VAR String1           : ARRAY OF CHAR;
+  VAR String2           : ARRAY OF CHAR;
+  Reserved              : LONGCARD
+)                       : LONGCARD;
+
+CONST
+  WCS_ERROR             = 0;
+  WCS_EQ                = 1;
+  WCS_LT                = 2;
+  WCS_GT                = 3;
+
+END WINCOUNTRY.

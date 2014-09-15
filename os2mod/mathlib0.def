@@ -1,0 +1,25 @@
+DEFINITION MODULE MathLib0;
+
+(**************************************************************************
+   OS/2 2.x  Modula-2 floating point library for elemetary functions.
+
+   Copyright (c) 1993 by Juergen Neuhoff
+**************************************************************************)
+
+PROCEDURE sqrt( x : REAL ) : REAL;
+
+PROCEDURE exp( x : REAL ) : REAL;
+
+PROCEDURE ln( x : REAL ) : REAL;
+
+PROCEDURE sin( x : REAL ) : REAL;
+
+PROCEDURE cos( x : REAL ) : REAL;
+
+PROCEDURE arctan( x : REAL ) : REAL;
+
+PROCEDURE real( x : LONGINT ) : REAL;
+
+PROCEDURE entier( x : REAL ) : LONGINT;
+
+END MathLib0.

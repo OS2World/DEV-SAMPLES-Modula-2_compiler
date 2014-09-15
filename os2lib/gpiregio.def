@@ -1,0 +1,21 @@
+LIBRARY PMGPI
+EXPORTS
+  GpiCombineRegion          @362
+  GpiCreateRegion           @370
+  GpiDestroyRegion          @611
+  GpiEqualRegion            @388
+  GpiOffsetRegion           @407
+  GpiPaintRegion            @409
+  GpiFrameRegion            @617
+  GpiPtInRegion             @419
+  GpiQueryRegionBox         @481
+  GpiQueryRegionRects       @587
+  GpiRectInRegion           @494
+  GpiSetRegion              @546
+  GpiSetClipRegion          @516
+  GpiQueryClipRegion        @436
+  GpiQueryClipBox           @435
+  GpiExcludeClipRectangle   @391
+  GpiIntersectClipRectangle @396
+  GpiOffsetClipRegion       @405
+

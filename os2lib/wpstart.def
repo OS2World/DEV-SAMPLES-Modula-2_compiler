@@ -1,0 +1,6 @@
+LIBRARY PMWP
+EXPORTS
+  WPStartupClassData         @0x0026
+  WPStartupNewClass          @0x0027
+  M_WPStartupClassData       @0x014F
+  M_WPStartupNewClass        @0x0150

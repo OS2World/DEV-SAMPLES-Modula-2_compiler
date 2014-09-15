@@ -1,0 +1,71 @@
+DEFINITION MODULE WINSCROLLBARS;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager Scroll Bar controls.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$A         default alignment for record fields                        *)
+
+FROM   OS2DEF  IMPORT TYPEPREFIX;
+
+CONST (* Scroll Bar styles *)
+  SBS_HORZ                 = 0;
+  SBS_VERT                 = 1;
+  SBS_THUMBSIZE            = 2;
+  SBS_AUTOTRACK            = 4;
+  SBS_AUTOSIZE             = 2000H;
+
+CONST (* Scroll Bar messages *)
+  SBM_SETSCROLLBAR         = 01A0H;
+  SBM_SETPOS               = 01A1H;
+  SBM_QUERYPOS             = 01A2H;
+  SBM_QUERYRANGE           = 01A3H;
+  SBM_SETTHUMBSIZE         = 01A6H;
+
+CONST (* Scroll Bar Commands *)
+  SB_LINEUP                = 1;
+  SB_LINEDOWN              = 2;
+  SB_LINELEFT              = 1;
+  SB_LINERIGHT             = 2;
+  SB_PAGEUP                = 3;
+  SB_PAGEDOWN              = 4;
+  SB_PAGELEFT              = 3;
+  SB_PAGERIGHT             = 4;
+  SB_SLIDERTRACK           = 5;
+  SB_SLIDERPOSITION        = 6;
+  SB_ENDSCROLL             = 7;
+
+TYPE
+  (* Binary resources may be bound into application executables or *)
+  (* passed as a parameter when creating a window or dialog        *)
+  (* Currently they must be the same for both 16-bit and 32-bit    *)
+  (* so we pack the structures.                                    *)
+  (*                                                               *)
+  (*$A2 WORD alignment for record fields >= 2 bytes                *)
+  SBCDATA         = RECORD (* sbcd *)
+    CASE            : TYPEPREFIX OF
+    | TRUE          :
+      cb            : CARDINAL;
+      sHilite       : CARDINAL;    (* reserved, should be set to zero *)
+      posFirst      : INTEGER;
+      posLast       : INTEGER;
+      posThumb      : INTEGER;
+      cVisible      : INTEGER;
+      cTotal        : INTEGER;
+    | FALSE         :
+      Count         : CARDINAL;
+      Hilite        : CARDINAL;    (* reserved, should be set to zero *)
+      FirstPos      : INTEGER;
+      LastPos       : INTEGER;
+      ThumbPos      : INTEGER;
+      VisibleCount  : INTEGER;
+      TotalCount    : INTEGER;
+    END;            END;
+  PSBCDATA        = POINTER TO SBCDATA;
+  (*$A restore default alignment for record fields *)
+
+END WINSCROLLBARS.
+

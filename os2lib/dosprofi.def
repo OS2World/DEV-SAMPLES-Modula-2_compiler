@@ -1,0 +1,6 @@
+LIBRARY DOSCALLS
+EXPORTS
+  DosTmrQueryFreq       @420
+  DosTmrQueryTime       @421
+  DosRegisterPerfCtrs   @422
+

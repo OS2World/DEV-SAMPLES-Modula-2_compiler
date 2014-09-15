@@ -1,0 +1,117 @@
+DEFINITION MODULE WINACCELERATORS;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager Accelerator functions.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF        IMPORT TYPEPREFIX, HAB, HWND, HMODULE, LHANDLE;
+FROM   WINMESSAGEMGR IMPORT QMSG;
+
+TYPE
+  HACCEL = LHANDLE; (* haccel *)
+
+CONST
+  (* ACCEL fs bits
+  *
+  * NOTE: the first six AF_ code bits have the same value
+  * as their KC_ counterparts
+  *)
+  AF_CHAR                   = 0001H;
+  AF_VIRTUALKEY             = 0002H;
+  AF_SCANCODE               = 0004H;
+  AF_SHIFT                  = 0008H;
+  AF_CONTROL                = 0010H;
+  AF_ALT                    = 0020H;
+  AF_LONEKEY                = 0040H;
+  AF_SYSCOMMAND             = 0100H;
+  AF_HELP                   = 0200H;
+
+TYPE
+  (* Binary resources may be bound into application executables or *)
+  (* passed as a parameter when creating a window or dialog        *)
+  (* Currently they must be the same for both 16-bit and 32-bit    *)
+  (* so we pack the structures.                                    *)
+  (*                                                               *)
+  (*$A2 WORD alignment for record fields >= 2 bytes                *)
+  ACCEL                     = RECORD  (* acc *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      fs                      : CARDINAL;
+      key                     : CARDINAL;
+      cmd                     : CARDINAL;
+    | FALSE                   :
+      Flag                    : CARDINAL;
+      Key                     : CARDINAL;
+      Cmd                     : CARDINAL;
+    END;                      END;
+  PACCEL                    = POINTER TO ACCEL;
+  (*$A restore default alignment for record fields                 *)
+
+TYPE
+  (* Binary resources may be bound into application executables or *)
+  (* passed as a parameter when creating a window or dialog        *)
+  (* Currently they must be the same for both 16-bit and 32-bit    *)
+  (* so we pack the structures.                                    *)
+  (*                                                               *)
+  (*$A2 WORD alignment for record fields >= 2 bytes                *)
+  ACCELTABLE                = RECORD (* acct  *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      cAccel                  : CARDINAL;
+      codepage                : CARDINAL;
+      aaccel                  : ARRAY [0..0] OF ACCEL;
+    | FALSE                   :
+      AccelCount              : CARDINAL;
+      CodePage                : CARDINAL;
+      Accel                   : ARRAY [0..0] OF ACCEL;
+    END;                      END;
+  PACCELTABLE               = POINTER TO ACCELTABLE;
+  (*$A restore default alignment for record fields                 *)
+
+PROCEDURE WinLoadAccelTable
+( AnchorBlockHandle         : HAB;
+  Resource                  : HMODULE;
+  AccelTable                : LONGCARD
+)                           : HACCEL;
+
+PROCEDURE WinCopyAccelTable
+( AccelTableHandle          : HACCEL;
+  AccelTable                : PACCELTABLE;
+  CopyMax                   : LONGCARD
+)                           : LONGCARD;
+
+PROCEDURE WinCreateAccelTable
+( AnchorBlockHandle         : HAB;
+  VAR AccelTable            : ACCELTABLE
+)                           : HACCEL;
+
+PROCEDURE WinDestroyAccelTable
+( AccelTableHandle          : HACCEL
+)                           : BOOLEAN;
+
+PROCEDURE WinTranslateAccel
+( AnchorBlockHandle         : HAB;
+  WinHandle                 : HWND;
+  AccelTableHandle          : HACCEL;
+  VAR QMsg                  : QMSG
+)                           : BOOLEAN;
+
+PROCEDURE WinSetAccelTable
+( AnchorBlockHandle         : HAB;
+  AccelTableHandle          : HACCEL;
+  FrameWinHandle            : HWND
+)                           : BOOLEAN;
+
+PROCEDURE WinQueryAccelTable
+( AnchorBlockHandle         : HAB;
+  FrameWinHandle            : HWND
+)                           : HACCEL;
+
+END WINACCELERATORS.

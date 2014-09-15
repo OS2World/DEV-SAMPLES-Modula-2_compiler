@@ -1,0 +1,120 @@
+(*$DLL      DOG can  be implemented as dynamic link library *)
+
+DEFINITION MODULE DOG;
+
+(***************************************************************************
+  OS/2 2.1 interface for SOM class Dog
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting Dog
+*************************************************************************)
+
+IMPORT OS2DEF;
+IMPORT ANIMAL;
+IMPORT SYSTEM;
+TYPE PSZ                    = OS2DEF.PSZ;
+
+
+(*************************************************************************
+  SOM class API for Dog, including type-bound procedures
+**************************************************************************)
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PDog                   = POINTER TO Dog;
+TYPE PM_Dog                 = POINTER TO M_Dog;
+
+CONST
+  Dog_MajorVersion     = 0;
+  Dog_MinorVersion     = 0;
+
+TYPE
+  DogClassDataStructure     = RECORD
+    classObject               : PSOMClass;
+    setBreed                  : somMToken;
+    setColor                  : somMToken;
+    getBreed                  : somMToken;
+    getColor                  : somMToken;
+                              END;
+
+VAR
+  DogClassData : DogClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  Dog = RECORD( ANIMAL.Animal ) END;
+  (*$SOM- *)
+
+
+PROCEDURE DogNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+PROCEDURE( Self : PDog ) setBreed
+(
+  myBreed       : OS2DEF.PSZ
+);
+
+PROCEDURE( Self : PDog ) setColor
+(
+  myColor       : OS2DEF.PSZ
+);
+
+PROCEDURE( Self : PDog ) getBreed() : OS2DEF.PSZ;
+
+PROCEDURE( Self : PDog ) getColor() : OS2DEF.PSZ;
+
+
+(*************************************************************************
+  SOM class API for M_Dog, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_Dog_MajorVersion   = 0;
+  M_Dog_MinorVersion   = 0;
+
+TYPE
+  M_DogClassDataStructure   = RECORD
+    classObject               : PSOMClass;
+    newDog                    : somMToken;
+                              END;
+
+VAR
+  M_DogClassData : M_DogClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_Dog = RECORD( ANIMAL.M_Animal ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_DogNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+
+PROCEDURE( Self : PM_Dog ) newDog
+(
+  sound         : OS2DEF.PSZ;
+  breed         : OS2DEF.PSZ;
+  color         : OS2DEF.PSZ
+)               : SYSTEM.ADDRESS;
+
+
+END DOG.

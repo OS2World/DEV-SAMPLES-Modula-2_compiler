@@ -1,0 +1,166 @@
+DEFINITION MODULE WINCLIPBOARD;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager Clipboard manager.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM   OS2DEF  IMPORT TYPEPREFIX, HAB, HWND, POINTL;
+
+CONST (* Clipboard messages *)
+  WM_RENDERFMT              = 0060H;
+  WM_RENDERALLFMTS          = 0061H;
+  WM_DESTROYCLIPBOARD       = 0062H;
+  WM_PAINTCLIPBOARD         = 0063H;
+  WM_SIZECLIPBOARD          = 0064H;
+  WM_HSCROLLCLIPBOARD       = 0065H;
+  WM_VSCROLLCLIPBOARD       = 0066H;
+  WM_DRAWCLIPBOARD          = 0067H;
+
+CONST (* Standard Clipboard formats *)
+  CF_TEXT                   = 1;
+  CF_BITMAP                 = 2;
+  CF_DSPTEXT                = 3;
+  CF_DSPBITMAP              = 4;
+  CF_METAFILE               = 5;
+  CF_DSPMETAFILE            = 6;
+  CF_PALETTE                = 9;
+
+CONST (* standard DDE and clipboard format stings *)
+  SZFMT_TEXT                = "#1";
+  SZFMT_BITMAP              = "#2";
+  SZFMT_DSPTEXT             = "#3";
+  SZFMT_DSPBITMAP           = "#4";
+  SZFMT_METAFILE            = "#5";
+  SZFMT_DSPMETAFILE         = "#6";
+  SZFMT_PALETTE             = "#9";
+  SZFMT_SYLK                = "Sylk";
+  SZFMT_DIF                 = "Dif";
+  SZFMT_TIFF                = "Tiff";
+  SZFMT_OEMTEXT             = "OemText";
+  SZFMT_DIB                 = "Dib";
+  SZFMT_OWNERDISPLAY        = "OwnerDisplay";
+  SZFMT_LINK                = "Link";
+  SZFMT_METAFILEPICT        = "MetaFilePict";
+  SZFMT_DSPMETAFILEPICT     = "DspMetaFilePict";
+  SZFMT_CPTEXT              = "Codepage Text";
+  SZDDEFMT_RTF              = "Rich Text Format";
+  SZDDEFMT_PTRPICT          = "Printer_Picture";
+
+TYPE
+  (* Metafiles are the same no matter whether they are used in     *)
+  (* 16-bit or 32-bit applications. While not strictly necessary   *)
+  (* because of inherent alignment we force packing on a 2 byte    *)
+  (* boundary to avoid any confusion.                              *)
+  (*                                                               *)
+  (*$A2 WORD alignment for record fields >= 2 bytes                *)
+  MFP             = RECORD      (* mfp *)
+    CASE            : TYPEPREFIX OF
+    | TRUE          :
+      sizeBounds    : POINTL;   (* metafile notional grid size *)
+      sizeMM        : POINTL;   (* metafile size high metric units *)
+      cbLength      : LONGCARD; (* length of metafile data *)
+      mapMode       : CARDINAL; (* a PM metaflie map mode *)
+      reserved      : CARDINAL;
+      abData        : ARRAY [0..0] OF SHORTCARD; (* metafile Data *)
+    | FALSE         :
+      BoundsSize    : POINTL;   (* metafile notional grid size *)
+      MMSize        : POINTL;   (* metafile size high metric units *)
+      Length        : LONGCARD; (* length of metafile data *)
+      MapMode       : CARDINAL; (* a PM metaflie map mode *)
+      Reserved      : CARDINAL;
+      Data          : ARRAY [0..0] OF SHORTCARD; (* metafile Data *)
+    END;            END;
+  PMFP            = POINTER TO MFP;
+
+TYPE
+  (* CPTEXT DDE data are the same no matter whether they are used  *)
+  (* in 16-bit or 32-bit applications. While not strictly necessary*)
+  (* because of inherent alignment we force packing on a 2 byte    *)
+  (* boundary to avoid any confusion.                              *)
+  (*                                                               *)
+  (*$A2 WORD alignment for record fields >= 2 bytes                *)
+  CPTEXT          = RECORD   (* cptxt *)
+    CASE            : TYPEPREFIX OF
+    | TRUE          :
+      idCountry     : CARDINAL;
+      usCodepage    : CARDINAL;
+      usLangID      : CARDINAL;
+      usSubLangID   : CARDINAL;
+      abText        : ARRAY [0..0] OF CHAR;
+    | FALSE         :
+      CountryId     : CARDINAL;
+      CodePage      : CARDINAL;
+      LangID        : CARDINAL;
+      SubLangId     : CARDINAL;
+      Text          : ARRAY [0..0] OF CHAR;
+    END;            END;
+  PCPTEXT         = POINTER TO CPTEXT;
+  (*$A restore default alignment for record fields *)
+
+PROCEDURE WinSetClipbrdOwner
+( AnchorBlockHandle : HAB;
+  WinHandle         : HWND
+)                   : BOOLEAN;
+
+PROCEDURE WinSetClipbrdData
+( AnchorBlockHandle : HAB;
+  Handle            : LONGCARD;
+  Format            : LONGCARD;
+  FmtInfo           : LONGCARD
+)                   : BOOLEAN;
+
+PROCEDURE WinQueryClipbrdData
+( AnchorBlockHandle : HAB;
+  Format            : LONGCARD
+)                   : LONGCARD;
+
+PROCEDURE WinQueryClipbrdFmtInfo
+( AnchorBlockHandle : HAB;
+  Format            : LONGCARD;
+  VAR FmtInfo       : LONGCARD
+)                   : BOOLEAN;
+
+PROCEDURE WinSetClipbrdViewer
+( AnchorBlockHandle : HAB;
+  WinHandle         : HWND
+)                   : BOOLEAN;
+
+CONST (* WinSetClipbrdData() flags *)
+  CFI_OWNERFREE     = 0001H;
+  CFI_OWNERDISPLAY  = 0002H;
+  CFI_POINTER       = 0400H;
+  CFI_HANDLE        = 0200H;
+
+PROCEDURE WinEnumClipbrdFmts
+( AnchorBlockHandle : HAB;
+  PrevFormat        : LONGCARD
+)                   : LONGCARD;
+
+PROCEDURE WinEmptyClipbrd
+( AnchorBlockHandle : HAB
+)                   : BOOLEAN;
+
+PROCEDURE WinOpenClipbrd
+( AnchorBlockHandle : HAB
+)                   : BOOLEAN;
+
+PROCEDURE WinCloseClipbrd
+( AnchorBlockHandle : HAB
+)                   : BOOLEAN;
+
+PROCEDURE WinQueryClipbrdOwner
+( AnchorBlockHandle : HAB
+)                   : HWND;
+
+PROCEDURE WinQueryClipbrdViewer
+( AnchorBlockHandle : HAB
+)                   : HWND;
+
+
+END WINCLIPBOARD.

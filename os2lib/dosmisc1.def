@@ -1,0 +1,9 @@
+LIBRARY DOSCALLS
+EXPORTS
+  DosError             @212
+  DosErrClass          @211
+  DosQuerySysInfo      @348
+  DosScanEnv           @227
+  DosSearchPath        @228
+  DosQueryRASInfo      @112
+

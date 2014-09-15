@@ -1,0 +1,6 @@
+LIBRARY PMWIN
+EXPORTS
+  WinLoadMenu    @778
+  WinCreateMenu  @907
+  WinPopupMenu   @937
+

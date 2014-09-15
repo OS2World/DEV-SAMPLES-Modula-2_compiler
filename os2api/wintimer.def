@@ -1,0 +1,38 @@
+DEFINITION MODULE WINTIMER;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager timer manager.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM   OS2DEF  IMPORT HAB, HWND;
+
+PROCEDURE WinStartTimer
+( AnchorBlockHandle       : HAB;
+  WinHandle               : HWND;
+  TimerId                 : LONGCARD;
+  Timeout                 : LONGCARD
+)                         : LONGCARD;
+
+PROCEDURE WinStopTimer
+( AnchorBlockHandle       : HAB;
+  WinHandle               : HWND;
+  TimerId                 : LONGCARD
+)                         : BOOLEAN;
+
+PROCEDURE WinGetCurrentTime
+( AnchorBlockHandle       : HAB
+)                         : LONGCARD;
+
+CONST
+  TID_CURSOR         = 0FFFFH;  (* Reserved cursor timer ID              *)
+  TID_SCROLL         = 0FFFEH;  (* Reserved scrolling timer ID           *)
+  TID_FLASHWINDOW    = 0FFFDH;  (* Reserved for window flashing timer ID *)
+  TID_USERMAX        = 07FFFH;  (* Maximum user timer ID                 *)
+
+END WINTIMER.

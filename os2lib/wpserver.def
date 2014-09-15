@@ -1,0 +1,6 @@
+LIBRARY PMWP
+EXPORTS
+  WPServerClassData         @0x01A0
+  WPServerNewClass          @0x01A1
+  M_WPServerClassData       @0x018B
+  M_WPServerNewClass        @0x018C

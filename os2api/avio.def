@@ -1,0 +1,147 @@
+DEFINITION MODULE AVIO;
+
+(*************************************************************************
+  OS/2 2.x or 3.0  Advanced Video Kernel API.
+
+  (c) 1995 by Juergen Neuhoff
+**************************************************************************)
+
+(*$XL+    Modula-2 language extensions: '_' allowed for symbol names     *)
+(*$A      default alignment scheme for record fields                     *)
+(*$API16+ 32 to 16 bit thunking for API functions                        *)
+
+FROM OS2DEF IMPORT HDC, FATTRS, STR8, FONTMETRICS, HWND;
+FROM WINDEF IMPORT MRESULT;
+
+
+TYPE
+  HVPS           = CARDINAL;           (* hpvs *)
+  PHVPS          = POINTER TO HVPS;    (* phpvs *)
+
+
+PROCEDURE VioAssociate
+(
+  DCHandle      : HDC;
+  VPSHandle     : HVPS
+)               : CARDINAL;
+
+
+PROCEDURE VioCreateLogFont
+(
+  VAR FontAttr  : FATTRS;
+  LocalId       : LONGINT;
+  Name          : STR8;
+  VPSHandle     : HVPS
+)               : CARDINAL;
+
+
+PROCEDURE VioCreatePS
+(
+  VAR VPSHandle : HVPS;
+  Depth         : INTEGER;
+  Width         : INTEGER;
+  Format        : INTEGER;
+  Attrs         : INTEGER;
+  Reserved      : HVPS
+)               : CARDINAL;
+
+
+PROCEDURE VioDeleteSetId
+(
+  LocalId       : LONGINT;
+  VPSHandle     : HVPS
+)               : CARDINAL;
+
+
+PROCEDURE VioDestroyPS
+(
+  VPSHandle     : HVPS
+)               : CARDINAL;
+
+
+PROCEDURE VioGetDeviceCellSize
+(
+  VAR Height    : INTEGER;
+  VAR Width     : INTEGER;
+  VPSHandle     : HVPS
+)               : CARDINAL;
+
+
+PROCEDURE VioGetOrg
+(
+  VAR Row       : INTEGER;
+  VAR Column    : INTEGER;
+  VPSHandle     : HVPS
+)               : CARDINAL;
+
+
+PROCEDURE VioQueryFonts
+(
+  VAR Size        : LONGINT;
+  VAR FontMetrics : ARRAY OF FONTMETRICS;
+  MetricsLength   : LONGINT;
+  VAR FontsCount  : LONGINT;
+  FaceName        : ARRAY OF CHAR;
+  Options         : LONGCARD;
+  VPSHandle       : HVPS
+)                 : CARDINAL;
+
+
+PROCEDURE VioQuerySetIds
+(
+  VAR LocalIds    : ARRAY OF LONGINT;
+  VAR Names       : ARRAY OF STR8;
+  VAR Types       : ARRAY OF LONGINT;
+  Count           : LONGINT;
+  VPSHandle       : HVPS
+)                 : CARDINAL;
+
+
+PROCEDURE VioSetDeviceCellSize
+(
+  Height          : INTEGER;
+  Width           : INTEGER;
+  VPSHandle       : HVPS
+)                 : CARDINAL;
+
+
+PROCEDURE VioSetOrg
+(
+  Row             : INTEGER;
+  Column          : INTEGER;
+  VPSHandle       : HVPS
+)                 : CARDINAL;
+
+
+PROCEDURE VioShowPS
+(
+  Depth           : INTEGER;
+  Width           : INTEGER;
+  Offset          : INTEGER;
+  VPSHandle       : HVPS
+)                 : CARDINAL;
+
+
+(*
+ * WinDefAVioWindowProc -- Default message processing for AVio PS's
+ *
+ * Param1 and Param2 are defined as LONGCARD because WINDEF.MPARAM
+ * normally is a pointer type and 32-bit compilers such as Modula-2
+ * will thunk pointer types passed to 16-bit routines.
+ * This is not what is desired for WM_SIZE processing so we will declare
+ * the function with LONGCARDs, non-pointer types.
+ *)
+
+TYPE
+  MPARAM          = LONGCARD;
+
+PROCEDURE WinDefAVioWindowProc
+(
+  WinHandle       : HWND;
+  MessageId       : CARDINAL;
+  Param1          : MPARAM;
+  Param2          : MPARAM
+)                 : MRESULT;
+
+
+END AVIO.

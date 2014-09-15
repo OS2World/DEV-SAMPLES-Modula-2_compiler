@@ -1,0 +1,236 @@
+DEFINITION MODULE WINFRAMEMGR;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager Frame Manager.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF       IMPORT TYPEPREFIX, HWND, HMODULE, RECTL, POINTL, LHANDLE;
+FROM   WINWINDOWMGR IMPORT SWP;
+
+TYPE
+  (* Binary resources may be bound into application executables or *)
+  (* passed as a parameter when creating a window or dialog        *)
+  (* Currently they must be the same for both 16-bit and 32-bit    *)
+  (* so we pack the structures.                                    *)
+  (*                                                               *)
+  (*$A2 WORD alignment for record fields >= 2 bytes                *)
+  FRAMECDATA                = RECORD (* fcdata *)
+    CASE                      : TYPEPREFIX OF
+    | TRUE                    :
+      cb                      : CARDINAL;
+      flCreateFlags           : LONGCARD;
+      hmodResources           : CARDINAL;
+      idResources             : CARDINAL;
+    | FALSE                   :
+      Count                   : CARDINAL;
+      CreateFlags             : LONGCARD;
+      ResourcesModHandle      : CARDINAL;
+      ResourcesIdent          : CARDINAL;
+    END;                      END;
+  PFRAMECDATA               = POINTER TO FRAMECDATA;
+  (*$A restore default alignment for record fields *)
+
+CONST
+  (* Frame window styles *)
+  (* All unused FCF_xxx bits are reserved *)
+  FCF_TITLEBAR              = 00000001H;
+  FCF_SYSMENU               = 00000002H;
+  FCF_MENU                  = 00000004H;
+  FCF_SIZEBORDER            = 00000008H;
+  FCF_MINBUTTON             = 00000010H;
+  FCF_MAXBUTTON             = 00000020H;
+  FCF_MINMAX                = 00000030H; (* minmax means BOTH buttons *)
+  FCF_VERTSCROLL            = 00000040H;
+  FCF_HORZSCROLL            = 00000080H;
+  FCF_DLGBORDER             = 00000100H;
+  FCF_BORDER                = 00000200H;
+  FCF_SHELLPOSITION         = 00000400H;
+  FCF_TASKLIST              = 00000800H;
+  FCF_NOBYTEALIGN           = 00001000H;
+  FCF_NOMOVEWITHOWNER       = 00002000H;
+  FCF_ICON                  = 00004000H;
+  FCF_ACCELTABLE            = 00008000H;
+  FCF_SYSMODAL              = 00010000H;
+  FCF_SCREENALIGN           = 00020000H;
+  FCF_MOUSEALIGN            = 00040000H;
+  FCF_HIDEBUTTON            = 01000000H;
+  FCF_HIDEMAX               = 01000020H; (* hidemax means BOTH buttons *)
+  FCF_DBE_APPSTAT           = 80000000H;
+  FCF_AUTOICON              = 40000000H;
+  FCF_STANDARD              = FCF_TITLEBAR   OR FCF_SYSMENU       OR
+                              FCF_MENU       OR FCF_SIZEBORDER    OR
+                              FCF_MINMAX     OR FCF_ICON          OR
+                              FCF_ACCELTABLE OR FCF_SHELLPOSITION OR
+                              FCF_TASKLIST;
+
+CONST
+  FS_ICON                   = 00000001H;
+  FS_ACCELTABLE             = 00000002H;
+  FS_SHELLPOSITION          = 00000004H;
+  FS_TASKLIST               = 00000008H;
+  FS_NOBYTEALIGN            = 00000010H;
+  FS_NOMOVEWITHOWNER        = 00000020H;
+  FS_SYSMODAL               = 00000040H;
+  FS_DLGBORDER              = 00000080H;
+  FS_BORDER                 = 00000100H;
+  FS_SCREENALIGN            = 00000200H;
+  FS_MOUSEALIGN             = 00000400H;
+  FS_SIZEBORDER             = 00000800H;
+  FS_AUTOICON               = 00001000H;
+  FS_DBE_APPSTAT            = 00008000H;
+  FS_STANDARD               = FS_ICON          OR  FS_ACCELTABLE  OR
+                              FS_SHELLPOSITION OR  FS_TASKLIST;
+
+
+CONST (* Frame Window Flags accessed via WinSet/QueryWindowUShort(QWS_FLAGS) *)
+  FF_FLASHWINDOW            = 0001H;
+  FF_ACTIVE                 = 0002H;
+  FF_FLASHHILITE            = 0004H;
+  FF_OWNERHIDDEN            = 0008H;
+  FF_DLGDISMISSED           = 0010H;
+  FF_OWNERDISABLED          = 0020H;
+  FF_SELECTED               = 0040H;
+  FF_NOACTIVATESWP          = 0080H;
+
+PROCEDURE WinCreateStdWindow
+( ParentWinHandle           : HWND;
+  Style                     : LONGCARD;
+  VAR CreateFlags           : LONGCARD;
+  ClientClass               : ARRAY OF CHAR;
+  Title                     : ARRAY OF CHAR;
+  StyleClient               : LONGCARD;
+  Resource                  : HMODULE;
+  FrameWinId                : LONGCARD;
+  VAR ClientWinHandle       : HWND
+)                           : HWND;
+
+PROCEDURE WinFlashWindow
+( WinHandle                 : HWND;
+  Flash                     : BOOLEAN
+)                           : BOOLEAN;
+
+CONST (* Frame window related messages *)
+  WM_FLASHWINDOW            = 0040H;
+  WM_FORMATFRAME            = 0041H;
+  WM_UPDATEFRAME            = 0042H;
+  WM_FOCUSCHANGE            = 0043H;
+  WM_SETBORDERSIZE          = 0044H;
+  WM_TRACKFRAME             = 0045H;
+  WM_MINMAXFRAME            = 0046H;
+  WM_SETICON                = 0047H;
+  WM_QUERYICON              = 0048H;
+  WM_SETACCELTABLE          = 0049H;
+  WM_QUERYACCELTABLE        = 004AH;
+  WM_TRANSLATEACCEL         = 004BH;
+  WM_QUERYTRACKINFO         = 004CH;
+  WM_QUERYBORDERSIZE        = 004DH;
+  WM_NEXTMENU               = 004EH;
+  WM_ERASEBACKGROUND        = 004FH;
+  WM_QUERYFRAMEINFO         = 0050H;
+  WM_QUERYFOCUSCHAIN        = 0051H;
+  WM_OWNERPOSCHANGE         = 0052H;
+  WM_CALCFRAMERECT          = 0053H;
+                             (* Note 0054H is reserved *)
+  WM_WINDOWPOSCHANGED       = 0055H;
+  WM_ADJUSTFRAMEPOS         = 0056H;
+  WM_QUERYFRAMECTLCOUNT     = 0059H;
+                             (* Note 005AH is reserved *)
+  WM_QUERYHELPINFO          = 005BH;
+  WM_SETHELPINFO            = 005CH;
+  WM_ERROR                  = 005DH;
+  WM_REALIZEPALETTE         = 005EH;
+
+CONST (* WM_QUERYFRAMEINFO constants *)
+  FI_FRAME                  = 00000001H;
+  FI_OWNERHIDE              = 00000002H;
+  FI_ACTIVATEOK             = 00000004H;
+  FI_NOMOVEWITHOWNER        = 00000008H;
+
+PROCEDURE WinCreateFrameControls
+( FrameWinHandle            : HWND;
+  VAR FrameControlData      : FRAMECDATA;
+  Title                     : ARRAY OF CHAR
+)                           : BOOLEAN;
+
+PROCEDURE WinCalcFrameRect
+( FrameWinHandle            : HWND;
+  VAR Rectangle             : RECTL;
+  Frame                     : BOOLEAN
+)                           : BOOLEAN;
+
+PROCEDURE WinGetMinPosition
+( FrameWinHandle            : HWND;
+  VAR Swp                   : SWP;
+  VAR Point                 : POINTL
+)                           : BOOLEAN;
+
+PROCEDURE WinGetMaxPosition
+( FrameWinHandle            : HWND;
+  VAR Swp                   : SWP
+)                           : BOOLEAN;
+
+TYPE HSAVEWP                = LHANDLE; (* hsvwp *)
+
+PROCEDURE WinSaveWindowPos
+( SaveWinPosHandle          : HSAVEWP;
+  Swp                       : ARRAY OF SWP;
+  SwpCount                  : LONGCARD
+)                           : BOOLEAN;
+
+CONST (* Frame control IDs    *)
+  FID_SYSMENU               = 8002H;
+  FID_TITLEBAR              = 8003H;
+  FID_MINMAX                = 8004H;
+  FID_MENU                  = 8005H;
+  FID_VERTSCROLL            = 8006H;
+  FID_HORZSCROLL            = 8007H;
+  FID_CLIENT                = 8008H;
+                              (* Note 8009H is reserved *)
+  FID_DBE_APPSTAT           = 8010H;
+  FID_DBE_KBDSTAT           = 8011H;
+  FID_DBE_PECIC             = 8012H;
+  FID_DBE_KKPOPUP           = 8013H;
+
+CONST (* Standard WM_SYSCOMMAND command values *)
+  SC_SIZE                   = 8000H;
+  SC_MOVE                   = 8001H;
+  SC_MINIMIZE               = 8002H;
+  SC_MAXIMIZE               = 8003H;
+  SC_CLOSE                  = 8004H;
+  SC_NEXT                   = 8005H;
+  SC_APPMENU                = 8006H;
+  SC_SYSMENU                = 8007H;
+  SC_RESTORE                = 8008H;
+  SC_NEXTFRAME              = 8009H;
+  SC_NEXTWINDOW             = 8010H;
+  SC_TASKMANAGER            = 8011H;
+  SC_HELPKEYS               = 8012H;
+  SC_HELPINDEX              = 8013H;
+  SC_HELPEXTENDED           = 8014H;
+  SC_SWITCHPANELIDS         = 8015H;
+  SC_DBE_FIRST              = 8018H;
+  SC_DBE_LAST               = 801FH;
+  SC_BEGINDRAG              = 8020H;
+  SC_ENDDRAG                = 8021H;
+  SC_SELECT                 = 8022H;
+  SC_OPEN                   = 8023H;
+  SC_CONTEXTMENU            = 8024H;
+  SC_CONTEXTHELP            = 8025H;
+  SC_TEXTEDIT               = 8026H;
+  SC_BEGINSELECT            = 8027H;
+  SC_ENDSELECT              = 8028H;
+  SC_WINDOW                 = 8029H;
+  SC_HIDE                   = 802AH;
+
+CONST (* Title bar control messages *)
+  TBM_SETHILITE             = 01E3H;
+  TBM_QUERYHILITE           = 01E4H;
+
+END WINFRAMEMGR.

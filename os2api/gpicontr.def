@@ -1,0 +1,172 @@
+DEFINITION MODULE GPICONTROL;
+
+(************************************************************************
+  OS/2 2.0 interface for Presentation Manager
+           GPI Basic PS control.
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM   OS2DEF  IMPORT HDC, HAB, HPS;
+FROM   GPIDEF  IMPORT SIZEL;
+
+CONST (* units for GpiCreatePS and others *)
+  PU_ARBITRARY               = 0004H;
+  PU_PELS                    = 0008H;
+  PU_LOMETRIC                = 000CH;
+  PU_HIMETRIC                = 0010H;
+  PU_LOENGLISH               = 0014H;
+  PU_HIENGLISH               = 0018H;
+  PU_TWIPS                   = 001CH;
+
+CONST (* format for GpiCreatePS *)
+  GPIF_DEFAULT               = 0000H;
+  GPIF_SHORT                 = 0100H;
+  GPIF_LONG                  = 0200H;
+
+CONST (* PS type for GpiCreatePS *)
+  GPIT_NORMAL                = 0000H;
+  GPIT_MICRO                 = 1000H;
+
+CONST (* implicit associate flag for GpiCreatePS *)
+  GPIA_NOASSOC               = 0000H;
+  GPIA_ASSOC                 = 4000H;
+
+CONST (* return error for GpiQueryDevice *)
+  HDC_ERROR                  = HDC( -1 );
+
+(* common GPICONTROL functions *)
+
+PROCEDURE GpiCreatePS
+( AnchorBlockHandle          : HAB;
+  DevContextHandle           : HDC;
+  VAR PresPageSize           : SIZEL;
+  Options                    : LONGCARD
+)                            : HPS;
+
+PROCEDURE GpiDestroyPS
+( PresSpaceHandle            : HPS
+)                            : BOOLEAN;
+
+PROCEDURE GpiAssociate
+( PresSpaceHandle            : HPS;
+  DevContextHandle           : HDC
+)                            : BOOLEAN;
+
+PROCEDURE GpiRestorePS
+( PresSpaceHandle            : HPS;
+  PresSpaceId                : LONGINT
+)                            : BOOLEAN;
+
+PROCEDURE GpiSavePS
+( PresSpaceHandle            : HPS
+)                            : LONGINT;
+
+PROCEDURE GpiErase
+( PresSpaceHandle            : HPS
+)                            : BOOLEAN;
+
+PROCEDURE GpiQueryDevice
+( PresSpaceHandle            : HPS
+)                            : HDC;
+
+CONST (* options for GpiResetPS *)
+  GRES_ATTRS                 = 0001H;
+  GRES_SEGMENTS              = 0002H;
+  GRES_ALL                   = 0004H;
+
+CONST (* option masks for PS options used by GpiQueryPs *)
+  PS_UNITS                   = 00FCH;
+  PS_FORMAT                  = 0F00H;
+  PS_TYPE                    = 1000H;
+  PS_MODE                    = 2000H;
+  PS_ASSOCIATE               = 4000H;
+  PS_NORESET                 = 8000H;
+
+CONST (* error context returned by GpiErrorSegmentData *)
+  GPIE_SEGMENT               = 0;
+  GPIE_ELEMENT               = 1;
+  GPIE_DATA                  = 2;
+
+CONST (* control parameter for GpiSetDrawControl *)
+  DCTL_ERASE                 = 1;
+  DCTL_DISPLAY               = 2;
+  DCTL_BOUNDARY              = 3;
+  DCTL_DYNAMIC               = 4;
+  DCTL_CORRELATE             = 5;
+
+CONST (* constants for GpiSet/QueryDrawControl *)
+  DCTL_ERROR                 = -1;
+  DCTL_OFF                   = 0;
+  DCTL_ON                    = 1;
+
+CONST  (* constants for GpiSet/QueryStopDraw *)
+  SDW_ERROR                  = -1;
+  SDW_OFF                    =  0;
+  SDW_ON                     =  1;
+
+CONST (* drawing for GpiSet/QueryDrawingMode *)
+  DM_ERROR                   = 0;
+  DM_DRAW                    = 1;
+  DM_RETAIN                  = 2;
+  DM_DRAWANDRETAIN           = 3;
+
+
+(*** other GPICONTROL functions *)
+
+PROCEDURE GpiResetPS
+( PresSpaceHandle            : HPS;
+  Options                    : LONGCARD
+)                            : BOOLEAN;
+
+PROCEDURE GpiSetPS
+( PresSpaceHandle            : HPS;
+  VAR PresSpaceSize          : SIZEL;
+  Options                    : LONGCARD
+)                            : BOOLEAN;
+
+PROCEDURE GpiQueryPS
+( PresSpaceHandle            : HPS;
+  VAR PresSpaceSize          : SIZEL
+)                            : LONGCARD;
+
+PROCEDURE GpiErrorSegmentData
+( PresSpaceHandle            : HPS;
+  VAR Segment                : LONGINT;
+  VAR Context                : LONGINT
+)                            : LONGINT;
+
+PROCEDURE GpiQueryDrawControl
+( PresSpaceHandle            : HPS;
+  Control                    : LONGINT
+)                            : LONGINT;
+
+PROCEDURE GpiSetDrawControl
+( PresSpaceHandle            : HPS;
+  Control                    : LONGINT;
+  Value                      : LONGINT
+)                            : BOOLEAN;
+
+PROCEDURE GpiQueryDrawingMode
+( PresSpaceHandle            : HPS
+)                            : LONGINT;
+
+PROCEDURE GpiSetDrawingMode
+( PresSpaceHandle            : HPS;
+  Mode                       : LONGINT
+)                            : BOOLEAN;
+
+PROCEDURE GpiQueryStopDraw
+( PresSpaceHandle            : HPS
+)                            : LONGINT;
+
+PROCEDURE GpiSetStopDraw
+( PresSpaceHandle            : HPS;
+  Value                      : LONGINT
+)                            : BOOLEAN;
+
+END GPICONTROL.

@@ -1,0 +1,100 @@
+DEFINITION MODULE WPRPRINT;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPRPrinter;
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPPRINT;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPRPrinter            = POINTER TO WPRPrinter;
+TYPE PM_WPRPrinter          = POINTER TO M_WPRPrinter;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPRPrinter
+*************************************************************************)
+
+
+(*************************************************************************
+  SOM class API for WPRPrinter, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPRPrinter_MajorVersion     = 1;
+  WPRPrinter_MinorVersion     = 1;
+
+TYPE
+  WPRPrinterClassDataStructure   = RECORD
+    classObject                    : PSOMClass;
+    wpSetResNetIdentity            : somMToken;
+    wpQueryResNetIdentity          : somMToken;
+    wpAddNetworkPage               : somMToken;
+    wpCreateAnotherPrinter         : somMToken;
+    wpNetworkConnect               : somMToken;
+    wpNetworkDisconnect            : somMToken;
+    wpNetworkLogoff                : somMToken;
+    wpNetworkLogon                 : somMToken;
+    wpAuthenticate                 : somMToken;
+    wpQueryNetworkName             : somMToken;
+    wpQueryServerName              : somMToken;
+    wpQueryResourceName            : somMToken;
+    wpParseNetId                   : somMToken;
+    wpAddObjectGeneralPage         : somMToken;
+                                   END;
+
+VAR
+  WPRPrinterClassData : WPRPrinterClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPRPrinter = RECORD( WPPRINT.WPPrinter ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPRPrinterNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+
+(*************************************************************************
+  SOM class API for M_WPRPrinter, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPRPrinter_MajorVersion   = 1;
+  M_WPRPrinter_MinorVersion   = 1;
+
+TYPE
+  M_WPRPrinterClassDataStructure   = RECORD
+    classObject                      : PSOMClass;
+                                     END;
+
+VAR
+  M_WPRPrinterClassData : M_WPRPrinterClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPRPrinter = RECORD( WPPRINT.M_WPPrinter ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPRPrinterNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+END WPRPRINT.

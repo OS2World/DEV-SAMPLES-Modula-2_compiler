@@ -1,0 +1,22 @@
+LIBRARY PMGPI
+EXPORTS
+  GpiBitBlt                   @355
+  GpiDeleteBitmap             @371
+  GpiLoadBitmap               @399
+  GpiSetBitmap                @506
+  GpiWCBitBlt                 @557
+  GpiCreateBitmap             @598
+  GpiSetBitmapBits            @602
+  GpiSetBitmapDimension       @507
+  GpiSetBitmapId              @508
+  GpiQueryBitmapBits          @599
+  GpiQueryBitmapDimension     @426
+  GpiQueryBitmapHandle        @427
+  GpiQueryBitmapParameters    @573
+  GpiQueryBitmapInfoHeader    @601
+  GpiQueryDeviceBitmapFormats @445
+  GpiSetPel                   @544
+  GpiQueryPel                 @476
+  GpiFloodFill                @560
+  GpiDrawBits                 @603
+

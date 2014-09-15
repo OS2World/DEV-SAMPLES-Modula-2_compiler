@@ -1,0 +1,48 @@
+DEFINITION MODULE Processes;
+
+(**************************************************************************
+   OS/2 2.x  Modula-2 coroutines.
+
+   Note: This module closely follows N.Wirth's proposals presented in his 
+         book 'Programming in Modula-2', 4th edition.
+         Coroutines are mapped to OS/2 threads within an OS/2 process.
+         The threads are subject to preemptive multitasking time slices.
+
+
+   Copyright (c) 1993,1995 by Juergen Neuhoff
+**************************************************************************)
+
+TYPE SIGNAL;
+
+PROCEDURE StartProcess( P : PROC; n : CARDINAL );
+(*
+   start a concurrent process with program P and workspace of size n.
+   PROC is a standard type defined as PROC = PROCEDURE().
+*)
+
+PROCEDURE SEND( VAR s : SIGNAL );
+(*
+   one coroutine waiting for s is resumed
+*)
+
+PROCEDURE WAIT( VAR s : SIGNAL );
+(*
+   wait for some other coroutine to send s
+*)
+
+PROCEDURE Awaited( s : SIGNAL ) : BOOLEAN;
+(*
+   Awaited( s ) = "at least one process is waiting for s"
+*)
+
+PROCEDURE CLEAR( VAR s : SIGNAL );
+(*
+   no coroutine waiting for s is resumed before another send s
+*)
+
+PROCEDURE Init( VAR s : SIGNAL );
+(*
+   compulsory initialization
+*)
+
+END Processes.

@@ -1,0 +1,442 @@
+DEFINITION MODULE WPFOLDER;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPFolder
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPFSYS;
+IMPORT WPOBJECT;
+IMPORT OS2DEF;
+IMPORT SYSTEM;
+IMPORT WINSTDCNR;
+IMPORT WINWORKPLACE;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPFolder              = POINTER TO WPFolder;
+TYPE PM_WPFolder            = POINTER TO M_WPFolder;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPFolder
+*************************************************************************)
+
+TYPE PWPObject              = WPOBJECT.PWPObject;
+TYPE PM_WPObject            = WPOBJECT.PM_WPObject;
+TYPE PVOID                  = OS2DEF.PVOID;
+TYPE PSZ                    = OS2DEF.PSZ;
+TYPE POINTL                 = OS2DEF.POINTL;
+TYPE PPOINTL                = OS2DEF.PPOINTL;
+TYPE BYTE                   = SYSTEM.BYTE;
+TYPE HWND                   = OS2DEF.HWND;
+TYPE ICONPOS                = WINWORKPLACE.ICONPOS;
+
+CONST (* Folder flags *)
+  FOI_POPULATEDWITHALL      = 0001H;
+  FOI_POPULATEDWITHFOLDERS  = 0002H;
+  FOI_WORKAREA              = 0004H;
+  FOI_CHANGEFONT            = 0008H;  (* anti-recursion flag *)
+  FOI_WAMINIMIZED           = 0020H;
+  FOI_WASTARTONRESTORE      = 0040H;
+  FOI_NOREFRESHVIEWS        = 0080H;
+  FOI_ASYNCREFRESHONOPEN    = 0100H;
+  FOI_TREEPOPULATED         = 0200H;
+  FOI_POPULATEINPROGRESS    = 0400H;
+  FOI_REFRESHINPROGRESS     = 0800H;
+  FOI_FIRSTPOPULATE         = 1000H;  (* folder has no iconposdata *)
+  FOI_WAMCRINPROGRESS       = 2000H;  (* Minimize, close, restore in progress *)
+
+CONST (* Open views for the wpOpen() method *)
+  OPEN_TREE           = 101;
+  OPEN_DETAILS        = 102;
+
+CONST (* Folder save-restore keys *)
+  IDKEY_FDRCONTENTATTR     = 2900;
+  IDKEY_FDRTREEATTR        = 2901;
+  IDKEY_FDRCVLFONT         = 2902;
+  IDKEY_FDRCVNFONT         = 2903;
+  IDKEY_FDRCVIFONT         = 2904;
+  IDKEY_FDRTVLFONT         = 2905;
+  IDKEY_FDRTVNFONT         = 2906;
+  IDKEY_FDRDETAILSATTR     = 2907;
+  IDKEY_FDRDVFONT          = 2908;
+  IDKEY_FDRDETAILSCLASS    = 2909;
+  IDKEY_FDRICONPOS         = 2910;
+  IDKEY_FDRINVISCOLUMNS    = 2914;
+  IDKEY_FDRINCCLASS        = 2920;
+  IDKEY_FDRINCNAME         = 2921;
+  IDKEY_FDRFSYSSEARCHINFO  = 2922;
+  IDKEY_FILTERCONTENT      = 2923;
+  IDKEY_CNRBACKGROUND      = 2924;
+  IDKEY_FDRINCCRITERIA     = 2925;
+  IDKEY_FDRICONVIEWPOS     = 2926;
+  IDKEY_FDRSORTCLASS       = 2927;
+  IDKEY_FDRSORTATTRIBS     = 2928;
+  IDKEY_FDRSORTINFO        = 2929;
+  IDKEY_FDRSNEAKYCOUNT     = 2930;
+  IDKEY_FDRLONGARRAY       = 2931;
+  IDKEY_FDRSTRARRAY        = 2932;
+
+CONST
+  CV_ICON                  = WINSTDCNR.CV_ICON;   (* icon view            *)
+  CV_TREE                  = WINSTDCNR.CV_TREE;   (* tree view            *)
+  CV_DETAIL                = WINSTDCNR.CV_DETAIL; (* detail view          *)
+  CV_MINI                  = WINSTDCNR.CV_MINI;   (* use mini icon        *)
+  CA_OWNERPAINTBACKGROUND  = WINSTDCNR.CA_OWNERPAINTBACKGROUND;
+  CA_MIXEDTARGETEMPH       = WINSTDCNR.CA_MIXEDTARGETEMPH;
+  CA_OWNERDRAW             = WINSTDCNR.CA_OWNERDRAW;
+  CA_TREELINE              = WINSTDCNR.CA_TREELINE;
+  CA_DETAILSVIEWTITLES     = WINSTDCNR.CA_DETAILSVIEWTITLES;
+
+CONST (* Miscellaneous *)
+  PPFONTSTRSIZE                  = 20;
+  PARTIAL_FILLFOLDER_SEM_TIMEOUT = 5; (* avoid wasteful SEM_INDEFEINTE_WAIT *)
+  FOLDER_DEFATTRS                = CV_ICON OR
+                                   CA_OWNERPAINTBACKGROUND OR
+                                   CA_MIXEDTARGETEMPH OR
+                                   CA_OWNERDRAW;
+  FOLDER_DEFTREEATTRS            = CV_ICON OR
+                                   CA_OWNERPAINTBACKGROUND OR
+                                   CV_TREE OR
+                                   CA_TREELINE OR
+                                   CA_OWNERDRAW;
+  FOLDER_DEFDETAILS              = CV_DETAIL OR
+                                   CA_OWNERPAINTBACKGROUND OR
+                                   CV_MINI OR
+                                   CA_DETAILSVIEWTITLES OR
+                                   CA_MIXEDTARGETEMPH;
+  FOLDER_DEFSORT                 = NIL;
+
+TYPE (* wpSearchFolder structures *)
+  SEARCH_INFO                    = RECORD
+    ClassToBeFound                 : PM_WPObject;
+    fSkipExtendedSearchCriteria    : BOOLEAN;
+    pvoidExtendedCriteria          : PVOID;
+                                   END;
+  PSEARCH_INFO                   = POINTER TO SEARCH_INFO;
+
+(* NIL pointer types for various formal types.
+ * Even if such a pointer variable p is of value NIL,
+ * p^ can be passed by reference to a formal VAR-parameter
+ * or a formal open array type. This way a formal parameter
+ * might become a NIL-reference which is sometimes needed
+ * for OS/2 2.x Workplace procedures.
+ * Example:
+ *
+ *   PROCEDURE( Self : PWPFolder ) wpSetFldrFont
+ *   (
+ *     szFont            : ARRAY OF CHAR;  (* might be NULL *)
+ *     ulView            : LONGCARD
+ *   )                   : BOOLEAN;
+ *     ...
+ *   TYPE NILCharArray   = POINTER TO ARRAY [0..0] OF CHAR;
+ *   VAR  FolderObject   : PWPFolder;
+ *   VAR  NoCharArray    : NILCharArray;
+ *   VAR  ok             : BOOLEAN;
+ *     ...
+ *   NoCharArray := NIL;
+ *   ok := FolderObject^.wpSetFldrFont( NoCharArray^, OPEN_CONTENTS );
+ *     ...
+ *)
+TYPE
+  NILCharArray   = POINTER TO ARRAY [0..0] OF CHAR;
+
+
+(*************************************************************************
+  SOM class API for WPFolder, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPFolder_MajorVersion     = 1;
+  WPFolder_MinorVersion     = 2;
+
+TYPE
+  WPFolderClassDataStructure     = RECORD
+    classObject                    : PSOMClass;
+    wpSetFldrFlags                 : somMToken;
+    wpQueryFldrFlags               : somMToken;
+    wpSetFldrFont                  : somMToken;
+    wpQueryFldrFont                : somMToken;
+    wpSetNextIconPos               : somMToken;
+    wpQueryNextIconPos             : somMToken;
+    wpPopulate                     : somMToken;
+    wpAddToContent                 : somMToken;
+    wpQueryContent                 : somMToken;
+    wpAddFolderView1Page           : somMToken;
+    wpAddFolderView2Page           : somMToken;
+    wpAddFolderView3Page           : somMToken;
+    wpAddFolderIncludePage         : somMToken;
+    wpAddFolderSortPage            : somMToken;
+    wpAddFolderBackgroundPage      : somMToken;
+    wpInitIconPosData              : somMToken;
+    wpFreeIconPosData              : somMToken;
+    wpQueryIconPosition            : somMToken;
+    wpStoreIconPosData             : somMToken;
+    wpDeleteFromContent            : somMToken;
+    wpSetFldrAttr                  : somMToken;
+    wpQueryFldrAttr                : somMToken;
+    wpSetFldrSort                  : somMToken;
+    wpQueryFldrSort                : somMToken;
+    wpRestoreFldrRunObjs           : somMToken;
+    wpStoreFldrRunObjs             : somMToken;
+    withdrawn30                    : somMToken;
+    withdrawn31                    : somMToken;
+    wpDeleteContents               : somMToken;
+    wpQueryOpenFolders             : somMToken;
+    wpSetNextOpenFldr              : somMToken;
+    wpSearchFolder                 : somMToken;
+    wpSetFldrDetailsClass          : somMToken;
+    wpQueryFldrDetailsClass        : somMToken;
+    wpRefresh                      : somMToken;
+    wpSetDetailsColumnVisibility   : somMToken;
+    wpIsDetailsColumnVisible       : somMToken;
+    wpQuerySortArray               : somMToken;
+    wpSetSortArray                 : somMToken;
+    wpQuerySortInfo                : somMToken;
+    wpSetSortInfo                  : somMToken;
+    wpSetFldrSortClass             : somMToken;
+    wpQueryFldrSortClass           : somMToken;
+    wpSetSortAttribAvailable       : somMToken;
+    wpIsSortAttribAvailable        : somMToken;
+    wpQueryFldrFilter              : somMToken;
+    wpContainsFolders              : somMToken;
+    wpQueryBkgnd                   : somMToken;
+    wpQueryIconViewPos             : somMToken;
+    wpQueryDefaultView             : somMToken;
+    wpAddFirstChild                : somMToken;
+    FirstObj                       : somDToken;
+    wpHideFldrRunObjs              : somMToken;
+    wpFSNotifyFolder               : somMToken;
+    wpAddNotification              : somMToken;
+    wpDeleteNotification           : somMToken;
+    wpProcessNotification          : somMToken;
+    wpModifySneakyCount            : somMToken;
+    wpSneakySupported              : somMToken;
+    wpAssertFolderMutexSem         : somMToken;
+    wpReleaseFolderMutexSem        : somMToken;
+    wpRequestFolderMutexSem        : somMToken;
+    wpQueryPopThreadID             : somMToken;
+    wpQueryNextOpenFldr            : somMToken;
+    hmtxOneFindAtATime             : somDToken;
+    wpRequestFindMutexSem          : somMToken;
+    wpReleaseFindMutexSem          : somMToken;
+    hevFillFolder                  : somDToken;
+    wpModifyFldrFlags              : somMToken;
+                                   END;
+
+VAR
+  WPFolderClassData : WPFolderClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPFolder = RECORD( WPFSYS.WPFileSystem ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPFolderNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+PROCEDURE( Self : PWPFolder ) wpSetFldrFlags
+(
+  ulFlags       : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPFolder ) wpQueryFldrFlags( ) : LONGCARD;
+
+PROCEDURE( Self : PWPFolder ) wpSetFldrFont
+(
+  szFont        : ARRAY OF CHAR;
+  ulView        : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPFolder ) wpQueryFldrFont
+(
+  ulView        : LONGCARD
+)               : PSZ;
+
+PROCEDURE( Self : PWPFolder ) wpSetFldrAttr
+(
+  Attr          : LONGCARD;
+  ulView        : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPFolder ) wpQueryFldrAttr
+(
+  ulView        : LONGCARD
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPFolder ) wpSetNextIconPos
+(
+  VAR ptl       : POINTL
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPFolder ) wpQueryNextIconPos( ) : PPOINTL;
+
+PROCEDURE( Self : PWPFolder ) wpPopulate
+(
+  ulReserved    : LONGCARD;
+  szPath        : ARRAY OF CHAR;
+  fFoldersOnly  : BOOLEAN
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPFolder ) wpQueryContent
+(
+  Object        : PWPObject;
+  ulOption      : LONGCARD
+)               : PWPObject;
+
+PROCEDURE( Self : PWPFolder ) wpAddFolderView1Page
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPFolder ) wpAddFolderView2Page
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPFolder ) wpAddFolderView3Page
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPFolder ) wpAddFolderIncludePage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPFolder ) wpAddFolderSortPage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPFolder ) wpAddFolderBackgroundPage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPFolder ) wpInitIconPosData( ) : BOOLEAN;
+
+PROCEDURE( Self : PWPFolder ) wpFreeIconPosData( );
+
+PROCEDURE( Self : PWPFolder ) wpStoreIconPosData
+(
+  VAR IconPos   : ICONPOS;
+  cbSize        : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPFolder ) wpQueryIconPosition
+(
+  szIdentity    : ARRAY OF CHAR;
+  VAR pptl      : POINTL;
+  VAR Index     : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPFolder ) wpSetFldrSort
+(
+  VAR SortRecord : ARRAY OF BYTE;
+  ulView         : LONGCARD;
+  ulType         : LONGCARD
+)                : BOOLEAN;
+
+PROCEDURE( Self : PWPFolder ) wpQueryFldrSort
+(
+  ulView        : LONGCARD;
+  ulType        : LONGCARD
+)               : PVOID;
+
+PROCEDURE( Self : PWPFolder ) wpRestoreFldrRunObjs( ) : BOOLEAN;
+
+PROCEDURE( Self : PWPFolder ) wpStoreFldrRunObjs
+(
+  ulType        : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPFolder ) wpHideFldrRunObjs
+(
+  fHide         : BOOLEAN
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPFolder ) wpDeleteContents
+(
+  fConfirmations : LONGCARD
+)                : LONGCARD;
+
+PROCEDURE( Self : PWPFolder ) wpSetFldrDetailsClass
+(
+  Class         : PM_WPObject
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPFolder ) wpQueryFldrDetailsClass( ) : PM_WPObject;
+
+PROCEDURE( Self : PWPFolder ) wpSearchFolder
+(
+  szName        : ARRAY OF CHAR;
+  ulSearchType  : LONGCARD;
+  ulLen         : LONGCARD;
+  VAR Info      : SEARCH_INFO;
+  ResultFolder  : PWPFolder
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPFolder ) wpContainsFolders
+(
+  VAR fSubFolders : BOOLEAN
+)                 : BOOLEAN;
+
+PROCEDURE( Self : PWPFolder ) wpQueryOpenFolders
+(
+  ulOption      : LONGCARD
+)               : PWPObject;
+
+
+(*************************************************************************
+  SOM class API for M_WPFolder, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPFolder_MajorVersion   = 1;
+  M_WPFolder_MinorVersion   = 2;
+
+TYPE
+  M_WPFolderClassDataStructure   = RECORD
+    classObject                    : PSOMClass;
+    wpclsGetNotifySem              : somMToken;
+    wpclsReleaseNotifySem          : somMToken;
+    wpclsQueryOpenFolders          : somMToken;
+                                   END;
+
+VAR
+  M_WPFolderClassData : M_WPFolderClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPFolder = RECORD( WPFSYS.M_WPFileSystem ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPFolderNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+PROCEDURE( Self : PM_WPFolder ) wpclsQueryOpenFolders
+(
+  Folder        : PWPFolder;
+  ulOption      : LONGCARD;
+  fLock         : BOOLEAN
+)               : PWPFolder;
+
+END WPFOLDER.

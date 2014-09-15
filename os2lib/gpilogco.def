@@ -1,0 +1,17 @@
+LIBRARY PMGPI
+EXPORTS
+  GpiCreateLogColorTable   @592
+  GpiQueryColorData        @438
+  GpiQueryLogColorTable    @593
+  GpiQueryRealColors       @480
+  GpiQueryNearestColor     @469
+  GpiQueryColorIndex       @439
+  GpiQueryRGBColor         @479
+  GpiCreatePalette         @594
+  GpiDeletePalette         @577
+  GpiSelectPalette         @578
+  GpiAnimatePalette        @595
+  GpiSetPaletteEntries     @596
+  GpiQueryPalette          @579
+  GpiQueryPaletteInfo      @597
+

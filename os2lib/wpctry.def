@@ -1,0 +1,6 @@
+LIBRARY WPCONFIG
+EXPORTS
+  WPCountryClassData         @0x001A
+  WPCountryNewClass          @0x001B
+  M_WPCountryClassData       @0x007E
+  M_WPCountryNewClass        @0x007F

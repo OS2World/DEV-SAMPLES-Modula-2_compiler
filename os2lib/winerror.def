@@ -1,0 +1,6 @@
+LIBRARY PMWIN
+EXPORTS
+  WinGetLastError    @753
+  WinGetErrorInfo    @751
+  WinFreeErrorInfo   @748
+

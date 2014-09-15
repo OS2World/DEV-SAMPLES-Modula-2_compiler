@@ -1,0 +1,86 @@
+DEFINITION MODULE WPPTR;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPPointer
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPDATAF;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPPointer             = POINTER TO WPPointer;
+TYPE PM_WPPointer           = POINTER TO M_WPPointer;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPPointer
+*************************************************************************)
+
+
+(*************************************************************************
+  SOM class API for WPPointer, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPPointer_MajorVersion     = 1;
+  WPPointer_MinorVersion     = 2;
+
+TYPE
+  WPPointerClassDataStructure     = RECORD
+    classObject                     : PSOMClass;
+                                    END;
+
+VAR
+  WPPointerClassData : WPPointerClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPPointer = RECORD( WPDATAF.WPDataFile ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPPointerNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+
+(*************************************************************************
+  SOM class API for M_WPPointer, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPPointer_MajorVersion   = 1;
+  M_WPPointer_MinorVersion   = 2;
+
+TYPE
+  M_WPPointerClassDataStructure   = RECORD
+    classObject                     : PSOMClass;
+                                    END;
+
+VAR
+  M_WPPointerClassData : M_WPPointerClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPPointer = RECORD( WPDATAF.M_WPDataFile ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPPointerNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+END WPPTR.

@@ -1,0 +1,88 @@
+DEFINITION MODULE WPSPOOL;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPSpool;
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPABS;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPSpool               = POINTER TO WPSpool;
+TYPE PM_WPSpool             = POINTER TO M_WPSpool;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPSpool
+*************************************************************************)
+
+
+(*************************************************************************
+  SOM class API for WPSpool, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPSpool_MajorVersion     = 1;
+  WPSpool_MinorVersion     = 1;
+
+TYPE
+  WPSpoolClassDataStructure   = RECORD
+    classObject                 : PSOMClass;
+    AddSetPathPage              : somMToken;
+    AddSetPriorityPe            : somMToken;
+                                END;
+
+VAR
+  WPSpoolClassData : WPSpoolClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPSpool = RECORD( WPABS.WPAbstract ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPSpoolNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+
+(*************************************************************************
+  SOM class API for M_WPSpool, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPSpool_MajorVersion   = 1;
+  M_WPSpool_MinorVersion   = 1;
+
+TYPE
+  M_WPSpoolClassDataStructure   = RECORD
+    classObject                   : PSOMClass;
+                                  END;
+
+VAR
+  M_WPSpoolClassData : M_WPSpoolClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPSpool = RECORD( WPABS.M_WPAbstract ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPSpoolNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+END WPSPOOL.

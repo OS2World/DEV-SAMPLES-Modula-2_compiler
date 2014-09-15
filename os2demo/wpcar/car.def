@@ -1,0 +1,234 @@
+(*$DLL       to be implemented as a dynamic link library                *)
+(*$XL+       language extensions: '_' for names, OOP-facilities         *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+
+DEFINITION MODULE CAR;
+
+(***************************************************************************
+  OS/2 2.x/3.0 Workplace Shell interface for class 'Car'.
+
+  This is the Modula-2 version from a similar C-program
+  sample class of IBM's Developer's Toolkit 2.1.
+
+  Copyright (c) 1995 by Juergen Neuhoff
+****************************************************************************)
+
+IMPORT SOM;          (* needed for basic SOM features *)
+
+
+
+(***************************************************************************
+  Additional IMPORT-, TYPE-, and CONST-declarations needed for the
+  interfaces of class 'Car' and metaclass 'M_Car'
+****************************************************************************)
+
+IMPORT WPDATAF;      (* this module contains the parent class interface *)
+IMPORT OS2DEF;
+
+
+
+(***************************************************************************
+  SOM class API for 'Car', including type-bound procedures
+****************************************************************************)
+
+(* These types are almost always needed for a SOM class description *)
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PCar                   = POINTER TO Car;     (* instance pointer *)
+TYPE PM_Car                 = POINTER TO M_Car;   (* metaclass pointer *)
+
+(* major and minor version numbers for new SOM class 'Car' *)
+
+CONST
+  Car_MajorVersion     = 1;
+  Car_MinorVersion     = 2;
+
+
+(*
+ * Declare the C specific class data structure
+ *)
+TYPE
+  CarCClassDataStructure  = RECORD
+    parentMtab              : SOM.somMethodTabs;
+    instanceDataToken       : SOM.somDToken;
+                            END;
+VAR
+  CarCClassData           : CarCClassDataStructure;
+
+
+
+(* Every SOM class has a public <class>ClassData structure,
+   whose fields are tokens needed for method resolution.
+   In this example there are 14 token fields for the 14 methods
+   of the SOM class 'Car'.
+*)
+TYPE
+  CarClassDataStructure     = RECORD
+    classObject               : PSOMClass;
+(********
+    QueryBrakes               : somMToken;
+    SetBrakes                 : somMToken;
+    QueryDuration             : somMToken;
+    SetDuration               : somMToken;
+    QueryHighTone             : somMToken;
+    SetHighTone               : somMToken;
+    QueryLowTone              : somMToken;
+    SetLowTone                : somMToken;
+    QuerySpeed                : somMToken;
+    SetSpeed                  : somMToken;
+    BeepHorn                  : somMToken;
+    AddDashboardPage          : somMToken;
+    AddHornBeepPage           : somMToken;
+    TrapTest                  : somMToken;
+********)
+                              END;
+
+VAR
+  CarClassData : CarClassDataStructure;
+
+
+(* Class 'Car' is expressed as an extension of record type 'WPDataFile'
+   inheriting all record fields and type bound procedures.
+   The directive '$SOM+' tells the compiler to treat the new record
+   type 'Car' as a SOM class, and not as an extended Modula-2 record.
+*)
+TYPE
+  (*$SOM+ *)
+  Car = RECORD( WPDATAF.WPDataFile ) END;
+  (*$SOM- *)
+
+
+(* Every SOM class must have <class>NewClass procedure *)
+
+PROCEDURE CarNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+
+(********
+
+(* A SOM class may have type bound procedures (also known as methods).
+   For each of the following type bound procedures a corresponding
+   token field must have been specified in a previous <class>ClassData
+   record variable.
+*)
+PROCEDURE( Self : PCar ) QueryBrakes
+( ) : BOOLEAN;
+
+PROCEDURE( Self : PCar ) SetBrakes
+(
+  fBrake : BOOLEAN
+);
+
+PROCEDURE( Self : PCar ) QueryDuration
+( ) : LONGCARD;
+
+PROCEDURE( Self : PCar ) SetDuration
+(
+  ulDuration : LONGCARD
+);
+
+PROCEDURE( Self : PCar ) QueryHighTone
+( ) : LONGCARD;
+
+PROCEDURE( Self : PCar ) SetHighTone
+(
+  ulTone : LONGCARD
+);
+
+PROCEDURE( Self : PCar ) QueryLowTone
+( ) : LONGCARD;
+
+PROCEDURE( Self : PCar ) SetLowTone
+(
+  ulTone : LONGCARD
+);
+
+PROCEDURE( Self : PCar ) QuerySpeed
+( ) : LONGCARD;
+
+PROCEDURE( Self : PCar ) SetSpeed
+(
+  ulSpeed       : LONGCARD
+);
+
+PROCEDURE( Self : PCar ) BeepHorn
+( ) : BOOLEAN;
+
+PROCEDURE( Self : PCar ) AddDashboardPage
+(
+  hwndNotebook  : OS2DEF.HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PCar ) AddHornBeepPage
+(
+  hwndNotebook  : OS2DEF.HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PCar ) TrapTest
+( );
+
+************)
+
+
+(*************************************************************************
+  SOM class API for 'M_Car', including type-bound procedures.
+  This is the meta-class.
+
+  The meta-class is optional and should be used for factory methods
+  such as constructors or destructors. The meta class syntax is
+  similar to the one of the regular class.
+**************************************************************************)
+
+
+CONST
+  M_Car_MajorVersion   = 1;
+  M_Car_MinorVersion   = 2;
+
+TYPE
+  M_CarCClassDataStructure  = RECORD
+    parentMtab              : SOM.somMethodTabs;
+    instanceDataToken       : SOM.somDToken;
+                            END;
+VAR
+  M_CarCClassData           : M_CarCClassDataStructure;
+
+TYPE
+  M_CarClassDataStructure   = RECORD
+    classObject               : PSOMClass;
+(*********
+    clsQueryModuleHandle      : somMToken;
+*********)
+                              END;
+
+VAR
+  M_CarClassData : M_CarClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_Car = RECORD( WPDATAF.M_WPDataFile ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_CarNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+
+(*********
+PROCEDURE( Self : PM_Car ) clsQueryModuleHandle
+( ) : OS2DEF.HMODULE;
+*********)
+
+
+END CAR.

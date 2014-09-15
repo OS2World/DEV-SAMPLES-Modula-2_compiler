@@ -1,0 +1,6 @@
+LIBRARY PMWP
+EXPORTS
+  WPShredderClassData         @0x0035
+  WPShredderNewClass          @0x0036
+  M_WPShredderClassData       @0x015E
+  M_WPShredderNewClass        @0x015F

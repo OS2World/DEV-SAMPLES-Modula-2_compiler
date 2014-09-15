@@ -1,0 +1,142 @@
+DEFINITION MODULE WINSWITCHLIST;
+
+(************************************************************************
+  OS/2 2.x Presentation Manager Shell Switch List Calls
+
+  Copyright (c) 1992, 1994 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+FROM   OS2DEF       IMPORT TYPEPREFIX, LHANDLE, HWND, PID, HAB;
+IMPORT WINDEF;
+FROM   WINWINDOWMGR IMPORT SWP;
+
+CONST (* maximum title length *)
+  MAXNAMEL               = 60;
+
+TYPE (* program handle *)
+  HPROGRAM               = WINDEF.HPROGRAM;
+
+TYPE
+  HSWITCH                = LHANDLE;     (* hsw *)
+  PHSWITCH               = POINTER TO HSWITCH;
+
+TYPE
+  SWCNTRL                = RECORD      (* swctl *)
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      hwnd                 : HWND;
+      hwndIcon             : HWND;
+      hprog                : HPROGRAM;
+      idProcess            : PID;
+      idSession            : LONGCARD;
+      uchVisibility        : LONGCARD;
+      fbJump               : LONGCARD;
+      szSwtitle            : ARRAY [0..MAXNAMEL+3] OF CHAR;
+      bProgType            : LONGCARD;
+    | FALSE                :
+      WinHandle            : HWND;
+      IconHandle           : HWND;
+      ProgHandle           : HPROGRAM;
+      ProcessId            : PID;
+      SessionId            : LONGCARD;
+      Visibility           : LONGCARD;
+      Jump                 : LONGCARD;
+      SwTitle              : ARRAY [0..MAXNAMEL+3] OF CHAR;
+      ProgType             : LONGCARD;
+    END;                   END;
+  PSWCNTRL               = POINTER TO SWCNTRL;
+
+CONST (* visibility flag for SWCNTRL structure *)
+  SWL_VISIBLE            = 04H;
+  SWL_INVISIBLE          = 01H;
+  SWL_GRAYED             = 02H;
+
+CONST (* jump flag for SWCNTRL structure *)
+  SWL_JUMPABLE           = 02H;
+  SWL_NOTJUMPABLE        = 01H;
+
+PROCEDURE WinAddSwitchEntry
+( VAR SwitchData         : SWCNTRL
+)                        : HSWITCH;
+
+PROCEDURE WinRemoveSwitchEntry
+( SwitchHandle           : HSWITCH
+)                        : LONGCARD;
+
+TYPE
+  SWENTRY                = RECORD (* swent *)
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      hswitch              : HSWITCH;
+      swctl                : SWCNTRL;
+    | FALSE                :
+      SwitchHandle         : HSWITCH;
+      SwitchControl        : SWCNTRL;
+    END;                   END;
+  PSWENTRY               = POINTER TO SWENTRY;
+  SWBLOCK                = RECORD  (* swblk *)
+    CASE                   : TYPEPREFIX OF
+    | TRUE                 :
+      cswentry             : LONGCARD;
+      aswentry             : ARRAY [0..0] OF SWENTRY;
+    | FALSE                :
+      SWEntryCount         : LONGCARD;
+      SWEntry              : ARRAY [0..0] OF SWENTRY;
+    END;                   END;
+  PSWBLOCK               = POINTER TO SWBLOCK;
+
+PROCEDURE WinChangeSwitchEntry
+( SwitchHandle           : HSWITCH;
+  VAR SwitchData         : SWCNTRL
+)                        : LONGCARD;
+
+PROCEDURE WinCreateSwitchEntry
+( AnchorBlockHandle      : HAB;
+  VAR SwitchData         : SWCNTRL
+)                        : HSWITCH;
+
+PROCEDURE WinQuerySessionTitle
+( AnchorBlockHandle      : HAB;
+  Session                : LONGCARD;
+  VAR Title              : ARRAY OF CHAR;
+  TitleLen               : LONGCARD
+)                        : LONGCARD;
+
+PROCEDURE WinQuerySwitchEntry
+( SwitchHandle           : HSWITCH;
+  VAR SwitchData         : SWCNTRL
+)                        : LONGCARD;
+
+PROCEDURE WinQuerySwitchHandle
+( WinHandle              : HWND;
+  ProcessId              : PID
+)                        : HSWITCH;
+
+PROCEDURE WinQuerySwitchList
+( AnchorBlockHandle      : HAB;
+  SwitchEntries          : PSWBLOCK;
+  DataLength             : LONGCARD
+)                        : LONGCARD;
+
+PROCEDURE WinQueryTaskSizePos
+( AnchorBlockHandle      : HAB;
+  ScreenGroup            : LONGCARD;
+  VAR PositionData       : SWP
+)                        : LONGCARD;
+
+PROCEDURE WinQueryTaskTitle
+( Session                : LONGCARD;
+  VAR Title              : ARRAY OF CHAR;
+  TitleLen               : LONGCARD
+)                        : LONGCARD;
+
+PROCEDURE WinSwitchToProgram
+( SwitchHandle           : HSWITCH
+)                        : LONGCARD;
+
+
+END WINSWITCHLIST.

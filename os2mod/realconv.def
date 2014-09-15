@@ -1,0 +1,193 @@
+DEFINITION MODULE RealConversions;
+
+(**************************************************************************
+   OS/2 2.x  Modula-2 utility for float conversions to/from strings.
+
+   Copyright (c) 1993 by Juergen Neuhoff
+**************************************************************************)
+
+
+PROCEDURE IsLongNAN( r : LONGREAL ) : BOOLEAN;
+(*
+   return TRUE if not a valid long float value
+*)
+
+PROCEDURE IsShortNAN( r : SHORTREAL ) : BOOLEAN;
+(*
+   return TRUE if not a valid short float value
+*)
+
+PROCEDURE IsLongINFINITY( r : LONGREAL ) : BOOLEAN;
+(*
+   return TRUE if long float value is a positive or negative infinity
+*)
+
+PROCEDURE IsShortINFINITY( r : SHORTREAL ) : BOOLEAN;
+(*
+   return TRUE if short float value is a positive or negative infinity
+*)
+
+PROCEDURE IsLongINDEFINITE( r : LONGREAL ) : BOOLEAN;
+(*
+   return TRUE if undefined long float value
+*)
+
+PROCEDURE IsShortINDEFINITE( r : SHORTREAL ) : BOOLEAN;
+(*
+   return TRUE if undefined short float value
+*)
+
+PROCEDURE RealToStr
+( r       : REAL;
+  digits  : INTEGER;
+  VAR s   : ARRAY OF CHAR
+)         : BOOLEAN;
+(*
+   If digits < 0: Convert a real value into a scientific notation:
+     ["-"] digit "." {digit} "E" ["+"|"-"] digit digit digit
+   If digits >= 0: Convert a real value into a fixed point format:
+     ["-"] digit {digit} "." {digit}
+*)
+
+PROCEDURE LongRealToStr
+( r       : LONGREAL;
+  digits  : INTEGER;
+  VAR s   : ARRAY OF CHAR
+)         : BOOLEAN;
+(*
+   Same as RealToStr, for LONGREAL;
+*)
+
+PROCEDURE ShortRealToStr
+( r       : SHORTREAL;
+  digits  : INTEGER;
+  VAR s   : ARRAY OF CHAR
+)         : BOOLEAN;
+(*
+   Same as RealToStr, for SHORTREAL;
+*)
+
+PROCEDURE RealToFixPt
+( r       : REAL;
+  size    : INTEGER;
+  digits  : INTEGER;
+  VAR s   : ARRAY OF CHAR
+)         : BOOLEAN;
+(*
+   Convert a real value into a fixed point float string:
+     ["-"] digit {digit} "." {digit}
+   where:
+    'digits' = number of digits after the decimal point.
+    'size'   = wanted total size of the output string.
+    'r'      = real value (short 4 bytes or long 8 bytes,
+               depending on compiler switch -R4 or -R8)
+*)
+
+PROCEDURE LongRealToFixPt
+( r       : LONGREAL;
+  size    : INTEGER;
+  digits  : INTEGER;
+  VAR s   : ARRAY OF CHAR
+)         : BOOLEAN;
+(*
+   Same as RealToFixPt, for long 8-bytes-real value;
+*)
+
+PROCEDURE ShortRealToFixPt
+( r       : SHORTREAL;
+  size    : INTEGER;
+  digits  : INTEGER;
+  VAR s   : ARRAY OF CHAR
+)         : BOOLEAN;
+(*
+   Same as RealToFixPt, for short 4-bytes-real value;
+*)
+
+PROCEDURE StrToReal
+( s       : ARRAY OF CHAR;
+  VAR r   : REAL
+)         : BOOLEAN;
+(*
+   Convert a string into a real value from a scientific notation:
+   ["+"|"-"] digit {digit} ["." digit {digit}] ["E" ["+"|"-"] digit [digit]]
+*)
+
+PROCEDURE StrToLongReal
+( s       : ARRAY OF CHAR;
+  VAR r   : LONGREAL
+)         : BOOLEAN;
+(*
+   Convert a string into a long real value from a scientific notation:
+   ["+"|"-"] digit {digit} ["." digit {digit}] ["E" ["+"|"-"] digit [digit]]
+*)
+
+PROCEDURE StrToShortReal
+( s       : ARRAY OF CHAR;
+  VAR r   : SHORTREAL
+)         : BOOLEAN;
+(*
+   Convert a string into a short real value from a scientific notation:
+   ["+"|"-"] digit {digit} ["." digit {digit}] ["E" ["+"|"-"] digit [digit]]
+*)
+
+PROCEDURE RealToOctStr
+(
+  r       : REAL;
+  VAR s   : ARRAY OF CHAR
+)         : BOOLEAN;
+(*
+   Convert the internal representation of a real value
+   into an octal string.
+*)
+
+PROCEDURE LongRealToOctStr
+(
+  r       : LONGREAL;
+  VAR s   : ARRAY OF CHAR
+)         : BOOLEAN;
+(*
+   Convert the internal representation of a long real value
+   into an octal string.
+*)
+
+PROCEDURE ShortRealToOctStr
+(
+  r       : SHORTREAL;
+  VAR s   : ARRAY OF CHAR
+)         : BOOLEAN;
+(*
+   Convert the internal representation of a short real value
+   into an octal string.
+*)
+
+PROCEDURE RealToHexStr
+(
+  r       : REAL;
+  VAR s   : ARRAY OF CHAR
+)         : BOOLEAN;
+(*
+   Convert the internal representation of a real value
+   into a hexadecimal string.
+*)
+
+PROCEDURE LongRealToHexStr
+(
+  r       : LONGREAL;
+  VAR s   : ARRAY OF CHAR
+)         : BOOLEAN;
+(*
+   Convert the internal representation of a long real value
+   into a hexadecimal string.
+*)
+
+PROCEDURE ShortRealToHexStr
+(
+  r       : SHORTREAL;
+  VAR s   : ARRAY OF CHAR
+)         : BOOLEAN;
+(*
+   Convert the internal representation of a short real value
+   into a hexadecimal string.
+*)
+
+END RealConversions.

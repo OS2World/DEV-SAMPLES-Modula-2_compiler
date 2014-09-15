@@ -1,0 +1,21 @@
+LIBRARY PMWIN
+EXPORTS
+  WinGetDlgMsg              @914
+  WinLoadDlg                @924
+  WinDlgBox                 @923
+  WinDismissDlg             @729
+  WinQueryDlgItemShort      @814
+  WinSetDlgItemShort        @858
+  WinSetDlgItemText         @859
+  WinQueryDlgItemText       @815
+  WinQueryDlgItemTextLength @816
+  WinDefDlgProc             @910
+  WinAlarm                  @701
+  WinMessageBox             @789
+  WinProcessDlg             @796
+  WinSendDlgItemMsg         @903
+  WinMapDlgPoints           @787
+  WinEnumDlgItem            @740
+  WinSubstituteStrings      @886
+  WinCreateDlg              @922
+

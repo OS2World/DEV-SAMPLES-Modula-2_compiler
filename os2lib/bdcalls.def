@@ -1,0 +1,13 @@
+LIBRARY MOUCALLS
+EXPORTS
+  NlsQueryBidiAtt              6
+  NlsSetBidiAtt                5
+  NlsShapeBidiString          10
+  NlsEditShape                 9
+  NlsInverseString             7
+  NlsConvertBidiNumerics       1
+  NlsSetBidiPrint              8
+  NlsConvertBidiString         2
+  NlsIntSetBidiAtt             3
+  NlsIntQueryBidiAtt           4
+  NlPopUp                     11

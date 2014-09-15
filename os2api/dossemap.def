@@ -1,0 +1,158 @@
+DEFINITION MODULE DOSSEMAPHORES;
+
+(************************************************************************
+  OS/2 2.0 interface for semaphore support
+           7-Jun-95  : Bug fixed DosCreateMutexSem()
+           24-Jun-95 : SEM_INDEFINITE_WAIT  
+
+  Copyright (c) 1992 by Juergen Neuhoff
+*************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SYSTEM;
+FROM   OS2DEF IMPORT TYPEPREFIX, APIRET, TID, PID;
+
+CONST (* Semaphore Attributes *)
+  DC_SEM_SHARED   = 01H; (* DosCreateMutex, DosCreateEvent, and     *)
+                         (*   DosCreateMuxWait use it to indicate   *)
+                         (*   whether the semaphore is shared or    *)
+                         (*   private when the PSZ is null          *)
+  DCMW_WAIT_ANY   = 02H; (* DosCreateMuxWait option for wait on any *)
+                         (*   event/mutex to occur                  *)
+  DCMW_WAIT_ALL   = 04H; (* DosCreateMuxWait option for wait on all *)
+                         (*   events/mutexs to occur                *)
+
+  SEM_INDEFINITE_WAIT   = 0FFFFFFFFH;
+  SEM_IMMEDIATE_RETURN  = 0;
+
+TYPE
+  HSEM       = SYSTEM.ADDRESS;        (* semaphore handle *)
+  PHSEM      = POINTER TO HSEM;
+  SEMRECORD  = RECORD
+    CASE       : TYPEPREFIX OF
+    | TRUE     :
+      hsemCur  : HSEM;
+      ulUser   : LONGCARD;
+    | FALSE    :
+      Cur      : HSEM;
+      User     : LONGCARD;
+    END;       END;
+  PSEMRECORD = POINTER TO SEMRECORD;
+  HEV        = LONGCARD;              (* event handle *)
+  PHEV       = POINTER TO HEV;
+  HMTX       = LONGCARD;              (* mutex semaphore handle *)
+  PHMTX      = POINTER TO HMTX;
+  HMUX       = LONGCARD;              (* muxwait semaphore handle *)
+  PHMUX      = POINTER TO HMUX;
+
+PROCEDURE DosCreateEventSem
+( Name                  : SYSTEM.ADDRESS;
+  VAR EventHandle       : HEV;
+  EventAttr             : LONGCARD;
+  InitialState          : BOOLEAN
+)                       : APIRET;
+
+PROCEDURE DosOpenEventSem
+( Name                  : SYSTEM.ADDRESS;
+  VAR EventHandle       : HEV
+)                       : APIRET;
+
+PROCEDURE DosCloseEventSem
+( EventHandle           : HEV
+)                       : APIRET;
+
+PROCEDURE DosResetEventSem
+( EventHandle           : HEV;
+  VAR PostCt            : LONGCARD
+)                       : APIRET;
+
+PROCEDURE DosPostEventSem
+( EventHandle           : HEV
+)                       : APIRET;
+
+PROCEDURE DosWaitEventSem
+( EventHandle           : HEV;
+  TimeOut               : LONGCARD (* in milliseconds *)
+)                       : APIRET;
+
+PROCEDURE DosQueryEventSem
+( EventHandle           : HEV;
+  VAR PostCt            : LONGCARD
+)                       : APIRET;
+
+PROCEDURE DosCreateMutexSem
+( Name                  : SYSTEM.ADDRESS;
+  VAR MutexHandle       : HMTX;
+  Attr                  : LONGCARD;
+  InitialState          : BOOLEAN
+)                       : APIRET;
+
+PROCEDURE DosOpenMutexSem
+( Name                  : SYSTEM.ADDRESS;
+  VAR MutexHandle       : HMTX
+)                       : APIRET;
+
+PROCEDURE DosCloseMutexSem
+( MutexHandle           : HMTX
+)                       : APIRET;
+
+PROCEDURE DosRequestMutexSem
+( MutexHandle           : HMTX;
+  TimeOut               : LONGCARD (* in millisenconds *)
+)                       : APIRET;
+
+PROCEDURE DosReleaseMutexSem
+( MutexHandle           : HMTX
+)                       : APIRET;
+
+PROCEDURE DosQueryMutexSem
+( MutexHandle           : HMTX;
+  VAR OwnerProcessId    : PID;
+  VAR OwnerThreadId     : TID;
+  VAR Count             : LONGCARD
+)                       : APIRET;
+
+PROCEDURE DosCreateMuxWaitSem
+( Name                  : SYSTEM.ADDRESS;
+  VAR MuxWaitHandle     : HMUX;
+  SemRecCount           : LONGCARD;
+  VAR SemRec            : ARRAY OF SEMRECORD;
+  SemAttr               : LONGCARD
+)                       : APIRET;
+
+PROCEDURE DosOpenMuxWaitSem
+( Name                  : SYSTEM.ADDRESS;
+  VAR MuxWaitHandle     : HMUX
+)                       : APIRET;
+
+PROCEDURE DosCloseMuxWaitSem
+( MuxWaitHandle         : HMUX
+)                       : APIRET;
+
+PROCEDURE DosWaitMuxWaitSem
+( MuxWaitHandle         : HMUX;
+  TimeOut               : LONGCARD; (* in milliseconds *)
+  VAR User              : LONGCARD
+)                       : APIRET;
+
+PROCEDURE DosAddMuxWaitSem
+( MuxWaitHandle         : HMUX;
+  VAR SemRec            : SEMRECORD
+)                       : APIRET;
+
+PROCEDURE DosDeleteMuxWaitSem
+( MuxWaitHandle         : HMUX;
+  SemHandle             : HSEM
+)                       : APIRET;
+
+PROCEDURE DosQueryMuxWaitSem
+( MuxWaitHandle         : HMUX;
+  VAR SemRecCount       : LONGCARD;
+  VAR SemRec            : ARRAY OF SEMRECORD;
+  VAR SemAttr           : LONGCARD
+)                       : APIRET;
+
+END DOSSEMAPHORES.

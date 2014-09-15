@@ -1,0 +1,6 @@
+LIBRARY PMWP
+EXPORTS
+  WPFileSystemClassData         @0x000B
+  WPFileSystemNewClass          @0x000C
+  M_WPFileSystemClassData       @0x0137
+  M_WPFileSystemNewClass        @0x0138

@@ -1,0 +1,5 @@
+LIBRARY PMPIC
+EXPORTS
+  PicPrint    @11
+  PicIchg     @12
+

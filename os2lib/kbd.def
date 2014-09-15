@@ -1,0 +1,22 @@
+LIBRARY KBDCALLS
+EXPORTS
+  KbdRegister            @0x0008
+  KbdDeRegister          @0x0014
+  KbdCharIn              @0x0004
+  KbdPeek                @0x0016
+  KbdStringIn            @0x0009
+  KbdFlushBuffer         @0x000D
+  KbdSetStatus           @0x000B
+  KbdGetStatus           @0x000A
+  KbdSetCp               @0x0005
+  KbdGetCp               @0x0003
+  KbdOpen                @0x0017
+  KbdClose               @0x0011
+  KbdGetFocus            @0x000C
+  KbdFreeFocus           @0x0012
+  KbdSynch               @0x0007
+  KbdSetFgnd             @0x0015
+  KbdGetHWID             @0x0018
+  KbdSetHWID             @0x0019
+  KbdXlate               @0x000E
+  KbdSetCustXt           @0x0001

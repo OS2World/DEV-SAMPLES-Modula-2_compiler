@@ -1,0 +1,115 @@
+DEFINITION MODULE WPJOB;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPJob
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT WPTRANS;
+
+TYPE PSOMClass              = SOM.PSOMClass;
+TYPE INTEGER4               = SOM.INTEGER4;
+TYPE somMToken              = SOM.somMToken;
+TYPE somDToken              = SOM.somDToken;
+TYPE somMethodProc          = SOM.somMethodProc;
+TYPE PWPJob                 = POINTER TO WPJob;
+TYPE PM_WPJob               = POINTER TO M_WPJob;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPJob
+*************************************************************************)
+
+(*************************************************************************
+  SOM class API for WPJob, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPJob_MajorVersion     = 1;
+  WPJob_MinorVersion     = 1;
+
+TYPE
+  WPJobClassDataStructure     = RECORD
+    classObject                 : PSOMClass;
+    prtGetJobID                 : somMToken;
+    prtSetJobID                 : somMToken;
+    prtGetJobInfo2              : somMToken;
+    prtSetJobInfo2              : somMToken;
+    prtGetJobInfo3              : somMToken;
+    prtSetJobInfo3              : somMToken;
+    prtFreeJobInfo2             : somMToken;
+    prtFreeJobInfo3             : somMToken;
+    prtGetPDObject              : somMToken;
+    prtSetPDObject              : somMToken;
+    prtGetDocument              : somMToken;
+    prtSetDocument              : somMToken;
+    prtDupJobInfo2              : somMToken;
+    prtDupJobInfo3              : somMToken;
+    wpDeleteJob                 : somMToken;
+    wpHoldJob                   : somMToken;
+    wpReleaseJob                : somMToken;
+    wpPrintJobNext              : somMToken;
+    wpStartJobAgain             : somMToken;
+                                END;
+
+VAR
+  WPJobClassData : WPJobClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPJob = RECORD( WPTRANS.WPTransient ) END;
+  (*$SOM- *)
+
+
+PROCEDURE WPJobNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+PROCEDURE( Self : PWPJob ) wpDeleteJob( ) : BOOLEAN;
+
+PROCEDURE( Self : PWPJob ) wpHoldJob( ) : BOOLEAN;
+
+PROCEDURE( Self : PWPJob ) wpReleaseJob( ) : BOOLEAN;
+
+PROCEDURE( Self : PWPJob ) wpPrintJobNext( ) : BOOLEAN;
+
+PROCEDURE( Self : PWPJob ) wpStartJobAgain( ) : BOOLEAN;
+
+
+(*************************************************************************
+  SOM class API for M_WPJob, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPJob_MajorVersion   = 1;
+  M_WPJob_MinorVersion   = 1;
+
+TYPE
+  M_WPJobClassDataStructure   = RECORD
+    classObject                 : PSOMClass;
+                                END;
+
+VAR
+  M_WPJobClassData : M_WPJobClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPJob = RECORD( WPTRANS.M_WPTransient ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPJobNewClass
+(
+  majorVersion : INTEGER4;
+  minorVersion : INTEGER4
+)              : PSOMClass;
+
+
+END WPJOB.

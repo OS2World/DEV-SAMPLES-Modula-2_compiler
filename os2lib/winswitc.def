@@ -1,0 +1,13 @@
+LIBRARY PMSHAPI
+EXPORTS
+  WinAddSwitchEntry        @120
+  WinRemoveSwitchEntry     @129
+  WinChangeSwitchEntry     @123
+  WinCreateSwitchEntry     @121
+  WinQuerySessionTitle     @122
+  WinQuerySwitchEntry      @124
+  WinQuerySwitchHandle     @125
+  WinQuerySwitchList       @126
+  WinQueryTaskSizePos      @127
+  WinQueryTaskTitle        @128
+  WinSwitchToProgram       @131

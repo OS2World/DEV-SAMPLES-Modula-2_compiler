@@ -1,0 +1,165 @@
+DEFINITION MODULE Keys;
+(*
+    Description : Symbolic constants for non-ASCII keyboard functions
+    Author      : I.R. Matters (Ian.Matters@anu.edu.au)
+    System      : Juergen Neuhoff's Modula-2 compiler on OS/2 v3.0
+    Version     : 1.00
+    Last Edit   : 19 June 1995
+
+    Notes       : The values described in this table assume that the
+                  second byte of the keyboard code is shifted by 128
+                  decimal where possible.
+
+                  Alt-Spacebar is specially mapped to 215C;
+                  The Ctrl-2 key is remapped to an ASCII nul;
+                  Ctrl-PrintScreen is only supported in full screen mode.
+*)
+
+
+CONST F1Key              = 273C;
+      F2Key              = 274C;
+      F3Key              = 275C;
+      F4Key              = 276C;
+      F5Key              = 277C;
+      F6Key              = 300C;
+      F7Key              = 301C;
+      F8Key              = 302C;
+      F9Key              = 303C;
+      F10Key             = 304C;
+
+      ShiftF1Key         = 324C;
+      ShiftF2Key         = 325C;
+      ShiftF3Key         = 326C;
+      ShiftF4Key         = 327C;
+      ShiftF5Key         = 330C;
+      ShiftF6Key         = 331C;
+      ShiftF7Key         = 332C;
+      ShiftF8Key         = 333C;
+      ShiftF9Key         = 334C;
+      ShiftF10Key        = 335C;
+
+      CtrlF1Key          = 336C;
+      CtrlF2Key          = 337C;
+      CtrlF3Key          = 340C;
+      CtrlF4Key          = 341C;
+      CtrlF5Key          = 342C;
+      CtrlF6Key          = 343C;
+      CtrlF7Key          = 344C;
+      CtrlF8Key          = 345C;
+      CtrlF9Key          = 346C;
+      CtrlF10Key         = 347C;
+
+      AltF1Key           = 350C;
+      AltF2Key           = 351C;
+      AltF3Key           = 352C;
+      AltF4Key           = 335C;
+      AltF5Key           = 354C;
+      AltF6Key           = 355C;
+      AltF7Key           = 356C;
+      AltF8Key           = 357C;
+      AltF9Key           = 360C;
+      AltF10Key          = 361C;
+
+      Alt1Key            = 370C;
+      Alt2Key            = 371C;
+      Alt3Key            = 372C;
+      Alt4Key            = 373C;
+      Alt5Key            = 374C;
+      Alt6Key            = 375C;
+      Alt7Key            = 376C;
+      Alt8Key            = 377C;
+
+      AltQKey            = 220C;
+      AltWKey            = 221C;
+      AltEKey            = 222C;
+      AltRKey            = 223C;
+      AltTKey            = 224C;
+      AltYKey            = 225C;
+      AltUKey            = 226C;
+      AltIKey            = 227C;
+      AltOKey            = 230C;
+      AltPKey            = 231C;
+
+      AltAKey            = 236C;
+      AltSKey            = 237C;
+      AltDKey            = 240C;
+      AltFKey            = 241C;
+      AltGKey            = 242C;
+      AltHKey            = 243C;
+      AltJKey            = 244C;
+      AltKKey            = 245C;
+      AltLKey            = 246C;
+
+      AltZKey            = 254C;
+      AltXKey            = 255C;
+      AltCKey            = 256C;
+      AltVKey            = 257C;
+      AltBKey            = 260C;
+      AltNKey            = 261C;
+      AltMKey            = 262C;
+
+      ShiftTabKey        = 217C;
+
+      HomeKey            = 307C;
+      UpArrKey           = 310C;
+      PgUpKey            = 311C;
+
+      LtArrKey           = 313C;
+
+      RtArrKey           = 315C;
+
+      EndKey             = 317C;
+      DnArrKey           = 320C;
+      PgDnKey            = 321C;
+      InsKey             = 322C;
+      DelKey             = 323C;
+
+      CtrlPrtScKey       = 362C;  (* Only works in full screen mode *)
+      CtrlLtArrKey       = 363C;
+      CtrlRtArrKey       = 364C;
+      CtrlEndKey         = 365C;
+      CtrlPgDnKey        = 366C;
+      CtrlHomeKey        = 367C;
+
+      (* The following keys do NOT have the high bit set as above *)
+
+      Alt9Key            = 200C;
+      Alt0Key            = 201C;
+      AltHyphenKey       = 202C;
+      AltEqualsKey       = 203C;
+
+      CtrlPgUpKey        = 204C;
+
+      F11Key             = 205C;  (* Note that F11 and F12 may not *)
+      F12Key             = 206C;  (* be supported in all computers *)   
+      ShiftF11Key        = 207C;
+      ShiftF12Key        = 210C;
+      CtrlF11Key         = 211C;
+      CtrlF12Key         = 212C;
+      AltF11Key          = 213C;
+      AltF12Key          = 214C;
+
+      AltSpacebar        = 215C;  (* Special key mapping *)
+
+
+TYPE Modifiers = SET OF (RightShiftKey, LeftShiftKey, ControlKey, AltKey,
+                         ScrollLockOn, NumLockOn, CapsLockOn, InsertOn,
+                         LeftControlKey, LeftAltKey, RightControlKey,
+                         RightAltKey, ScrollLockKey, NumLockKey,
+                         CapsLockKey, SystemRequestKey);
+
+
+PROCEDURE GetKeyChar(): CHAR;
+(*
+   Read a key as a CHAR.  If it's a special key,
+   return then second byte with the high bit set.
+*)
+
+
+PROCEDURE GetModifiers (VAR State: Modifiers);
+(*
+   Check the status of the various shift and lock keys
+*)
+
+
+END Keys.

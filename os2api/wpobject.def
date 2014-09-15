@@ -1,0 +1,1356 @@
+DEFINITION MODULE WPOBJECT;
+
+(***************************************************************************
+  OS/2 2.1 Workplace class interface for WPObject
+           18.02.95 13.15 : corrected : wpFilterPopupMenu
+           19.02.95 16.45 : changed :   wpQueryDetailsData
+           19.02.95 19.42 : changed :   wpclsQueryIconData, wpQueryIconData
+           23.02.95 12.44 : changed :   wpAllocMem
+           03.03.95 19.50 : changed :   wpclsQueryDetailsInfo
+
+  Copyright (c) 1994 by Juergen Neuhoff
+****************************************************************************)
+
+(*$XL+       Modula-2 language extensions: '_' allowed for symbol names *)
+(*$CDECL+    C-style procedures                                         *)
+(*$A         default alignment for record fields                        *)
+
+IMPORT SOM;
+IMPORT SYSTEM;
+IMPORT OS2DEF;
+IMPORT WINDEF;
+IMPORT WINSTDCNR;
+IMPORT WINSTDDRAG;
+IMPORT WINWORKPLACE;
+IMPORT WINPOINTERS;
+IMPORT GPIDEF;
+
+TYPE PSOMClass       = SOM.PSOMClass;
+TYPE INTEGER4        = SOM.INTEGER4;
+TYPE somMToken       = SOM.somMToken;
+TYPE somDToken       = SOM.somDToken;
+TYPE somMethodProc   = SOM.somMethodProc;
+TYPE PM_WPObject     = POINTER TO M_WPObject;
+TYPE PWPObject       = POINTER TO WPObject;
+
+(************************************************************************
+  Additional TYPE- and CONST-declarations supporting WPObject
+*************************************************************************)
+
+TYPE SOMObject       = SOM.SOMObject;
+TYPE SOMClass        = SOM.SOMClass;
+TYPE PWPFolder       = PWPObject;   (* forward referenced class *)
+TYPE BYTE            = SYSTEM.BYTE;
+TYPE HWND            = OS2DEF.HWND;
+TYPE PMINIRECORDCORE = WINSTDCNR.PMINIRECORDCORE;
+TYPE LHANDLE         = OS2DEF.LHANDLE;
+TYPE PDATA           = POINTER TO ARRAY [0..MAX(LONGCARD)-1] OF SHORTCARD;
+TYPE PVOID           = OS2DEF.PVOID;
+TYPE PPVOID          = OS2DEF.PPVOID;
+TYPE PSZ             = OS2DEF.PSZ;
+TYPE POINTL          = OS2DEF.POINTL;
+TYPE MRESULT         = WINDEF.MRESULT;
+TYPE DRAGINFO        = WINSTDDRAG.DRAGINFO;
+TYPE DRAGITEM        = WINSTDDRAG.DRAGITEM;
+TYPE HMODULE         = OS2DEF.HMODULE;
+TYPE PAGEINFO        = WINWORKPLACE.PAGEINFO;
+TYPE PRINTDEST       = OS2DEF.PRINTDEST;
+TYPE HPOINTER        = WINPOINTERS.HPOINTER;
+TYPE ICONINFO        = OS2DEF.ICONINFO;
+TYPE PICONINFO       = OS2DEF.PICONINFO;
+TYPE DRAGTRANSFER    = WINSTDDRAG.DRAGTRANSFER;
+TYPE HOBJECT         = WINWORKPLACE.HOBJECT;
+TYPE PRECORDINSERT   = WINSTDCNR.PRECORDINSERT;
+TYPE SIZEL           = GPIDEF.SIZEL;
+TYPE ADDRESS         = SYSTEM.ADDRESS;
+TYPE PLONGCARD       = POINTER TO LONGCARD;
+
+(* NIL pointer types for various formal types.
+ * Even if such a pointer variable p is of value NIL,
+ * p^ can be passed by reference to a formal VAR-parameter
+ * or a formal open array type. This way a formal parameter
+ * might become a NIL-reference which is sometimes needed
+ * for OS/2 2.x Workplace procedures.
+ * Example:
+ *
+ *   PROCEDURE MyProc( VAR MyParam : INTEGER );
+ *     ...
+ *   TYPE NILINTEGER = POINTER TO INTEGER;
+ *     ...
+ *   VAR NoINTEGER   : POINTER TO INTEGER;
+ *     ...
+ *   NoINTEGER := NIL;
+ *   MyProc( NoINTEGER^ );
+ *     ...
+ *)
+TYPE
+  NILCharArray   = POINTER TO ARRAY [0..0] OF CHAR;
+  NILByteArray   = POINTER TO ARRAY [0..0] OF BYTE;
+  NILWPObject    = POINTER TO WPObject;
+  NILLONGCARD    = POINTER TO LONGCARD;
+
+CONST (* Object style flags (see wpSetStyle) *)
+  OBJSTYLE_NOMOVE          =    2;
+  OBJSTYLE_NOLINK          =    4;
+  OBJSTYLE_NOCOPY          =    8;
+  OBJSTYLE_NOTDEFAULTICON  =   16;
+  OBJSTYLE_TEMPLATE        =   32;
+  OBJSTYLE_NODELETE        =   64;
+  OBJSTYLE_NOPRINT         =  128;
+  OBJSTYLE_NODRAG          =  256;
+  OBJSTYLE_NOTVISIBLE      =  512;
+  OBJSTYLE_NOSETTINGS      = 1024;
+  OBJSTYLE_NORENAME        = 2048;
+  OBJSTYLE_NODROP          = 4096;
+
+CONST (*  Class style flags (see wpclsQueryStyle) *)
+  CLSSTYLE_NEVERMOVE       = OBJSTYLE_NOMOVE;
+  CLSSTYLE_NEVERLINK       = OBJSTYLE_NOLINK;
+  CLSSTYLE_NEVERCOPY       = OBJSTYLE_NOCOPY;
+  CLSSTYLE_NEVERTEMPLATE   = 16;
+  CLSSTYLE_NEVERDELETE     = OBJSTYLE_NODELETE;
+  CLSSTYLE_NEVERPRINT      = OBJSTYLE_NOPRINT;
+  CLSSTYLE_NEVERDRAG       = OBJSTYLE_NODRAG;
+  CLSSTYLE_NEVERVISIBLE    = OBJSTYLE_NOTVISIBLE;
+  CLSSTYLE_NEVERRENAME     = OBJSTYLE_NORENAME;
+  CLSSTYLE_PRIVATE         = 4096;
+
+CONST (*  Flags for the wpFilterPopupMenu() method *)
+  CTXT_CRANOTHER           = 0001H;   (* Flags for ulFlags *)
+  CTXT_NEW                 = CTXT_CRANOTHER;
+  CTXT_OPEN                = 0002H;
+  CTXT_WINDOW              = 0004H;
+  CTXT_SWITCHTO            = CTXT_WINDOW;
+  CTXT_CLOSE               = 0008H;
+  CTXT_SETTINGS            = 0010H;
+  CTXT_PRINT               = 0020H;
+  CTXT_HELP                = 0040H;
+  CTXT_DELETE              = 0080H;
+  CTXT_COPY                = 0100H;
+  CTXT_MOVE                = 0200H;
+  CTXT_SHADOW              = 0400H;
+  CTXT_LINK                = CTXT_SHADOW;
+  CTXT_PROGRAM             = 0800H;
+  CTXT_ICON                = 001000H;
+  CTXT_TREE                = 002000H;
+  CTXT_DETAILS             = 004000H;
+  CTXT_FIND                = 008000H;
+  CTXT_SELECT              = 010000H;
+  CTXT_ARRANGE             = 020000H;
+  CTXT_SORT                = 040000H;
+  CTXT_SHUTDOWN            = 080000H;
+  CTXT_LOCKUP              = 100000H;
+  CTXT_PALETTE             = 200000H;
+  CTXT_REFRESH             = 400000H;
+
+CONST (* common context menu ids *)
+  WPMENUID_USER            = 6500H;
+  WPMENUID_PRIMARY         = 0;
+  WPMENUID_OPEN            = 1;
+  WPMENUID_HELP            = 2;
+  WPMENUID_PRINT           = 3;
+  WPMENUID_SELECT          = 4;
+  WPMENUID_SORT            = 5;
+
+CONST (*  Open views for the wpOpen() method *)
+  OPEN_UNKNOWN             = -1;
+  OPEN_DEFAULT             =  0;
+  OPEN_CONTENTS            =  1;
+  OPEN_SETTINGS            =  2;
+  OPEN_HELP                =  3;
+  OPEN_RUNNING             =  4;
+  OPEN_PROMPTDLG           =  5;
+  OPEN_PALETTE             =  121;        (*SPLIT*)
+  OPEN_USER                =  6500H;
+
+(*  Definitions for the INUSE list that is kept
+ *  for every object via wpAddToObjUseList and
+ *  wpRemoveFromObjUseList methods...
+ *)
+
+(* This record is always followed immediately by a type
+ * dependant struct such as MEMORYITEM,RECORDITEM,VIEWITEM
+ * or some other user defined record...
+ *)
+TYPE
+  PUSEITEM         = POINTER TO USEITEM;
+  USEITEM          = RECORD
+    type             : LONGCARD;  (* Type of this Item *)
+    pNext            : PUSEITEM;  (* Next item in use list *)
+                     END;
+
+CONST
+  USAGE_MEMORY        =  1;  (* Values of 'type' *)
+  USAGE_RECORD        =  4;
+  USAGE_OPENVIEW      =  5;
+  USAGE_LINK          =  6;
+  USAGE_OPENFILE      = 20;
+
+TYPE
+  PMEMORYITEM = POINTER TO MEMORYITEM;
+  MEMORYITEM  = RECORD             (* USAGE_MEMORY struct *)
+    cbBuffer    : LONGCARD;        (* Number of bytes in memory block *)
+                END;
+
+TYPE
+  PRECORDITEM = POINTER TO RECORDITEM;
+  RECORDITEM  = RECORD             (* USAGE_RECORD struct *)
+    hwndCnr     : HWND;            (* Cnr into which object is inserted *)
+    pRecord     : PMINIRECORDCORE; (* Record pointer within that cnr *)
+    ulUser      : LONGCARD;        (* For application use RECSH *)
+                END;
+
+CONST
+  VIEWSTATE_OPENING       = 0001H;   (* The view is being opened *)
+  VIEWSTATE_OBJECTDELETED = 0002H;   (* The object is being deleted *)
+  VIEWSTATE_USERHIDDEN    = 0004H;   (* The view was hidden by user *)
+  VIEWSTATE_POPULATING    = 0008H;   (* The view is populating      *)
+
+TYPE
+  VIEWITEM      = RECORD             (* USAGE_OPENVIEW record *)
+    view          : LONGCARD;        (* Object view that this represents *)
+    handle        : LHANDLE;         (* Open handle *)
+    ulViewState   : LONGCARD;        (* View State flags *)
+    hwndCnr       : HWND;            (* System use only (window animation) *)
+    pRecord       : PMINIRECORDCORE; (* System use only (window animation) *)
+                  END;
+  PVIEWITEM     = POINTER TO VIEWITEM;
+
+TYPE
+  LINKITEM      = RECORD             (* USAGE_LINK struct *)
+    LinkObj       : PWPObject;       (* The link object *)
+                  END;
+  PLINKITEM     = POINTER TO LINKITEM;
+
+TYPE
+  VIEWFILE      = RECORD             (* USAGE_OPENFILE struct *)
+    ulMenuId      : LONGCARD;        (* Menu id if association or menu page *)
+    handle        : LHANDLE;         (* Open handle *)
+    hwndCnr       : HWND;            (* System use only (window animation) *)
+    pRecord       : PMINIRECORDCORE; (* System use only (window animation) *)
+                  END;
+  PVIEWFILE     = POINTER TO VIEWFILE;
+
+(* Notes: The class name immediately follows the control block. The
+ *        first instance variable control block immediately follows
+ *        this.
+ *)
+TYPE
+  WPSRCLASSBLOCK  = RECORD
+    ClassNameLength : INTEGER; (* Length of class name, including the
+                                * .. null terminator. This must be a
+                                * .. SHORT and must be at the beginning
+                                * .. of the record.
+                                *)
+    IVarLength      : INTEGER; (* Length of instance variable
+                                * .. information, including the two-
+                                * .. byte null terminator
+                                *)
+                    END;
+  PWPSRCLASSBLOCK = POINTER TO WPSRCLASSBLOCK;
+
+(*  Persistant storage records (see wpSaveShort
+ *  and wpRestoreShort etc...)
+ *)
+
+(* This control record does not reside in the dormant state.
+ * It is used only when a persistant data block is
+ * resident in memory - either when an object is being saved or
+ * when it is being restored...
+ *)
+TYPE
+  OBJDATA         = RECORD
+    CurrentClass    : PWPSRCLASSBLOCK;
+    First           : PWPSRCLASSBLOCK;
+    NextData        : POINTER TO CHAR;
+    Length          : CARDINAL;
+                    END;
+  POBJDATA        = POINTER TO OBJDATA;
+
+(*  wpCnrInsertObject/wpCnrRemoveObject structs
+ *  and extract functions...
+ *)
+
+TYPE
+  PCLASSDETAILS = POINTER TO CLASSDETAILS;
+  CLASSDETAILS  = RECORD           (* Class Details struct *)
+    pszAttribute  : PSZ;           (* Translatable string for a class attribute*)
+    pSortRecord   : PVOID;         (* Function pointer for sort function for attribute*)
+    pNext         : PCLASSDETAILS; (* Next item in class details list *)
+                  END;
+
+(* Details comparison function definition
+ *
+ *    Param1 PVOID    - Pointer to details field value
+ *    Param2 PVOID    - Pointer to value to be compared with
+ *
+ *    Returns LONGINT - Must be CMP_EQUAL, CMP_GREATER, CMP_LESS
+ *)
+TYPE
+  PFNCOMPARE  = PROCEDURE( PVOID, PVOID ) : LONGINT;
+
+CONST
+  CMP_EQUAL            = 0;
+  CMP_GREATER          = 1;
+  CMP_LESS             = 2;
+  CMP_GREATER_OR_EQUAL = 3;
+  CMP_LESS_OR_EQUAL    = 4;
+  CMP_NOT_EQUAL        = 5;
+  NUM_CMP_VALUES       = 6;
+
+(* Owner draw function definition
+ *
+ *    Param1  HWND    - Handle of window that is being painted
+ *    Param2  PVOID   - POWNERITEM record pointer, see the container
+ *                      control programming reference for the meaning
+ *                      of the fields in this record.
+ *    Param3  PVOID   - Pointer to the comparison value to draw (this
+ *                      is NULL, except when this function is painting
+ *                      its value into the include criteria dialog
+ *                      when it points to Criteria.CompareValue...)
+ *
+ *    Returns BOOLEAN  - TRUE if the field was ownerdrawn, FALSE if the
+ *                       container control should do default painting.
+ *)
+TYPE
+  PFNOWNDRW  = PROCEDURE( HWND, PVOID, PVOID ) : BOOLEAN;
+
+(* Details comparison criteria record
+ *)
+TYPE
+  PCRITERIA            = POINTER TO CRITERIA;
+  CRITERIA             = RECORD
+    pReserved            : PVOID;         (* Reserved - MUST be null!!!! *)
+    pNext                : PCRITERIA;
+    pPrev                : PCRITERIA;
+    ClassFieldInfoIndex  : LONGCARD;      (* Index of the details field  *)
+    LogicalOperator      : LONGCARD;      (* CRITERIA_AND or CRITERIA_OR *)
+    ComparisonType       : LONGCARD;      (* CMP_LESS_OR_EQUAL etc...    *)
+    ulLenCompareValue    : LONGCARD;      (* sizeof(ComparisonData)      *)
+    CompareValue         : ARRAY [0..0] OF BYTE; (* Value to be compared with *)
+                         END;
+
+CONST
+  CRITERIA_AND         = 0;
+  CRITERIA_OR          = 1;
+
+(* ClassCriteria record: points to a linked list of CRITERIA
+ * for the given class. ClassCriteria may be linked into a list
+ * too - and passed to a filter object, or the wpclsFindObjectFirst
+ * method call...
+ *)
+TYPE
+  PCLASSCRITERIA  = POINTER TO CLASSCRITERIA;
+  CLASSCRITERIA   = RECORD
+    pNext           : PCLASSCRITERIA;
+    pPrev           : PCLASSCRITERIA;
+    Class           : PM_WPObject;      (* Class object *)
+    pCriteria       : PCRITERIA;        (* Linked list of criteria *)
+    NotifyObject    : PWPObject;        (* Owner of the criteria list *)
+                    END;
+
+TYPE
+(* This record is passed to a details criteria edit window
+ * when it is created, so that it knows the current value and
+ * min/max values for the criteria to be edited.
+ *
+ * As the user modifies the compare value using the criteria
+ * edit window, it should update the buffer pointed to by
+ * 'pCompareValue'.
+ *)
+TYPE
+  PEDITCTLINIT      = POINTER TO EDITCTLINIT;
+  EDITCTLINIT       = RECORD
+    cb                : LONGCARD; (* must have length in control data! MindyP *)
+    pCompareValue     : PVOID;    (* Buffer containing the current value *)
+    ulLenCompareValue : LONGCARD; (* Length of pCompareValue buffer *)
+    pMinCompareValue  : PVOID;    (* READ-ONLY parameter, NIL  => default *)
+    pMaxCompareValue  : PVOID;    (* READ-ONLY parameter, NIL  => default *)
+                      END;
+
+(* Record for wpclsQueryDetailsInfo method
+ *
+ * CLASSFIELDINFO is identical to the FIELDINFO record of the
+ * container control with the following differences:
+ *
+ * - The offStruct field from FIELDINFO is reserved.
+ * - The offFieldData and usLenFieldData record elements have
+ *   been added.
+ * - Compare/Sort/Ownerdraw fields have also been added for the
+ *   convenience of the programmer, so that object details can
+ *   be customized and objects can be found or included by any
+ *   of their displayable object details.
+ *
+ * For example if the application has the following details data:
+ *
+ * TYPE SAMPLE = RECORD
+ *   cdate       : WINSTDCNR.CDATE;
+ *   ctime       : WINSTDCNR.CTIME;
+ *   psz         : OS2DEF.PSZ;
+ *               END;
+ *
+ * classfieldinfo[0].offFieldData   = FIELDOFFSET(SAMPLE,cdate);
+ * classfieldinfo[0].ulLenFieldData = FIELDOFFSET(SAMPLE,ctime) -
+ *                                    FIELDOFFSET(SAMPLE,cdate);
+ *
+ * classfieldinfo[1].offFieldData   = FIELDOFFSET(SAMPLE,ctime);
+ * classfieldinfo[1].ulLenFieldData = FIELDOFFSET(SAMPLE,psz) -
+ *                                    FIELDOFFSET(SAMPLE,ctime);
+ *
+ * classfieldinfo[2].offFieldData   = FIELDOFFSET(SAMPLE,psz);
+ * classfieldinfo[2].ulLenFieldData = sizeof(SAMPLE) -
+ *                                    FIELDOFFSET(SAMPLE,psz);
+ *
+ * NOTE: It is essential that the fields be linked in order ex. above
+ *       cdate must be followed by ctime and finally psz.
+ *)
+TYPE
+  PCLASSFIELDINFO   = POINTER TO CLASSFIELDINFO;
+  PPCLASSFIELDINFO  = POINTER TO PCLASSFIELDINFO;
+  CLASSFIELDINFO    = RECORD
+    (* Details field attributes
+     *)
+    cb                : LONGCARD;        (* size of CLASSFIELDINFO struct  *)
+    flData            : LONGCARD;        (* attributes of field's data     *)
+    flTitle           : LONGCARD;        (* attributes of field's title    *)
+    pTitleData        : PVOID;           (* title data (default is string) *)
+                                         (* If CFT_BITMAP, must be HBITMAP *)
+    ulReserved        : LONGCARD;        (* Reserved                       *)
+    pUserData         : PVOID;           (* pointer to user data           *)
+    pNextFieldInfo    : PCLASSFIELDINFO; (* pointer to next linked         *)
+                                         (*   CLASSFIELDINFO record        *)
+    cxWidth           : LONGCARD;        (* width of field in pels         *)
+    offFieldData      : LONGCARD;        (* offset from beginning of       *)
+                                         (*   this class's data for this   *)
+                                         (*   field. (first field is 0).   *)
+    ulLenFieldData    : LONGCARD;        (* width of data in bytes.        *)
+                                         (*   (4 for a pointer).           *)
+    pfnOwnerDraw      : PFNOWNDRW;       (* Ownerdraw procedure for detail *)
+                                         (* column. Can be NULL except if  *)
+                                         (* ownerdraw is being used.       *)
+    (* Include/Sort parameters
+     *)
+    flCompare         : LONGCARD;        (* Flags: for example, use the    *)
+                                         (*   COMPARE_SUPPORTED flag if    *)
+                                         (*   your field can be compared   *)
+    pfnCompare        : PFNCOMPARE;      (* Comparison function for this   *)
+                                         (*   field. Can be NULL unless    *)
+                                         (*   ownerdraw is used.           *)
+    DefaultComparison : LONGCARD;        (* This is the default compare    *)
+                                         (*   operator in the include      *)
+                                         (*   page criteria dialog. (eg:   *)
+                                         (*   CMP_LESS_OR_EQUAL)           *)
+    ulLenCompareValue : LONGCARD;        (* Maximum length of the compare  *)
+                                         (*   data. Can be NULL unless     *)
+                                         (*   ownerdraw is used.           *)
+    pDefCompareValue  : PVOID;           (* The default value to be used   *)
+                                         (*   for comparisons. Can be NULL *)
+                                         (*   unless ownerdraw is used.    *)
+    pMinCompareValue  : PVOID;           (* The default value to be used   *)
+                                         (*   for comparisons.Can be NULL  *)
+                                         (*   unless ownerdraw is used.    *)
+    pMaxCompareValue  : PVOID;           (* The default value to be used   *)
+                                         (*   for comparisons.Can be NULL  *)
+                                         (*   unless ownerdraw is used.    *)
+    pszEditControlClass : PSZ;           (* Window class to be used to edit*)
+                                         (*   the compare value. Can be    *)
+                                         (*   NULL unless ownerdraw is used*)
+    pfnSort           : PFNCOMPARE       (* Sort function for this @SM09511*)
+                                         (*   field. Can be NULL unless    *)
+                                         (*   ownerdraw is used.           *)
+                      END;
+
+CONST
+  COMPARE_SUPPORTED = 1;
+  SORTBY_SUPPORTED  = 2;
+
+CONST (* Standard notebook size constants *)
+  STDNOTEBOOKWIDTH  = 290;
+  STDNOTEBOOKHEIGHT = 275;
+
+CONST (* Confirm flags *)
+  CONFIRM_DELETE             = 0001H;
+  CONFIRM_DELETEFOLDER       = 0002H;
+  CONFIRM_RENAMEFILESWITHEXT = 0004H;
+  CONFIRM_KEEPASSOC          = 0008H;
+  CONFIRM_ACTION             = 0010H;
+  CONFIRM_PROGRESS           = 0020H;
+
+CONST
+  OK_DELETE         = 1;
+  NO_DELETE         = 2;
+  CANCEL_DELETE     = 3;
+
+CONST
+  NUM_OBJDETAILS_FIELDS = 2;     (* number of object details *)
+
+CONST (* Search Type for wpclsQueryExtendedCriteria *)
+  SEARCH_ALL_FOLDERS = 1;
+  SEARCH_THIS_FOLDER = 2;
+  SEARCH_THIS_TREE   = 3;
+
+TYPE (* Find method related types and constants *)
+  OBJECT   = PWPObject;
+  POBJECT  = POINTER TO OBJECT;
+  CLASS    = PM_WPObject;
+  PCLASS   = POINTER TO CLASS;
+  HFIND    = LHANDLE;
+  PHFIND   = POINTER TO HFIND;
+
+CONST (* wpDrop method return code  *)
+  RC_DROP_DROPCOMPLETE  = 2;
+  RC_DROP_ITEMCOMPLETE  = 1;
+  RC_DROP_RENDERING     = 0;
+  RC_DROP_ERROR         = -1;
+
+TYPE  (*handle for files being tracked by the shell *)
+  HFS = LHANDLE;
+
+CONST
+  MAXSZHFS              = 10;       (* size of the translated string *)
+
+CONST
+  SETTINGS_PAGE_REMOVED = -1;
+
+CONST (* wpSetConcurrentView values *)
+  CCVIEW_DEFAULT        = 0;
+  CCVIEW_ON             = 1;
+  CCVIEW_OFF            = 2;
+
+CONST (* wpSetMinWindow values *)
+  MINWIN_DEFAULT        = 0;
+  MINWIN_HIDDEN         = 1;
+  MINWIN_VIEWER         = 2;
+  MINWIN_DESKTOP        = 3;
+
+CONST (* wpSetButtonAppearance values *)
+  HIDEBUTTON            = 1;
+  MINBUTTON             = 2;
+  DEFAULTBUTTON         = 3;
+
+CONST
+  HIDDENMINWINDOW_DEFAULT = MINWIN_VIEWER;
+
+TYPE
+  PTASKREC       = POINTER TO TASKREC;
+  TASKREC        = RECORD
+    next           : PTASKREC;      (* next in the list of current tasks   *)
+    useCount       : LONGCARD;      (* can be referenced by multiple object*)
+    pStdDlg        : PVOID;         (* ptr to standard WP task dialog      *)
+    folder         : PWPFolder;     (* intended folder for the object      *)
+    xOrigin        : LONGINT;       (* intended position for the object    *)
+    yOrigin        : LONGINT;       (* intended position for the object    *)
+    pszTitle       : PSZ;           (* intended name for the object        *)
+    cbTitle        : LONGCARD;      (* length of the name buffer           *)
+    positionAfterRecord : PMINIRECORDCORE; (* intended sort position       *)
+    fKeepAssociations   : BOOLEAN;
+    pReserved      : PVOID;         (* reserved - equal null               *)
+                   END;
+
+
+(*************************************************************************
+  SOM class API for WPObject, including type-bound procedures
+**************************************************************************)
+
+CONST
+  WPObject_MajorVersion     = 1;
+  WPObject_MinorVersion     = 2;
+
+TYPE
+  WPObjectClassDataStructure     = RECORD
+    classObject                    : PSOMClass;
+    wpSetTitle                     : somMToken;
+    wpQueryTitle                   : somMToken;
+    wpSetStyle                     : somMToken;
+    wpQueryStyle                   : somMToken;
+    wpSetIcon                      : somMToken;
+    wpQueryIcon                    : somMToken;
+    wpSetContainer                 : somMToken;
+    wpQueryContainer               : somMToken;
+    wpSetNextObj                   : somMToken;
+    wpQueryNextObj                 : somMToken;
+    wpSetDefaultView               : somMToken;
+    wpQueryDefaultView             : somMToken;
+    wpMakeDormant                  : somMToken;
+    wpSaveState                    : somMToken;
+    wpBeginSave                    : somMToken;
+    wpEndSave                      : somMToken;
+    wpSaveLong                     : somMToken;
+    wpSaveString                   : somMToken;
+    wpSaveData                     : somMToken;
+    wpAppendSaveData               : somMToken;
+    wpRestoreState                 : somMToken;
+    wpBeginRestore                 : somMToken;
+    wpEndRestore                   : somMToken;
+    wpRestoreLong                  : somMToken;
+    wpRestoreString                : somMToken;
+    wpRestoreData                  : somMToken;
+    wpExtractRestoreData           : somMToken;
+    wpAllocMem                     : somMToken;
+    wpFreeMem                      : somMToken;
+    wpAddToObjUseList              : somMToken;
+    wpDeleteFromObjUseList         : somMToken;
+    wpFindUseItem                  : somMToken;
+    wpSwitchTo                     : somMToken;
+    withdrawn1                     : somMToken;
+    wpFilterPopupMenu              : somMToken;
+    wpModifyPopupMenu              : somMToken;
+    wpMenuItemSelected             : somMToken;
+    wpFormatDragItem               : somMToken;
+    wpDrop                         : somMToken;
+    wpDragOver                     : somMToken;
+    wpRender                       : somMToken;
+    wpEndConversation              : somMToken;
+    withdrawn10                    : somMToken;
+    wpMakeObject                   : somMToken;
+    wpDestroyObject                : somMToken;
+    wpFree                         : somMToken;
+    wpCopiedFromTemplate           : somMToken;
+    wpAddSettingsPages             : somMToken;
+    wpAddObjectGeneralPage         : somMToken;
+    wpDisplayHelp                  : somMToken;
+    wpMenuItemHelpSelected         : somMToken;
+    wpInsertSettingsPage           : somMToken;
+    wpInsertPopupMenuItems         : somMToken;
+    withdrawn5                     : somMToken;
+    withdrawn6                     : somMToken;
+    withdrawn4                     : somMToken;
+    withdrawn3                     : somMToken;
+    wpCnrInsertObject              : somMToken;
+    wpCnrRemoveObject              : somMToken;
+    wpInitData                     : somMToken;
+    wpUnInitData                   : somMToken;
+    wpSetup                        : somMToken;
+    wpScanSetupString              : somMToken;
+    wpSaveImmediate                : somMToken;
+    wpOpen                         : somMToken;
+    wpClose                        : somMToken;
+    wpHide                         : somMToken;
+    wpRestore                      : somMToken;
+    wpSetIconData                  : somMToken;
+    wpQueryIconData                : somMToken;
+    wpQueryIconSaved               : somMToken;
+    wpDelete                       : somMToken;
+    wpConfirmDelete                : somMToken;
+    withdrawn2                     : somMToken;
+    withdrawn11                    : somMToken;
+    withdrawn7                     : somMToken;
+    wpRegisterView                 : somMToken;
+    wpIdentify                     : somMToken;
+    wpSetDefaultHelp               : somMToken;
+    wpQueryDefaultHelp             : somMToken;
+    wpDoesObjectMatch              : somMToken;
+    wpCnrRefreshDetails            : somMToken;
+    wpSetError                     : somMToken;
+    wpQueryError                   : somMToken;
+    wpDraggedOverObject            : somMToken;
+    wpDroppedOnObject              : somMToken;
+    wpSetDefaultIconPos            : somMToken;
+    wpQueryDefaultIconPos          : somMToken;
+    wpSetState                     : somMToken;
+    wpQueryState                   : somMToken;
+    wpSetObjectID                  : somMToken;
+    wpQueryObjectID                : somMToken;
+    wpIsDeleteable                 : somMToken;
+    wpQueryHandle                  : somMToken;
+    wpSaveDeferred                 : somMToken;
+    wpAddObjectWindowPage          : somMToken;
+    wpQueryConcurrentView          : somMToken;
+    wpSetConcurrentView            : somMToken;
+    wpQueryMinWindow               : somMToken;
+    wpSetMinWindow                 : somMToken;
+    wpViewObject                   : somMToken;
+    wpQueryButtonAppearance        : somMToken;
+    wpSetButtonAppearance          : somMToken;
+    wpQueryConfirmations           : somMToken;
+    wpCnrSetEmphasis               : somMToken;
+    wpQueryCoreRecord              : somMToken;
+    wpFindViewItem                 : somMToken;
+    wpCreateFromTemplate           : somMToken;
+    wpQueryTrueStyle               : somMethodProc;
+    wpAssertObjectMutexSem         : somMToken;
+    wpReleaseObjectMutexSem        : somMToken;
+    wpRequestObjectMutexSem        : somMToken;
+    wpCreateAnother                : somMToken;
+    wpCreateShadowObject           : somMToken;
+    wpCopyObject                   : somMToken;
+    wpMoveObject                   : somMToken;
+    wpLockObject                   : somMToken;
+    wpUnlockObject                 : somMToken;
+    wpIsLocked                     : somMToken;
+    wpRenderComplete               : somMToken;
+    wpQueryDetailsData             : somMToken;
+    wpPrintObject                  : somMToken;
+    wpQueryTaskRec                 : somMToken;
+    wpSetTaskRec                   : somMToken;
+    wpSnoozeNotify                 : somMToken;
+    wpModifyStyle                  : somMToken;
+    wpSetInsertState               : somMToken;
+    wpFindTaskRec                  : somMToken;
+    wpAppendObject                 : somMToken;
+    wpReplaceObject                : somMToken;
+    wpQueryNameClashOptions        : somMToken;
+    wpConfirmObjectTitle           : somMToken;
+    pobjNext                       : somDToken;
+    wpQueryContainerFlagPtr        : somMToken;
+    wpAddWindowPosKey              : somMToken;
+    wpDeleteWindowPosKeys          : somMToken;
+    wpObjectInsertPreparation      : somMToken;
+    wpCnrDeleteUseItem             : somMToken;
+                                   END;
+
+VAR
+  WPObjectClassData : WPObjectClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  WPObject = RECORD( SOMObject ) END;
+  (*$SOM- *)
+
+
+
+PROCEDURE WPObjectNewClass
+( majorVersion, minorVersion : INTEGER4 ) : PSOMClass;
+
+PROCEDURE( Self : PWPObject ) wpAddObjectGeneralPage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPObject ) wpAddObjectWindowPage
+(
+  hwndNotebook  : HWND
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPObject ) wpAddSettingsPages
+(
+  hwndNotebook  : HWND
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpAddToObjUseList
+(
+  VAR UseItem   : USEITEM
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpAllocMem
+(
+  cbBytes       : LONGCARD;
+  prc           : PLONGCARD
+)               : PVOID;
+
+PROCEDURE( Self : PWPObject ) wpAppendObject
+(
+  targetObject  : PWPObject;
+  fMove         : BOOLEAN
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpAssertObjectMutexSem( ) : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpClose( ) : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpCnrInsertObject
+(
+  hwndCnr       : HWND;
+  ptlIcon       : POINTL;
+  pParent       : PMINIRECORDCORE;
+  pRecInsert    : PRECORDINSERT
+)               : PMINIRECORDCORE;
+
+PROCEDURE( Self : PWPObject ) wpCnrRemoveObject
+(
+  hwndCnr       : HWND
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpCnrSetEmphasis
+(
+  ulEmphasisAttr : LONGCARD;
+  fTurnOn        : BOOLEAN
+)                : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpConfirmDelete
+(
+  fConfirmations : LONGCARD
+)                : LONGCARD;
+
+PROCEDURE( Self : PWPObject ) wpConfirmObjectTitle
+(
+  Folder         : PWPFolder;
+  VAR pDuplicate : PWPObject;
+  szTitle        : ARRAY OF CHAR;
+  cbTitle        : LONGCARD;
+  menuID         : LONGCARD
+)                : LONGCARD;
+
+PROCEDURE( Self : PWPObject ) wpCopiedFromTemplate( );
+
+PROCEDURE( Self : PWPObject ) wpCopyObject
+(
+  Folder        : PWPFolder;
+  fLock         : BOOLEAN
+)               : PWPObject;
+
+PROCEDURE( Self : PWPObject ) wpCreateAnother
+(
+  szTitle        : ARRAY OF CHAR;
+  VAR szSetupEnv : ARRAY OF CHAR;
+  Folder         : PWPFolder
+)                : PWPObject;
+
+PROCEDURE( Self : PWPObject ) wpCreateFromTemplate
+(
+  Folder        : PWPFolder;
+  fLock         : BOOLEAN
+)               : PWPObject;
+
+PROCEDURE( Self : PWPObject ) wpCreateShadowObject
+(
+  Folder        : PWPFolder;
+  fLock         : BOOLEAN
+)               : PWPObject;
+
+PROCEDURE( Self : PWPObject ) wpDelete
+(
+  fConfirmations : LONGCARD
+)                : LONGCARD;
+
+PROCEDURE( Self : PWPObject ) wpDeleteFromObjUseList
+(
+  VAR UseItem   : USEITEM
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpDisplayHelp
+(
+  HelpPanelId   : LONGCARD;
+  HelpLibrary   : ARRAY OF CHAR
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpDoesObjectMatch
+(
+  VAR ExtCriteria   : ARRAY OF BYTE
+)                   : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpDraggedOverObject
+(
+  DraggedOverObject : PWPObject
+)                   : MRESULT;
+
+PROCEDURE( Self : PWPObject ) wpDragOver
+(
+  hwndCnr       : HWND;
+  VAR drgInfo   : DRAGINFO
+)               : MRESULT;
+
+PROCEDURE( Self : PWPObject ) wpDrop
+(
+  hwndCnr       : HWND;
+  VAR drgInfo   : DRAGINFO;
+  VAR drgItem   : DRAGITEM
+)               : MRESULT;
+
+PROCEDURE( Self : PWPObject ) wpDroppedOnObject
+(
+  DroppedOnObject : PWPObject
+)                 : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpEndConversation
+(
+  ulItemID      : LONGCARD;
+  flResult      : LONGCARD
+)               : MRESULT;
+
+PROCEDURE( Self : PWPObject ) wpFilterPopupMenu
+(
+  ulFlags       : LONGCARD;
+  hwndCnr       : HWND;
+  fMultiSelect  : BOOLEAN
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPObject ) wpFindUseItem
+(
+  type          : LONGCARD;
+  pCurrentItem  : PUSEITEM
+)               : PUSEITEM;
+
+PROCEDURE( Self : PWPObject ) wpFormatDragItem
+(
+  VAR drgItem   : DRAGITEM
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpFree( ) : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpFreeMem
+(
+  pByte         : PVOID
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpHide( ) : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpInitData( );
+
+PROCEDURE( Self : PWPObject ) wpInsertPopupMenuItems
+(
+  hwndMenu      : HWND;
+  iPosition     : LONGCARD;
+  hmod          : HMODULE;
+  MenuID        : LONGCARD;
+  SubMenuID     : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpInsertSettingsPage
+(
+  hwndNotebook  : HWND;
+  VAR pageinfo  : PAGEINFO
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPObject ) wpMenuItemHelpSelected
+(
+  MenuId        : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpMenuItemSelected
+(
+  hwndFrame     : HWND;
+  ulMenuId      : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpModifyPopupMenu
+(
+  hwndMenu      : HWND;
+  hwndCnr       : HWND;
+  iPosition     : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpMoveObject
+(
+  Folder        : PWPFolder
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpOpen
+(
+  hwndCnr       : HWND;
+  ulView        : LONGCARD;
+  param         : LONGCARD
+)               : HWND;
+
+PROCEDURE( Self : PWPObject ) wpPrintObject
+(
+  VAR PrintDest : PRINTDEST;
+  ulReserved    : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpQueryConcurrentView( ) : LONGCARD;
+
+PROCEDURE( Self : PWPObject ) wpQueryButtonAppearance( ) : LONGCARD;
+
+PROCEDURE( Self : PWPObject ) wpQueryConfirmations( ) : LONGCARD;
+
+PROCEDURE( Self : PWPObject ) wpQueryDefaultHelp
+(
+  VAR HelpPanelId   : LONGCARD;
+  VAR HelpLibrary   : ARRAY OF CHAR
+)                   : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpQueryDefaultView( ) : LONGCARD;
+
+PROCEDURE( Self : PWPObject ) wpQueryDetailsData
+(
+  ppDetailsData : PPVOID;
+  VAR cp        : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpQueryError( ) : LONGCARD;
+
+PROCEDURE( Self : PWPObject ) wpQueryIcon( ) : HPOINTER;
+
+PROCEDURE( Self : PWPObject ) wpQueryIconData
+(
+  pIconInfo     : PICONINFO
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPObject ) wpQueryMinWindow( ) : LONGCARD;
+
+PROCEDURE( Self : PWPObject ) wpQueryNameClashOptions
+(
+  menuID        : LONGCARD
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPObject ) wpQueryStyle( ) : LONGCARD;
+
+PROCEDURE( Self : PWPObject ) wpSetTaskRec
+(
+  VAR New       : TASKREC;
+  VAR Old       : TASKREC
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpFindTaskRec( ) : PTASKREC;
+
+PROCEDURE( Self : PWPObject ) wpQueryTitle( ) : PSZ;
+
+PROCEDURE( Self : PWPObject ) wpRegisterView
+(
+  hwndFrame     : HWND;
+  szViewTitle   : ARRAY OF CHAR
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpReleaseObjectMutexSem( ) : LONGCARD;
+
+PROCEDURE( Self : PWPObject ) wpRender
+(
+  VAR dxfer     : DRAGTRANSFER
+)               : MRESULT;
+
+PROCEDURE( Self : PWPObject ) wpRenderComplete
+(
+  VAR dxfer     : DRAGTRANSFER;
+  ulResult      : LONGCARD
+)               : MRESULT;
+
+PROCEDURE( Self : PWPObject ) wpReplaceObject
+(
+  targetObject  : PWPObject;
+  fMove         : BOOLEAN
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpRequestObjectMutexSem
+(
+  ulTimeout     : LONGCARD
+)               : LONGCARD;
+
+PROCEDURE( Self : PWPObject ) wpRestore( ) : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpRestoreData
+(
+  szClass       : ARRAY OF CHAR;
+  ulKey         : LONGCARD;
+  VAR Value     : ARRAY OF BYTE;
+  VAR cbValue   : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpRestoreLong
+(
+  szClass       : ARRAY OF CHAR;
+  ulKey         : LONGCARD;
+  VAR ulValue   : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpRestoreState
+(
+  ulReserved    : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpRestoreString
+(
+  szClass       : ARRAY OF CHAR;
+  ulKey         : LONGCARD;
+  VAR szValue   : ARRAY OF CHAR;
+  VAR cbValue   : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpSaveData
+(
+  szClass       : ARRAY OF CHAR;
+  ulKey         : LONGCARD;
+  VAR Value     : ARRAY OF BYTE;
+  cbValue       : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpSaveImmediate( ) : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpSaveDeferred( ) : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpSaveLong
+(
+  szClass       : ARRAY OF CHAR;
+  ulKey         : LONGCARD;
+  ulValue       : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpSaveState( ) : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpSaveString
+(
+  szClass       : ARRAY OF CHAR;
+  ulKey         : LONGCARD;
+  szValue       : ARRAY OF CHAR
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpScanSetupString
+(
+  szSetupString : ARRAY OF CHAR;
+  szKey         : ARRAY OF CHAR;
+  szValue       : ARRAY OF CHAR;
+  VAR cbValue   : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpSetConcurrentView
+(
+  ulCCView      : LONGCARD
+);
+
+PROCEDURE( Self : PWPObject ) wpSetButtonAppearance
+(
+  ulButtonType  : LONGCARD
+);
+
+PROCEDURE( Self : PWPObject ) wpSetDefaultHelp
+(
+  HelpPanelId   : LONGCARD;
+  HelpLibrary   : ARRAY OF CHAR
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpSetDefaultView
+(
+  ulView        : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpSetError
+(
+  ulErrorId     : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpSetIcon
+(
+  hptrNewIcon   : HPOINTER
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpSetIconData
+(
+  VAR IconInfo  : ICONINFO
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpSetMinWindow
+(
+  ulMinWindow   : LONGCARD
+);
+
+PROCEDURE( Self : PWPObject ) wpSetStyle
+(
+  ulNewStyle    : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpModifyStyle
+(
+  ulStyleFlags  : LONGCARD;
+  ulStyleMask   : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpSetTitle
+(
+  szNewTitle    : ARRAY OF CHAR
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpSetup
+(
+  szSetupString : ARRAY OF CHAR
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpSwitchTo
+(
+  View          : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PWPObject ) wpUnInitData( );
+
+PROCEDURE( Self : PWPObject ) wpViewObject
+(
+  hwndCnr       : HWND;
+  ulView        : LONGCARD;
+  param         : LONGCARD
+)               : HWND;
+
+PROCEDURE( Self : PWPObject ) wpQueryTrueStyle( ) : LONGCARD;
+
+PROCEDURE( Self : PWPObject ) wpQueryHandle( ) : HOBJECT;
+
+PROCEDURE( Self : PWPObject ) wpUnlockObject( ) : BOOLEAN;
+
+
+
+(*************************************************************************
+  SOM class API for M_WPObject, including type-bound procedures
+**************************************************************************)
+
+CONST
+  M_WPObject_MajorVersion   = 1;
+  M_WPObject_MinorVersion   = 2;
+
+TYPE
+  M_WPObjectClassDataStructure   = RECORD
+    classObject                    : PSOMClass;
+    wpclsInitData                  : somMToken;
+    wpclsUnInitData                : somMToken;
+    withdrawn8                     : somMToken;
+    wpclsMakeAwake                 : somMToken;
+    wpclsIncUsage                  : somMToken;
+    wpclsDecUsage                  : somMToken;
+    wpclsQueryTitle                : somMToken;
+    wpclsQueryIcon                 : somMToken;
+    wpclsQueryDefaultHelp          : somMToken;
+    wpclsQueryStyle                : somMToken;
+    wpclsQueryDetailsInfo          : somMToken;
+    wpclsQueryDefaultView          : somMToken;
+    wpclsQueryDetails              : somMToken;
+    wpclsQuerySearchInfo           : somMToken;
+    wpclsQueryExtendedCriteria     : somMToken;
+    wpclsCreateDefaultTemplates    : somMToken;
+    withdrawn9                     : somMToken;
+    wpclsFindObjectFirst           : somMToken;
+    wpclsFindObjectNext            : somMToken;
+    wpclsFindObjectEnd             : somMToken;
+    wpclsFindObjects               : somMToken;
+    wpclsSetError                  : somMToken;
+    wpclsQueryError                : somMToken;
+    wpclsQuerySettingsPageSize     : somMToken;
+    wpclsSetSettingsPageSize       : somMToken;
+    wpclsQueryIconData             : somMToken;
+    wpclsSetIcon                   : somMToken;
+    wpclsSetIconData               : somMToken;
+    wpclsQueryObject               : somMToken;
+    wpclsObjectFromHandle          : somMToken;
+    wpclsSaveDirtyObjects          : somMToken;
+    wpclsLockDirtyList             : somMToken;
+    wpclsUnlockDirtyList           : somMToken;
+    wpclsLockRestartList           : somMToken;
+    wpclsUnlockRestartList         : somMToken;
+    wpclsQueryButtonAppearance     : somMToken;
+    wpclsNew                       : somMToken;
+    wpclsQueryFolder               : somMToken;
+    wpclsLockSleepyList            : somMToken;
+    wpclsUnlockSleepyList          : somMToken;
+    wpclsRemoveObjects             : somMToken;
+    wpclsInsertMultipleObjects     : somMToken;
+                                   END;
+
+VAR
+  M_WPObjectClassData : M_WPObjectClassDataStructure;
+
+TYPE
+  (*$SOM+ *)
+  M_WPObject = RECORD( SOMClass ) END;
+  (*$SOM- *)
+
+
+PROCEDURE M_WPObjectNewClass
+(
+  majorVersion  : INTEGER4;
+  minorVersion  : INTEGER4
+)               : PSOMClass;
+
+PROCEDURE( Self : PM_WPObject ) wpclsCreateDefaultTemplates
+(
+  Folder        : PWPObject
+)               : BOOLEAN;
+
+PROCEDURE( Self : PM_WPObject ) wpclsInitData( );
+
+PROCEDURE( Self : PM_WPObject ) wpclsMakeAwake
+(
+  VAR szTitle   : ARRAY OF CHAR;
+  ulStyle       : LONGCARD;
+  hptrIcon      : HPOINTER;
+  VAR ObjData   : OBJDATA;
+  Folder        : PWPFolder;
+  ulUser        : LONGCARD
+)               : PWPObject;
+
+PROCEDURE( Self : PM_WPObject ) wpclsNew
+(
+  szTitle       : ARRAY OF CHAR;
+  szSetupEnv    : ARRAY OF CHAR;
+  Folder        : PWPFolder;
+  fLock         : BOOLEAN
+)               : ADDRESS;
+
+PROCEDURE( Self : PM_WPObject ) wpclsQueryDefaultHelp
+(
+  VAR HelpPanelId   : LONGCARD;
+  VAR szHelpLibrary : ARRAY OF CHAR
+)                   : BOOLEAN;
+
+PROCEDURE( Self : PM_WPObject ) wpclsQueryDefaultView( ) : LONGCARD;
+
+PROCEDURE( Self : PM_WPObject ) wpclsQueryDetails( ) : PCLASSDETAILS;
+
+PROCEDURE( Self : PM_WPObject ) wpclsQueryDetailsInfo
+(
+  ppClassFieldInfo : PPCLASSFIELDINFO;
+  pSize            : PLONGCARD
+)                  : LONGCARD;
+
+PROCEDURE( Self : PM_WPObject ) wpclsQueryExtendedCriteria
+(
+  szName               : ARRAY OF CHAR;
+  ulSearchType         : LONGCARD;
+  VAR ExtendedCriteria : ARRAY OF BYTE
+)                      : BOOLEAN;
+
+PROCEDURE( Self : PM_WPObject ) wpclsQueryFolder
+(
+  szLocation    : ARRAY OF CHAR;
+  fLock         : BOOLEAN
+)               : PWPObject;
+
+PROCEDURE( Self : PM_WPObject ) wpclsQueryIcon( ) : HPOINTER;
+
+PROCEDURE( Self : PM_WPObject ) wpclsQuerySearchInfo
+(
+  VAR ClassExtended       : PM_WPObject;
+  VAR ClassCreate         : PM_WPObject;
+  VAR ulClassCriteriaSize : LONGCARD
+);
+
+PROCEDURE( Self : PM_WPObject ) wpclsQueryStyle( ) : LONGCARD;
+
+PROCEDURE( Self : PM_WPObject ) wpclsQueryTitle( ) : PSZ;
+
+PROCEDURE( Self : PM_WPObject ) wpclsUnInitData( );
+
+PROCEDURE( Self : PM_WPObject ) wpclsFindObjectFirst
+(
+  VAR ClassList        : ARRAY OF CLASS;
+  VAR hFind            : HFIND;
+  szTitle              : ARRAY OF CHAR;
+  Folder               : PWPFolder;
+  fSubfolders          : BOOLEAN;
+  VAR ExtendedCriteria : ARRAY OF BYTE;
+  VAR Buffer           : ARRAY OF OBJECT;
+  VAR Count            : LONGCARD
+)                      : BOOLEAN;
+
+PROCEDURE( Self : PM_WPObject ) wpclsFindObjectNext
+(
+  VAR Buffer    : ARRAY OF OBJECT;
+  VAR Count     : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PM_WPObject ) wpclsFindObjectEnd
+(
+  hFind         : HFIND
+)               : BOOLEAN;
+
+PROCEDURE( Self : PM_WPObject ) wpclsSetError
+(
+  ulErrorId     : LONGCARD
+)               : BOOLEAN;
+
+PROCEDURE( Self : PM_WPObject ) wpclsQueryError( ) : LONGCARD;
+
+PROCEDURE( Self : PM_WPObject ) wpclsQuerySettingsPageSize
+(
+  VAR Sizl      : SIZEL
+)               : BOOLEAN;
+
+PROCEDURE( Self : PM_WPObject ) wpclsQueryIconData
+(
+  pIconInfo     : PICONINFO
+)               : LONGCARD;
+
+PROCEDURE( Self : PM_WPObject ) wpclsQueryObject
+(
+  hObject       : HOBJECT
+)               : PWPObject;
+
+PROCEDURE( Self : PM_WPObject ) wpclsQueryButtonAppearance( ) : LONGCARD;
+
+
+END WPOBJECT.
